@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Animation Generator</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --border: #30363d;
+            --text: #e6edf3;
+            --text-muted: #8b949e;
+            --accent: #a371f7;
+            --accent-hover: #bc8cff;
+            --success: #3fb950;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            animation: fadeIn 0.6s ease;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), #58a6ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .preview-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 280px;
+            background: var(--bg);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .animated-box {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--accent), #58a6ff);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+        }
+
+        .controls-section label {
+            margin-top: 1rem;
+        }
+
+        .controls-section label:first-child {
+            margin-top: 0;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            -webkit-appearance: none;
+            background: var(--border);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        input[type="number"] {
+            width: 70px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.4rem;
+            color: var(--text);
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        select {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.5rem;
+            color: var(--text);
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .value-display {
+            min-width: 60px;
+            text-align: right;
+            color: var(--accent);
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .output-section {
+            position: sticky;
+            top: 2rem;
+        }
+
+        .output-code {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'Consolas', monospace;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 400px;
+            overflow-y: auto;
+            color: var(--text);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--success);
+            color: var(--bg);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .preset-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .preset-btn {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.4rem 0.8rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover {
+            background: var(--accent);
+            color: var(--bg);
+            border-color: var(--accent);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-40px); }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.15); opacity: 0.8; }
+        }
+
+        @keyframes fadeInAnim {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes slideRight {
+            from { transform: translateX(-60px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        @keyframes flip {
+            0% { transform: perspective(400px) rotateY(0); }
+            100% { transform: perspective(400px) rotateY(360deg); }
+        }
+
+        .anim-bounce { animation: bounce 1s ease-in-out infinite; }
+        .anim-spin { animation: spin 1s linear infinite; }
+        .anim-pulse { animation: pulse 1.5s ease-in-out infinite; }
+        .anim-fadeIn { animation: fadeInAnim 1s ease-out forwards; }
+        .anim-slideRight { animation: slideRight 1s ease-out forwards; }
+        .anim-shake { animation: shake 0.5s ease-in-out infinite; }
+        .anim-flip { animation: flip 1.5s ease-in-out infinite; }
+
+        @media (max-width: 900px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+            .output-section {
+                position: static;
+            }
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CSS Animation Generator</h1>
+            <p class="subtitle">Create beautiful CSS keyframe animations visually</p>
+        </header>
+
+        <div class="main-layout">
+            <div class="left-panel">
+                <div class="card">
+                    <label>Preview</label>
+                    <div class="preview-area">
+                        <div class="animated-box" id="animatedBox">A</div>
+                    </div>
+                </div>
+
+                <div class="card controls-section">
+                    <label>Animation Presets</label>
+                    <div class="preset-btns">
+                        <button class="preset-btn" data-anim="bounce">Bounce</button>
+                        <button class="preset-btn" data-anim="spin">Spin</button>
+                        <button class="preset-btn" data-anim="pulse">Pulse</button>
+                        <button class="preset-btn" data-anim="fadeIn">Fade In</button>
+                        <button class="preset-btn" data-anim="slideRight">Slide</button>
+                        <button class="preset-btn" data-anim="shake">Shake</button>
+                        <button class="preset-btn" data-anim="flip">Flip</button>
+                    </div>
+
+                    <label>Animation Name</label>
+                    <div class="control-row">
+                        <select id="animationName" onchange="updateAnimation()">
+                            <option value="bounce">bounce</option>
+                            <option value="spin">spin</option>
+                            <option value="pulse">pulse</option>
+                            <option value="fadeIn">fadeIn</option>
+                            <option value="slideRight">slideRight</option>
+                            <option value="shake">shake</option>
+                            <option value="flip">flip</option>
+                        </select>
+                    </div>
+
+                    <label>Duration</label>
+                    <div class="control-row">
+                        <input type="range" id="duration" min="0.1" max="5" step="0.1" value="1" oninput="updateAnimation()">
+                        <span class="value-display" id="durationVal">1s</span>
+                    </div>
+
+                    <label>Timing Function</label>
+                    <div class="control-row">
+                        <select id="timing" onchange="updateAnimation()">
+                            <option value="linear">linear</option>
+                            <option value="ease">ease</option>
+                            <option value="ease-in">ease-in</option>
+                            <option value="ease-out">ease-out</option>
+                            <option value="ease-in-out" selected>ease-in-out</option>
+                            <option value="cubic-bezier(0.68, -0.55, 0.265, 1.55)">elastic</option>
+                        </select>
+                    </div>
+
+                    <label>Iteration Count</label>
+                    <div class="control-row">
+                        <select id="iteration" onchange="updateAnimation()">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="infinite" selected>infinite</option>
+                        </select>
+                    </div>
+
+                    <label>Direction</label>
+                    <div class="control-row">
+                        <select id="direction" onchange="updateAnimation()">
+                            <option value="normal">normal</option>
+                            <option value="reverse">reverse</option>
+                            <option value="alternate">alternate</option>
+                            <option value="alternate-reverse">alternate-reverse</option>
+                        </select>
+                    </div>
+
+                    <label>Delay</label>
+                    <div class="control-row">
+                        <input type="range" id="delay" min="0" max="3" step="0.1" value="0" oninput="updateAnimation()">
+                        <span class="value-display" id="delayVal">0s</span>
+                    </div>
+
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="playPause" checked onchange="toggleAnimation()">
+                        <label style="text-transform: none; margin: 0;">Playing</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="card output-section">
+                    <label>Generated CSS</label>
+                    <div class="output-code" id="output"></div>
+                    <div class="btn-row">
+                        <button class="btn" onclick="copyToClipboard()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                            </svg>
+                            Copy CSS
+                        </button>
+                        <button class="btn btn-secondary" onclick="resetDefaults()">Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Copied to clipboard!</div>
+
+    <script>
+        const box = document.getElementById('animatedBox');
+        const durationSlider = document.getElementById('duration');
+        const durationVal = document.getElementById('durationVal');
+        const delaySlider = document.getElementById('delay');
+        const delayVal = document.getElementById('delayVal');
+        const timingSelect = document.getElementById('timing');
+        const iterationSelect = document.getElementById('iteration');
+        const directionSelect = document.getElementById('direction');
+        const animationSelect = document.getElementById('animationName');
+        const playPauseCheckbox = document.getElementById('playPause');
+        const output = document.getElementById('output');
+        const toast = document.getElementById('toast');
+
+        const keyframes = {
+            bounce: `@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-40px); }
+}`,
+            spin: `@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}`,
+            pulse: `@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.8; }
+}`,
+            fadeIn: `@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}`,
+            slideRight: `@keyframes slideRight {
+  from { transform: translateX(-60px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}`,
+            shake: `@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}`,
+            flip: `@keyframes flip {
+  0% { transform: perspective(400px) rotateY(0); }
+  100% { transform: perspective(400px) rotateY(360deg); }
+}`
+        };
+
+        function updateAnimation() {
+            const name = animationSelect.value;
+            const duration = durationSlider.value + 's';
+            const timing = timingSelect.value;
+            const iteration = iterationSelect.value;
+            const direction = directionSelect.value;
+            const delay = delaySlider.value + 's';
+
+            durationVal.textContent = duration;
+            delayVal.textContent = delay;
+
+            box.style.animation = `${name} ${duration} ${timing} ${delay} ${iteration} ${direction}`;
+
+            generateCSS(name, duration, timing, iteration, direction, delay);
+        }
+
+        function generateCSS(name, duration, timing, iteration, direction, delay) {
+            const kf = keyframes[name];
+            const rule = `animation: ${name} ${duration} ${timing} ${delay} ${iteration} ${direction};`;
+
+            output.textContent = `/* Keyframes */
+${kf}
+
+/* Usage */
+.animated-element {
+  ${rule}
+}`;
+        }
+
+        function toggleAnimation() {
+            if (playPauseCheckbox.checked) {
+                box.style.animationPlayState = 'running';
+            } else {
+                box.style.animationPlayState = 'paused';
+            }
+        }
+
+        function copyToClipboard() {
+            navigator.clipboard.writeText(output.textContent).then(() => {
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2000);
+            });
+        }
+
+        function resetDefaults() {
+            durationSlider.value = 1;
+            delaySlider.value = 0;
+            timingSelect.value = 'ease-in-out';
+            iterationSelect.value = 'infinite';
+            directionSelect.value = 'normal';
+            animationSelect.value = 'bounce';
+            playPauseCheckbox.checked = true;
+            updateAnimation();
+        }
+
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                animationSelect.value = btn.dataset.anim;
+                updateAnimation();
+            });
+        });
+
+        updateAnimation();
+    </script>
+</body>
+</html>

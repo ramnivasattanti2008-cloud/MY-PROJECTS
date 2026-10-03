@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Book - Reading List</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        h1 { color: #333; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 500; color: #333; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; }
+        .btn { background: #007bff; color: white; padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        .btn:hover { background: #0056b3; }
+        .btn-secondary { background: #6c757d; margin-left: 10px; }
+        .btn-secondary:hover { background: #545b62; }
+        .card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .hint { font-size: 12px; color: #666; margin-top: 3px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Edit Book</h1>
+        <div class="card">
+            <form method="post">
+                <div class="form-group">
+                    <label for="title">Title *</label>
+                    <input type="text" id="title" name="title" required value="{{ book.title }}">
+                </div>
+                <div class="form-group">
+                    <label for="author">Author</label>
+                    <input type="text" id="author" name="author" value="{{ book.author or '' }}">
+                </div>
+                <div class="form-group">
+                    <label for="genre">Genre</label>
+                    <select id="genre" name="genre">
+                        <option value="">Select genre</option>
+                        <option value="Fiction" {% if book.genre == 'Fiction' %}selected{% endif %}>Fiction</option>
+                        <option value="Non-Fiction" {% if book.genre == 'Non-Fiction' %}selected{% endif %}>Non-Fiction</option>
+                        <option value="Science Fiction" {% if book.genre == 'Science Fiction' %}selected{% endif %}>Science Fiction</option>
+                        <option value="Fantasy" {% if book.genre == 'Fantasy' %}selected{% endif %}>Fantasy</option>
+                        <option value="Mystery" {% if book.genre == 'Mystery' %}selected{% endif %}>Mystery</option>
+                        <option value="Biography" {% if book.genre == 'Biography' %}selected{% endif %}>Biography</option>
+                        <option value="Self-Help" {% if book.genre == 'Self-Help' %}selected{% endif %}>Self-Help</option>
+                        <option value="History" {% if book.genre == 'History' %}selected{% endif %}>History</option>
+                        <option value="Science" {% if book.genre == 'Science' %}selected{% endif %}>Science</option>
+                        <option value="Technology" {% if book.genre == 'Technology' %}selected{% endif %}>Technology</option>
+                        <option value="Other" {% if book.genre == 'Other' %}selected{% endif %}>Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="status">Reading Status</label>
+                    <select id="status" name="status">
+                        <option value="to_read" {% if book.status == 'to_read' %}selected{% endif %}>To Read</option>
+                        <option value="reading" {% if book.status == 'reading' %}selected{% endif %}>Currently Reading</option>
+                        <option value="completed" {% if book.status == 'completed' %}selected{% endif %}>Completed</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="started_at">Started Date</label>
+                    <input type="date" id="started_at" name="started_at" value="{{ book.started_at or '' }}">
+                </div>
+                <div class="form-group">
+                    <label for="finished_at">Finished Date</label>
+                    <input type="date" id="finished_at" name="finished_at" value="{{ book.finished_at or '' }}">
+                </div>
+                <button type="submit" class="btn">Update Book</button>
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Order Confirmation{% endblock %}
+
+{% block content %}
+<section class="confirmation-page">
+    <div class="container">
+        <div class="confirmation-content">
+            <div class="success-icon">✓</div>
+            <h1>Thank You for Your Order!</h1>
+            <p class="order-number">Order #{{ order.order_number }}</p>
+            <p>Your order has been placed successfully. We'll send you an email confirmation shortly.</p>
+
+            <div class="order-details">
+                <div class="detail-section">
+                    <h3>Order Summary</h3>
+                    <div class="order-items">
+                        {% for item in order.items %}
+                        <div class="order-item">
+                            <span>{{ item.product_name }} x{{ item.quantity }}</span>
+                            <span>${{ "%.2f"|format(item.total) }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="order-totals">
+                        <div class="total-row">
+                            <span>Subtotal</span>
+                            <span>${{ "%.2f"|format(order.subtotal) }}</span>
+                        </div>
+                        <div class="total-row">
+                            <span>Shipping</span>
+                            <span>${{ "%.2f"|format(order.shipping) }}</span>
+                        </div>
+                        <div class="total-row">
+                            <span>Tax</span>
+                            <span>${{ "%.2f"|format(order.tax) }}</span>
+                        </div>
+                        <div class="total-row grand-total">
+                            <span>Total</span>
+                            <span>${{ "%.2f"|format(order.total) }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>Shipping Address</h3>
+                    <address>
+                        {{ order.shipping_name }}<br>
+                        {{ order.shipping_address }}<br>
+                        {{ order.shipping_city }}, {{ order.shipping_state }} {{ order.shipping_zip }}<br>
+                        {{ order.shipping_country }}
+                    </address>
+                </div>
+            </div>
+
+            <div class="confirmation-actions">
+                <a href="{{ url_for('shop') }}" class="btn btn-primary">Continue Shopping</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard - Quiz Game</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            min-height: 100vh;
+        }
+        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #30363d;
+            margin-bottom: 40px;
+        }
+        h1 { color: #58a6ff; font-size: 2rem; }
+        .nav a { color: #58a6ff; text-decoration: none; margin-left: 20px; }
+        .table-container {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 16px 20px; text-align: left; border-bottom: 1px solid #30363d; }
+        th { background: #0d1117; color: #8b949e; font-weight: 600; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #1c2128; }
+        .rank { font-weight: bold; }
+        .rank-1 { color: #ffd700; }
+        .rank-2 { color: #c0c0c0; }
+        .rank-3 { color: #cd7f32; }
+        .player-name { color: #fff; font-weight: bold; }
+        .score-value { color: #58a6ff; font-size: 1.2rem; }
+        .accuracy { color: #238636; }
+        .empty-state { text-align: center; padding: 60px; color: #8b949e; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Leaderboard</h1>
+            <nav class="nav">
+                <a href="/">Play Quiz</a>
+            </nav>
+        </header>
+
+        <div class="table-container">
+            {% if scores %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Player</th>
+                        <th>Score</th>
+                        <th>Correct</th>
+                        <th>Accuracy</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in scores %}
+                    <tr>
+                        <td class="rank {{ 'rank-' ~ loop.index if loop.index <= 3 else '' }}">#{{ loop.index }}</td>
+                        <td class="player-name">{{ s.player_name }}</td>
+                        <td class="score-value">{{ s.score }}</td>
+                        <td>{{ s.correct_answers }}/{{ s.total_questions }}</td>
+                        <td class="accuracy">{{ ((s.correct_answers / s.total_questions) * 100)|int }}%</td>
+                        <td>{{ s.played_at.strftime('%Y-%m-%d') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <p>No scores yet. Be the first to play!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

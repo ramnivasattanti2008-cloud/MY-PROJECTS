@@ -1,0 +1,5 @@
+# port-scanner requirements
+# Uses Python standard library only - no external dependencies needed!
+
+# Optional enhancements (uncomment if needed):
+# colorama>=0.4.6      # Colored terminal output

@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base64 Encoder/Decoder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0d0d12;
+            --bg-secondary: #16161f;
+            --bg-tertiary: #22222f;
+            --accent: #ff6b9d;
+            --accent-secondary: #c44dff;
+            --accent-glow: rgba(255, 107, 157, 0.2);
+            --text-primary: #ffffff;
+            --text-secondary: #9090a0;
+            --text-muted: #505060;
+            --border: #2a2a3a;
+            --success: #00d68f;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            background: var(--bg-secondary);
+            padding: 0.5rem;
+            border-radius: 12px;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 0.85rem 1.5rem;
+            background: transparent;
+            border: none;
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+        }
+
+        .tab.active {
+            background: var(--accent);
+            color: var(--bg-primary);
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            animation: fadeInUp 0.6s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .card:nth-child(2) { animation-delay: 0.1s; }
+        .card:nth-child(3) { animation-delay: 0.2s; }
+
+        .panel {
+            display: none;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .char-count {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 1rem;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-family: 'Consolas', 'Monaco', monospace;
+            resize: vertical;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px var(--accent-glow);
+        }
+
+        .result-box {
+            background: var(--bg-primary);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 1rem;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.95rem;
+            min-height: 100px;
+            max-height: 300px;
+            overflow-y: auto;
+            word-break: break-all;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .result-box:empty::before {
+            content: 'Result will appear here...';
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.85rem 1.75rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--accent-glow);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .stat-box {
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .copy-feedback {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--success);
+            color: var(--bg-primary);
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            opacity: 0;
+            transition: transform 0.3s, opacity 0.3s;
+            z-index: 100;
+        }
+
+        .copy-feedback.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 1rem; }
+            h1 { font-size: 1.8rem; }
+            .card { padding: 1.5rem; }
+            .btn-group { flex-direction: column; }
+            .btn { width: 100%; }
+            .tabs { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Base64 Encoder/Decoder</h1>
+            <p class="subtitle">Encode and decode Base64 strings instantly</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="encode">Encode</button>
+            <button class="tab" data-tab="decode">Decode</button>
+        </div>
+
+        <div id="encodePanel" class="card panel active">
+            <div class="input-group">
+                <div class="label-row">
+                    <label for="encodeInput">Text to Encode</label>
+                    <span class="char-count" id="encodeCount">0 characters</span>
+                </div>
+                <textarea id="encodeInput" placeholder="Enter text to encode to Base64..."></textarea>
+            </div>
+            <div class="input-group">
+                <div class="label-row">
+                    <label>Base64 Output</label>
+                </div>
+                <div class="result-box" id="encodeOutput"></div>
+            </div>
+            <div class="btn-group">
+                <button class="btn" id="encodeBtn">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                    </svg>
+                    Encode
+                </button>
+                <button class="btn btn-secondary" id="encodeCopyBtn">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                    Copy
+                </button>
+                <button class="btn btn-secondary" id="encodeClearBtn">Clear</button>
+            </div>
+        </div>
+
+        <div id="decodePanel" class="card panel">
+            <div class="input-group">
+                <div class="label-row">
+                    <label for="decodeInput">Base64 to Decode</label>
+                    <span class="char-count" id="decodeCount">0 characters</span>
+                </div>
+                <textarea id="decodeInput" placeholder="Paste Base64 string here..."></textarea>
+            </div>
+            <div class="input-group">
+                <div class="label-row">
+                    <label>Decoded Text</label>
+                </div>
+                <div class="result-box" id="decodeOutput"></div>
+            </div>
+            <div id="decodeError" style="display: none; color: var(--accent); margin-bottom: 1rem; padding: 0.75rem; background: rgba(255,107,157,0.1); border-radius: 8px;">
+                Invalid Base64 string
+            </div>
+            <div class="btn-group">
+                <button class="btn" id="decodeBtn">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                    </svg>
+                    Decode
+                </button>
+                <button class="btn btn-secondary" id="decodeCopyBtn">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                    Copy
+                </button>
+                <button class="btn btn-secondary" id="decodeClearBtn">Clear</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-value" id="totalEncoded">0</div>
+                    <div class="stat-label">Encoded Today</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="totalDecoded">0</div>
+                    <div class="stat-label">Decoded Today</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="compressionRatio">-</div>
+                    <div class="stat-label">Compression Ratio</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="copyFeedback" class="copy-feedback">Copied to clipboard!</div>
+
+    <script>
+        const tabs = document.querySelectorAll('.tab');
+        const panels = document.querySelectorAll('.panel');
+
+        const encodeInput = document.getElementById('encodeInput');
+        const encodeOutput = document.getElementById('encodeOutput');
+        const encodeCount = document.getElementById('encodeCount');
+        const encodeBtn = document.getElementById('encodeBtn');
+        const encodeCopyBtn = document.getElementById('encodeCopyBtn');
+        const encodeClearBtn = document.getElementById('encodeClearBtn');
+
+        const decodeInput = document.getElementById('decodeInput');
+        const decodeOutput = document.getElementById('decodeOutput');
+        const decodeCount = document.getElementById('decodeCount');
+        const decodeBtn = document.getElementById('decodeBtn');
+        const decodeCopyBtn = document.getElementById('decodeCopyBtn');
+        const decodeClearBtn = document.getElementById('decodeClearBtn');
+        const decodeError = document.getElementById('decodeError');
+
+        const copyFeedback = document.getElementById('copyFeedback');
+        const totalEncoded = document.getElementById('totalEncoded');
+        const totalDecoded = document.getElementById('totalDecoded');
+        const compressionRatio = document.getElementById('compressionRatio');
+
+        let stats = JSON.parse(localStorage.getItem('base64Stats') || '{"encoded":0,"decoded":0}');
+
+        function updateStats() {
+            totalEncoded.textContent = stats.encoded;
+            totalDecoded.textContent = stats.decoded;
+        }
+
+        function showFeedback() {
+            copyFeedback.classList.add('show');
+            setTimeout(() => copyFeedback.classList.remove('show'), 2000);
+        }
+
+        function encode() {
+            const text = encodeInput.value;
+            if (!text) return;
+            const encoded = btoa(unescape(encodeURIComponent(text)));
+            encodeOutput.textContent = encoded;
+            stats.encoded++;
+            localStorage.setItem('base64Stats', JSON.stringify(stats));
+            updateStats();
+            updateCompressionRatio(text.length, encoded.length);
+        }
+
+        function decode() {
+            const text = decodeInput.value.trim();
+            if (!text) return;
+            decodeError.style.display = 'none';
+            try {
+                const decoded = decodeURIComponent(escape(atob(text)));
+                decodeOutput.textContent = decoded;
+                stats.decoded++;
+                localStorage.setItem('base64Stats', JSON.stringify(stats));
+                updateStats();
+                updateCompressionRatio(decoded.length, text.length);
+            } catch (e) {
+                decodeError.style.display = 'block';
+                decodeOutput.textContent = '';
+            }
+        }
+
+        function updateCompressionRatio(original, encoded) {
+            const ratio = ((encoded / original) * 100).toFixed(1);
+            compressionRatio.textContent = ratio + '%';
+        }
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                panels.forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab + 'Panel').classList.add('active');
+            });
+        });
+
+        encodeInput.addEventListener('input', () => {
+            encodeCount.textContent = encodeInput.value.length + ' characters';
+        });
+
+        decodeInput.addEventListener('input', () => {
+            decodeCount.textContent = decodeInput.value.length + ' characters';
+        });
+
+        encodeBtn.addEventListener('click', encode);
+        encodeCopyBtn.addEventListener('click', () => {
+            if (encodeOutput.textContent) {
+                navigator.clipboard.writeText(encodeOutput.textContent);
+                showFeedback();
+            }
+        });
+        encodeClearBtn.addEventListener('click', () => {
+            encodeInput.value = '';
+            encodeOutput.textContent = '';
+            encodeCount.textContent = '0 characters';
+        });
+
+        decodeBtn.addEventListener('click', decode);
+        decodeCopyBtn.addEventListener('click', () => {
+            if (decodeOutput.textContent) {
+                navigator.clipboard.writeText(decodeOutput.textContent);
+                showFeedback();
+            }
+        });
+        decodeClearBtn.addEventListener('click', () => {
+            decodeInput.value = '';
+            decodeOutput.textContent = '';
+            decodeCount.textContent = '0 characters';
+            decodeError.style.display = 'none';
+        });
+
+        updateStats();
+    </script>
+</body>
+</html>

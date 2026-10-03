@@ -1,0 +1,2 @@
+# Auto Backup - Requirements
+# No external packages required (uses Python standard library only)

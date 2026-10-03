@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Projects - Portfolio{% endblock %}
+{% block content %}
+<div class="container">
+    <h1 style="font-size: 2.5rem; margin-bottom: 2rem; color: #00d4ff;">My Projects</h1>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+        <div style="background: #12121a; border-radius: 12px; padding: 1.5rem; border: 1px solid #1a1a2e;">
+            <h3 style="margin-bottom: 0.5rem;">E-Commerce Platform</h3>
+            <p style="color: #888; margin-bottom: 1rem;">Full-stack e-commerce solution with payment integration and inventory management.</p>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <span style="background: #1a1a2e; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem;">React</span>
+                <span style="background: #1a1a2e; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem;">Node.js</span>
+                <span style="background: #1a1a2e; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem;">MongoDB</span>
+            </div>
+        </div>
+        <div style="background: #12121a; border-radius: 12px; padding: 1.5rem; border: 1px solid #1a1a2e;">
+            <h3 style="margin-bottom: 0.5rem;">Task Management App</h3>
+            <p style="color: #888; margin-bottom: 1rem;">Collaborative task manager with real-time updates and team features.</p>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <span style="background: #1a1a2e; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem;">Flask</span>
+                <span style="background: #1a1a2e; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem;">Socket.io</span>
+                <span style="background: #1a1a2e; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem;">PostgreSQL</span>
+            </div>
+        </div>
+        <div style="background: #12121a; border-radius: 12px; padding: 1.5rem; border: 1px solid #1a1a2e;">
+            <h3 style="margin-bottom: 0.5rem;">Analytics Dashboard</h3>
+            <p style="color: #888; margin-bottom: 1rem;">Real-time analytics platform with interactive visualizations.</p>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <span style="background: #1a1a2e; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem;">Python</span>
+                <span style="background: #1a1a2e; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem;">D3.js</span>
+                <span style="background: #1a1a2e; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem;">Redis</span>
+            </div>
+        </div>
+        <div style="background: #12121a; border-radius: 12px; padding: 1.5rem; border: 1px solid #1a1a2e;">
+            <h3 style="margin-bottom: 0.5rem;">REST API Framework</h3>
+            <p style="color: #888; margin-bottom: 1rem;">Lightweight Python framework for building RESTful APIs.</p>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <span style="background: #1a1a2e; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem;">Python</span>
+                <span style="background: #1a1a2e; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.85rem;">OpenAPI</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

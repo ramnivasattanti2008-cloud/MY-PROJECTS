@@ -1,0 +1,272 @@
+[
+  {
+    "title": "The Shawshank Redemption",
+    "year": 1994,
+    "genre": ["Drama", "Crime"],
+    "rating": 9.3,
+    "director": "Frank Darabont",
+    "runtime": 142,
+    "description": "A banker convicted of uxoricide forms a friendship over a quarter century with a hardened convict, while maintaining his innocence and trying to remain hopeful through simple compassion."
+  },
+  {
+    "title": "The Godfather",
+    "year": 1972,
+    "genre": ["Crime", "Drama"],
+    "rating": 9.2,
+    "director": "Francis Ford Coppola",
+    "runtime": 175,
+    "description": "The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son."
+  },
+  {
+    "title": "The Dark Knight",
+    "year": 2008,
+    "genre": ["Action", "Crime", "Drama", "Thriller"],
+    "rating": 9.0,
+    "director": "Christopher Nolan",
+    "runtime": 152,
+    "description": "When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice."
+  },
+  {
+    "title": "Pulp Fiction",
+    "year": 1994,
+    "genre": ["Crime", "Drama"],
+    "rating": 8.9,
+    "director": "Quentin Tarantino",
+    "runtime": 154,
+    "description": "The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption."
+  },
+  {
+    "title": "Inception",
+    "year": 2010,
+    "genre": ["Action", "Sci-Fi", "Thriller"],
+    "rating": 8.8,
+    "director": "Christopher Nolan",
+    "runtime": 148,
+    "description": "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O."
+  },
+  {
+    "title": "Forrest Gump",
+    "year": 1994,
+    "genre": ["Drama", "Romance"],
+    "rating": 8.8,
+    "director": "Robert Zemeckis",
+    "runtime": 142,
+    "description": "The presidencies of Kennedy and Johnson, the Vietnam War, the Watergate scandal and other historical events unfold from the perspective of an Alabama man with an IQ of 75."
+  },
+  {
+    "title": "The Matrix",
+    "year": 1999,
+    "genre": ["Action", "Sci-Fi"],
+    "rating": 8.7,
+    "director": "The Wachowskis",
+    "runtime": 136,
+    "description": "When a beautiful stranger leads computer hacker Neo to a forbidding underworld, he discovers the shocking truth--the life he knows is the elaborate deception of an evil cyber-intelligence."
+  },
+  {
+    "title": "Goodfellas",
+    "year": 1990,
+    "genre": ["Crime", "Drama"],
+    "rating": 8.7,
+    "director": "Martin Scorsese",
+    "runtime": 146,
+    "description": "The story of Henry Hill and his life in the mob, covering his relationship with his wife Karen Hill and his mob partners Jimmy Conway and Tommy DeVito."
+  },
+  {
+    "title": "Interstellar",
+    "year": 2014,
+    "genre": ["Adventure", "Drama", "Sci-Fi"],
+    "rating": 8.6,
+    "director": "Christopher Nolan",
+    "runtime": 169,
+    "description": "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival."
+  },
+  {
+    "title": "The Silence of the Lambs",
+    "year": 1991,
+    "genre": ["Crime", "Drama", "Thriller"],
+    "rating": 8.6,
+    "director": "Jonathan Demme",
+    "runtime": 118,
+    "description": "A young F.B.I. cadet must receive the help of an incarcerated and manipulative cannibal killer to help catch another serial killer."
+  },
+  {
+    "title": "Spirited Away",
+    "year": 2001,
+    "genre": ["Animation", "Adventure", "Fantasy"],
+    "rating": 8.6,
+    "director": "Hayao Miyazaki",
+    "runtime": 125,
+    "description": "During her family's move to the suburbs, a sullen 10-year-old girl wanders into a world ruled by gods, witches, and spirits."
+  },
+  {
+    "title": "Saving Private Ryan",
+    "year": 1998,
+    "genre": ["Drama", "War"],
+    "rating": 8.6,
+    "director": "Steven Spielberg",
+    "runtime": 169,
+    "description": "Following the Normandy landings, a group of American soldiers go behind enemy lines to retrieve a paratrooper whose brothers have been killed in action."
+  },
+  {
+    "title": "The Green Mile",
+    "year": 1999,
+    "genre": ["Crime", "Drama", "Fantasy"],
+    "rating": 8.6,
+    "director": "Frank Darabont",
+    "runtime": 189,
+    "description": "The lives of guards on Death Row are affected by one of their charges: a black man accused of child murder and rape, yet who has a mysterious gift."
+  },
+  {
+    "title": "Gladiator",
+    "year": 2000,
+    "genre": ["Action", "Adventure", "Drama"],
+    "rating": 8.5,
+    "director": "Ridley Scott",
+    "runtime": 155,
+    "description": "A former Roman General sets out to exact vengeance against the corrupt emperor who murdered his family and sent him into slavery."
+  },
+  {
+    "title": "The Departed",
+    "year": 2006,
+    "genre": ["Crime", "Drama", "Thriller"],
+    "rating": 8.5,
+    "director": "Martin Scorsese",
+    "runtime": 151,
+    "description": "An undercover cop and a mole in the police attempt to identify each other while infiltrating an Irish gang in South Boston."
+  },
+  {
+    "title": "WALL-E",
+    "year": 2008,
+    "genre": ["Animation", "Adventure", "Family"],
+    "rating": 8.4,
+    "director": "Andrew Stanton",
+    "runtime": 98,
+    "description": "In the distant future, a small waste-collecting robot inadvertently embarks on a space journey that will ultimately decide the fate of mankind."
+  },
+  {
+    "title": "The Prestige",
+    "year": 2006,
+    "genre": ["Drama", "Mystery", "Sci-Fi"],
+    "rating": 8.5,
+    "director": "Christopher Nolan",
+    "runtime": 130,
+    "description": "After a tragic tragedy, two rival magicians engage in a bitter competition to create the ultimate illusion while sacrificing everything they have."
+  },
+  {
+    "title": "The Lion King",
+    "year": 1994,
+    "genre": ["Animation", "Adventure", "Drama"],
+    "rating": 8.5,
+    "director": "Roger Allers",
+    "runtime": 88,
+    "description": "Lion prince Simba and his father are targeted by his bitter uncle, who wants to ascend the throne himself."
+  },
+  {
+    "title": "The Avengers",
+    "year": 2012,
+    "genre": ["Action", "Sci-Fi"],
+    "rating": 8.0,
+    "director": "Joss Whedon",
+    "runtime": 143,
+    "description": "Earth's mightiest heroes must come together and learn to fight as a team if they are to stop the mischievous Loki and his alien army from enslaving humanity."
+  },
+  {
+    "title": "Django Unchained",
+    "year": 2012,
+    "genre": ["Drama", "Western"],
+    "rating": 8.4,
+    "director": "Quentin Tarantino",
+    "runtime": 165,
+    "description": "With the help of a German bounty hunter, a freed slave sets out to rescue his wife from a brutal Mississippi plantation owner."
+  },
+  {
+    "title": "The Hobbit: An Unexpected Journey",
+    "year": 2012,
+    "genre": ["Adventure", "Fantasy"],
+    "rating": 7.8,
+    "director": "Peter Jackson",
+    "runtime": 169,
+    "description": "A reluctant Hobbit, Bilbo Baggins, sets out to the Lonely Mountain with a spirited group of dwarves to reclaim their mountain home."
+  },
+  {
+    "title": "Mad Max: Fury Road",
+    "year": 2015,
+    "genre": ["Action", "Adventure", "Sci-Fi"],
+    "rating": 8.1,
+    "director": "George Miller",
+    "runtime": 120,
+    "description": "In a post-apocalyptic wasteland, a woman rebels against a tyrannical ruler in search for her homeland with the aid of a group of female prisoners and a drifter named Max."
+  },
+  {
+    "title": "The Grand Budapest Hotel",
+    "year": 2014,
+    "genre": ["Comedy", "Drama", "Adventure"],
+    "rating": 8.1,
+    "director": "Wes Anderson",
+    "runtime": 99,
+    "description": "A writer encounters the owner of an aging high-class hotel, who tells him of his early years serving as a lobby boy in the hotel's glorious years under an exceptional concierge."
+  },
+  {
+    "title": "Get Out",
+    "year": 2017,
+    "genre": ["Horror", "Mystery", "Thriller"],
+    "rating": 7.7,
+    "director": "Jordan Peele",
+    "runtime": 104,
+    "description": "A young African-American visits his white girlfriend's parents for the weekend, where his simmering uneasiness about their reception of him eventually reaches a boiling point."
+  },
+  {
+    "title": "La La Land",
+    "year": 2016,
+    "genre": ["Comedy", "Drama", "Romance"],
+    "rating": 8.0,
+    "director": "Damien Chazelle",
+    "runtime": 128,
+    "description": "While navigating their careers in Los Angeles, a pianist and an actress fall in love while attempting to reconcile their aspirations for the future."
+  },
+  {
+    "title": " Parasite",
+    "year": 2019,
+    "genre": ["Drama", "Thriller"],
+    "rating": 8.5,
+    "director": "Bong Joon Ho",
+    "runtime": 132,
+    "description": "Greed and class discrimination threaten the newly formed symbiotic relationship between the wealthy Park family and the destitute Kim clan."
+  },
+  {
+    "title": "Joker",
+    "year": 2019,
+    "genre": ["Crime", "Drama", "Thriller"],
+    "rating": 8.4,
+    "director": "Todd Phillips",
+    "runtime": 122,
+    "description": "In Gotham City, mentally troubled comedian Arthur Fleck is disregarded and mistreated by society. He then embarks on a downward spiral of revolution and bloody crime."
+  },
+  {
+    "title": "Toy Story 4",
+    "year": 2019,
+    "genre": ["Animation", "Adventure", "Comedy"],
+    "rating": 7.7,
+    "director": "Josh Cooley",
+    "runtime": 100,
+    "description": "When a new toy called Forky joins Woody and the gang, a road trip alongside old and new friends reveals how big the world can be for a toy."
+  },
+  {
+    "title": "1917",
+    "year": 2019,
+    "genre": ["Drama", "War"],
+    "rating": 8.3,
+    "director": "Sam Mendes",
+    "runtime": 119,
+    "description": "April 6th, 1917. As a regiment assembles to wage war deep in enemy territory, two soldiers are assigned to race against time and deliver a message that will stop 1,600 men from walking straight into a deadly trap."
+  },
+  {
+    "title": "Knives Out",
+    "year": 2019,
+    "genre": ["Comedy", "Crime", "Mystery"],
+    "rating": 7.9,
+    "director": "Rian Johnson",
+    "runtime": 130,
+    "description": "A detective investigates the death of a patriarch of an eccentric, combative family."
+  }
+]

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base64 Editor</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border: #30363d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent: #58a6ff;
+            --accent-hover: #79c0ff;
+            --success: #3fb950;
+            --error: #f85149;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container { max-width: 1100px; margin: 0 auto; }
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+        .subtitle { color: var(--text-secondary); margin-bottom: 2rem; }
+        .mode-toggle {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .mode-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        .mode-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .mode-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+        .editor-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .editor-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border);
+        }
+        .panel-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+        .char-count {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        textarea {
+            width: 100%;
+            min-height: 300px;
+            background: transparent;
+            border: none;
+            padding: 1rem;
+            color: var(--text-primary);
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            resize: vertical;
+        }
+        textarea:focus { outline: none; }
+        textarea::placeholder { color: var(--text-secondary); opacity: 0.5; }
+        .actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 0.6rem 1.2rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn:hover { border-color: var(--accent); color: var(--accent); }
+        .btn.primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+        .btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+        .drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: var(--accent);
+            background: rgba(88, 166, 255, 0.05);
+        }
+        .drop-zone-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+        .drop-zone-text { color: var(--text-secondary); }
+        .drop-zone-text strong { color: var(--accent); }
+        .file-info {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            display: none;
+        }
+        .file-info.show { display: block; }
+        .file-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+        .file-stat {
+            text-align: center;
+        }
+        .file-stat-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+        .file-stat-value {
+            font-size: 1rem;
+            color: var(--accent);
+            font-family: monospace;
+        }
+        .error-msg {
+            background: rgba(248, 81, 73, 0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            display: none;
+        }
+        .error-msg.show { display: block; }
+        @media (max-width: 768px) {
+            .editor-area { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Base64 Editor</h1>
+        <p class="subtitle">Encode and decode Base64 with file support</p>
+
+        <div class="mode-toggle">
+            <button class="mode-btn active" data-mode="encode">Encode</button>
+            <button class="mode-btn" data-mode="decode">Decode</button>
+        </div>
+
+        <div class="drop-zone" id="dropZone">
+            <div class="drop-zone-icon">&#128194;</div>
+            <div class="drop-zone-text">
+                <strong>Drop a file here</strong> or click to browse<br>
+                <small>Text input also works below</small>
+            </div>
+            <input type="file" id="fileInput" hidden>
+        </div>
+
+        <div class="editor-area">
+            <div class="editor-panel">
+                <div class="panel-header">
+                    <span class="panel-title" id="inputLabel">Plain Text</span>
+                    <span class="char-count" id="inputCount">0 characters</span>
+                </div>
+                <textarea id="inputArea" placeholder="Enter text to encode/decode..."></textarea>
+            </div>
+            <div class="editor-panel">
+                <div class="panel-header">
+                    <span class="panel-title" id="outputLabel">Base64</span>
+                    <span class="char-count" id="outputCount">0 characters</span>
+                </div>
+                <textarea id="outputArea" placeholder="Output will appear here..." readonly></textarea>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="btn primary" id="transformBtn">Transform</button>
+            <button class="btn" id="swapBtn">Swap</button>
+            <button class="btn" id="clearBtn">Clear</button>
+            <button class="btn" id="copyBtn">Copy Output</button>
+        </div>
+
+        <div class="error-msg" id="errorMsg"></div>
+
+        <div class="file-info" id="fileInfo">
+            <div class="file-info-grid">
+                <div class="file-stat">
+                    <div class="file-stat-label">File Name</div>
+                    <div class="file-stat-value" id="statName">-</div>
+                </div>
+                <div class="file-stat">
+                    <div class="file-stat-label">File Size</div>
+                    <div class="file-stat-value" id="statSize">-</div>
+                </div>
+                <div class="file-stat">
+                    <div class="file-stat-label">Base64 Size</div>
+                    <div class="file-stat-value" id="statBase64">-</div>
+                </div>
+                <div class="file-stat">
+                    <div class="file-stat-label">Overhead</div>
+                    <div class="file-stat-value" id="statOverhead">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const inputArea = document.getElementById('inputArea');
+        const outputArea = document.getElementById('outputArea');
+        const inputCount = document.getElementById('inputCount');
+        const outputCount = document.getElementById('outputCount');
+        const inputLabel = document.getElementById('inputLabel');
+        const outputLabel = document.getElementById('outputLabel');
+        const errorMsg = document.getElementById('errorMsg');
+        const fileInfo = document.getElementById('fileInfo');
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const modeBtns = document.querySelectorAll('.mode-btn');
+
+        let currentMode = 'encode';
+
+        modeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                modeBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentMode = btn.dataset.mode;
+                updateLabels();
+                outputArea.value = '';
+            });
+        });
+
+        function updateLabels() {
+            if (currentMode === 'encode') {
+                inputLabel.textContent = 'Plain Text';
+                outputLabel.textContent = 'Base64';
+                inputArea.placeholder = 'Enter text to encode...';
+                outputArea.placeholder = 'Base64 output will appear here...';
+            } else {
+                inputLabel.textContent = 'Base64';
+                outputLabel.textContent = 'Plain Text';
+                inputArea.placeholder = 'Enter Base64 to decode...';
+                outputArea.placeholder = 'Decoded text will appear here...';
+            }
+        }
+
+        inputArea.addEventListener('input', () => {
+            inputCount.textContent = `${inputArea.value.length.toLocaleString()} characters`;
+        });
+
+        document.getElementById('transformBtn').addEventListener('click', transform);
+        document.getElementById('swapBtn').addEventListener('click', () => {
+            const temp = inputArea.value;
+            inputArea.value = outputArea.value;
+            outputArea.value = temp;
+            inputArea.dispatchEvent(new Event('input'));
+            outputCount.textContent = `${outputArea.value.length.toLocaleString()} characters`;
+        });
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            inputArea.value = '';
+            outputArea.value = '';
+            inputArea.dispatchEvent(new Event('input'));
+            outputCount.textContent = '0 characters';
+            fileInfo.classList.remove('show');
+            errorMsg.classList.remove('show');
+        });
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            navigator.clipboard.writeText(outputArea.value).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = 'Copy Output', 1500);
+            });
+        });
+
+        function transform() {
+            errorMsg.classList.remove('show');
+            try {
+                if (currentMode === 'encode') {
+                    outputArea.value = btoa(unescape(encodeURIComponent(inputArea.value)));
+                } else {
+                    outputArea.value = decodeURIComponent(escape(atob(inputArea.value)));
+                }
+                outputCount.textContent = `${outputArea.value.length.toLocaleString()} characters`;
+            } catch (e) {
+                errorMsg.textContent = `Error: ${e.message}`;
+                errorMsg.classList.add('show');
+                outputArea.value = '';
+            }
+        }
+
+        function formatBytes(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1048576) return (bytes / 1024).toFixed(2) + ' KB';
+            return (bytes / 1048576).toFixed(2) + ' MB';
+        }
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) processFile(file);
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) processFile(e.target.files[0]);
+        });
+
+        function processFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const base64 = e.target.result.split(',')[1];
+                inputArea.value = base64;
+                inputArea.dispatchEvent(new Event('input'));
+
+                if (currentMode === 'encode') {
+                    outputArea.value = base64;
+                } else {
+                    try {
+                        const binary = atob(base64);
+                        const bytes = new Uint8Array(binary.length);
+                        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+                        const blob = new Blob([bytes]);
+                        outputArea.value = `[File content: ${file.name} (${formatBytes(blob.size)})]`;
+                    } catch (err) {
+                        outputArea.value = binary;
+                    }
+                }
+                outputCount.textContent = `${outputArea.value.length.toLocaleString()} characters`;
+
+                document.getElementById('statName').textContent = file.name;
+                document.getElementById('statSize').textContent = formatBytes(file.size);
+                document.getElementById('statBase64').textContent = formatBytes(base64.length);
+                document.getElementById('statOverhead').textContent = ((base64.length / file.size - 1) * 100).toFixed(1) + '%';
+                fileInfo.classList.add('show');
+            };
+            reader.readAsDataURL(file);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}API Logs - API Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">API Logs</h1>
+</div>
+
+<div class="card">
+    {% if logs %}
+    <div style="overflow-x: auto;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Key</th>
+                    <th>Method</th>
+                    <th>Endpoint</th>
+                    <th>Status</th>
+                    <th>Response Time</th>
+                    <th>IP Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td style="color: #71717a; white-space: nowrap;">{{ log.created_at }}</td>
+                    <td style="color: #10b981;">{{ log.key_name[:20] }}</td>
+                    <td><span class="method-badge method-{{ log.method|lower }}">{{ log.method }}</span></td>
+                    <td class="code">{{ log.endpoint }}</td>
+                    <td>
+                        <span class="badge badge-{% if log.status_code < 300 %}green{% elif log.status_code < 400 %}blue{% elif log.status_code < 500 %}yellow{% else %}red{% endif %}">
+                            {{ log.status_code }}
+                        </span>
+                    </td>
+                    <td style="color: {% if log.response_time_ms > 500 %}#ef4444{% elif log.response_time_ms > 200 %}#eab308{% else %}#10b981{% endif %};">
+                        {{ log.response_time_ms }}ms
+                    </td>
+                    <td class="code" style="color: #71717a;">{{ log.ip_address }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div style="display: flex; justify-content: center; gap: 8px; margin-top: 24px;">
+        {% if page > 1 %}
+        <a href="{{ url_for('logs', page=page-1) }}" class="btn btn-secondary btn-sm">Previous</a>
+        {% endif %}
+        <span style="padding: 8px 16px; color: #71717a;">Page {{ page }} of {{ total_pages }}</span>
+        {% if page < total_pages %}
+        <a href="{{ url_for('logs', page=page+1) }}" class="btn btn-secondary btn-sm">Next</a>
+        {% endif %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 60px;">
+        <div style="font-size: 3rem; margin-bottom: 16px;">&#128196;</div>
+        <h3 style="margin-bottom: 8px;">No Logs Yet</h3>
+        <p style="color: #71717a;">API request logs will appear here.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

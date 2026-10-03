@@ -1,0 +1,8 @@
+# Web Scraper - Requirements
+# Install with: pip install -r requirements.txt
+
+# HTTP requests library
+requests>=2.31.0
+
+# HTML/XML parsing library
+beautifulsoup4>=4.12.0

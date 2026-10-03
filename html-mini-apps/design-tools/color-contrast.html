@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color Contrast Checker</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0d0d0d; color: #e0e0e0; min-height: 100vh; padding: 40px 20px; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 2rem; margin-bottom: 8px; color: #fff; }
+.subtitle { color: #888; margin-bottom: 32px; }
+.card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+.label { font-size: 0.8rem; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.color-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.color-input-group { display: flex; gap: 12px; align-items: center; }
+.color-swatch { width: 50px; height: 50px; border-radius: 8px; border: 2px solid #333; cursor: pointer; }
+input[type="color"] { width: 50px; height: 50px; border: none; border-radius: 8px; cursor: pointer; background: none; }
+input[type="text"] { flex: 1; background: #111; border: 1px solid #333; border-radius: 6px; padding: 10px 12px; color: #e0e0e0; font-family: 'Consolas', monospace; font-size: 0.9rem; }
+input[type="text"]:focus { outline: none; border-color: #3b82f6; }
+.preview-box { border-radius: 12px; padding: 30px; text-align: center; margin-top: 20px; font-size: 1.2rem; transition: background 0.3s, color 0.3s; }
+.ratio-display { display: flex; align-items: center; justify-content: space-between; padding: 20px; background: #151515; border-radius: 8px; margin-top: 20px; }
+.ratio-value { font-size: 3rem; font-weight: 700; color: #fff; }
+.ratio-details { text-align: right; }
+.badge { display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 0.85rem; font-weight: 600; margin: 2px; }
+.pass { background: #065f46; color: #34d399; }
+.fail { background: #7f1d1d; color: #f87171; }
+.suggestions { margin-top: 20px; }
+.suggestion-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #151515; border-radius: 6px; margin-bottom: 8px; cursor: pointer; transition: background 0.2s; }
+.suggestion-item:hover { background: #1f1f1f; }
+.swatch-small { width: 28px; height: 28px; border-radius: 4px; border: 1px solid #333; }
+.suggestion-text { flex: 1; margin-left: 12px; color: #ccc; }
+.suggestion-ratio { font-weight: 600; color: #fff; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Color Contrast Checker</h1>
+<p class="subtitle">Check WCAG accessibility compliance</p>
+
+<div class="card">
+<div class="label">Colors</div>
+<div class="color-row">
+<div>
+<div class="label" style="font-size:0.7rem">Foreground (Text)</div>
+<div class="color-input-group">
+<input type="color" id="fgColor" value="#ffffff">
+<input type="text" id="fgText" value="#ffffff" maxlength="7">
+</div>
+</div>
+<div>
+<div class="label" style="font-size:0.7rem">Background</div>
+<div class="color-input-group">
+<input type="color" id="bgColor" value="#000000">
+<input type="text" id="bgText" value="#000000" maxlength="7">
+</div>
+</div>
+</div>
+
+<div class="preview-box" id="previewBox">
+Preview Text Sample
+</div>
+
+<div class="ratio-display">
+<div>
+<div class="ratio-value" id="ratioValue">21.00:1</div>
+<div style="color:#888;font-size:0.85rem">Contrast Ratio</div>
+</div>
+<div class="ratio-details">
+<div style="margin-bottom:4px;color:#ccc;font-size:0.9rem">WCAG 2.1 Requirements</div>
+<div><span class="badge pass" id="aaaLarge">AAA</span> <span style="color:#888;font-size:0.8rem">Large text</span></div>
+<div><span class="badge pass" id="aaLarge">AA</span> <span style="color:#888;font-size:0.8rem">Normal text</span></div>
+<div><span class="badge pass" id="aaaNorm">AAA</span> <span style="color:#888;font-size:0.8rem">Normal UI</span></div>
+<div><span class="badge pass" id="aaNorm">AA</span> <span style="color:#888;font-size:0.8rem">Large UI</span></div>
+</div>
+</div>
+</div>
+
+<div class="card">
+<div class="label">Suggested Adjustments</div>
+<div class="suggestions" id="suggestions"></div>
+</div>
+</div>
+
+<script>
+const fgColor = document.getElementById('fgColor');
+const bgColor = document.getElementById('bgColor');
+const fgText = document.getElementById('fgText');
+const bgText = document.getElementById('bgText');
+const previewBox = document.getElementById('previewBox');
+const ratioValue = document.getElementById('ratioValue');
+
+function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? [
+        parseInt(result[1], 16),
+        parseInt(result[2], 16),
+        parseInt(result[3], 16)
+    ] : [0, 0, 0];
+}
+
+function luminance(r, g, b) {
+    const [rs, gs, bs] = [r, g, b].map(c => {
+        c /= 255;
+        return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+}
+
+function contrastRatio(fg, bg) {
+    const l1 = luminance(...fg);
+    const l2 = luminance(...bg);
+    const lighter = Math.max(l1, l2);
+    const darker = Math.min(l1, l2);
+    return (lighter + 0.05) / (darker + 0.05);
+}
+
+function rgbToHex(r, g, b) {
+    return '#' + [r, g, b].map(x => {
+        const hex = Math.round(x).toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+    }).join('');
+}
+
+function suggestColors(fg, bg) {
+    const suggestions = [];
+    const bgRgb = hexToRgb(bg);
+
+    // Suggestion 1: Darken background
+    const darkerBg = bgRgb.map(c => Math.max(0, c - 30));
+    suggestions.push({ bg: rgbToHex(...darkerBg), ratio: contrastRatio(fg, darkerBg) });
+
+    // Suggestion 2: Lighten background
+    const lighterBg = bgRgb.map(c => Math.min(255, c + 30));
+    suggestions.push({ bg: rgbToHex(...lighterBg), ratio: contrastRatio(fg, lighterBg) });
+
+    // Suggestion 3: Darken text
+    const fgRgb = hexToRgb(fg);
+    const darkerFg = fgRgb.map(c => Math.max(0, c - 40));
+    suggestions.push({ fg: rgbToHex(...darkerFg), ratio: contrastRatio(darkerFg, bg) });
+
+    // Suggestion 4: Lighten text
+    const lighterFg = fgRgb.map(c => Math.min(255, c + 40));
+    suggestions.push({ fg: rgbToHex(...lighterFg), ratio: contrastRatio(lighterFg, bg) });
+
+    return suggestions.sort((a, b) => b.ratio - a.ratio).slice(0, 4);
+}
+
+function update() {
+    const fg = hexToRgb(fgText.value);
+    const bg = hexToRgb(bgText.value);
+
+    previewBox.style.backgroundColor = bgText.value;
+    previewBox.style.color = fgText.value;
+
+    const ratio = contrastRatio(fg, bg);
+    ratioValue.textContent = ratio.toFixed(2) + ':1';
+
+    document.getElementById('aaaLarge').className = 'badge ' + (ratio >= 4.5 ? 'pass' : 'fail');
+    document.getElementById('aaLarge').className = 'badge ' + (ratio >= 3 ? 'pass' : 'fail');
+    document.getElementById('aaaNorm').className = 'badge ' + (ratio >= 7 ? 'pass' : 'fail');
+    document.getElementById('aaNorm').className = 'badge ' + (ratio >= 4.5 ? 'pass' : 'fail');
+
+    const suggestions = suggestColors(fg, bg);
+    const suggestionsHtml = suggestions.map(s => {
+        const previewFg = s.fg || fgText.value;
+        const previewBg = s.bg || bgText.value;
+        return `
+            <div class="suggestion-item" onclick="applySuggestion('${previewFg}', '${previewBg}')">
+                <div class="swatch-small" style="background:${previewBg};display:flex;align-items:center;justify-content:center">
+                    <div style="width:16px;height:16px;background:${previewFg};border-radius:2px"></div>
+                </div>
+                <span class="suggestion-text">${previewFg} on ${previewBg}</span>
+                <span class="suggestion-ratio">${s.ratio.toFixed(2)}:1</span>
+            </div>
+        `;
+    }).join('');
+    document.getElementById('suggestions').innerHTML = suggestionsHtml;
+}
+
+function applySuggestion(fg, bg) {
+    fgText.value = fg;
+    bgText.value = bg;
+    fgColor.value = fg;
+    bgColor.value = bg;
+    update();
+}
+
+fgColor.addEventListener('input', e => { fgText.value = e.target.value; update(); });
+bgColor.addEventListener('input', e => { bgText.value = e.target.value; update(); });
+fgText.addEventListener('input', e => { if (/^#[0-9a-f]{6}$/i.test(e.target.value)) { fgColor.value = e.target.value; update(); } });
+bgText.addEventListener('input', e => { if (/^#[0-9a-f]{6}$/i.test(e.target.value)) { bgColor.value = e.target.value; update(); } });
+
+update();
+</script>
+</body>
+</html>

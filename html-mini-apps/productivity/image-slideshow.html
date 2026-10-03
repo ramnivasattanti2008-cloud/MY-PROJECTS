@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Slideshow</title>
+  <style>
+    :root {
+      --bg: #0f0f0f;
+      --surface: #1a1a1a;
+      --surface2: #252525;
+      --border: #333;
+      --text: #e0e0e0;
+      --text-dim: #888;
+      --accent: #6366f1;
+      --accent-hover: #818cf8;
+      --success: #22c55e;
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    .container { max-width: 1000px; margin: 0 auto; }
+    h1 { font-size: 1.8rem; margin-bottom: 1.5rem; color: var(--accent); }
+    .upload-area {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      margin-bottom: 1.5rem;
+    }
+    .upload-area:hover, .upload-area.dragover {
+      border-color: var(--accent);
+      background: var(--surface);
+    }
+    .upload-area input { display: none; }
+    .upload-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    .upload-text { color: var(--text-dim); font-size: 0.875rem; }
+    .slideshow-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: var(--surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+    .slide {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .slide.active { opacity: 1; }
+    .slide img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    .slide-placeholder {
+      color: var(--text-dim);
+      font-size: 1rem;
+    }
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    .btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 0.875rem;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn.secondary { background: var(--surface2); color: var(--text); }
+    .btn.secondary:hover { background: var(--border); }
+    .btn-icon {
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+    .settings {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .setting-group { display: flex; align-items: center; gap: 0.5rem; }
+    label { color: var(--text-dim); font-size: 0.875rem; }
+    select, input[type="range"] {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.5rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+    }
+    input[type="range"] { width: 100px; }
+    .thumbnails {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding: 0.5rem 0;
+      margin-top: 1rem;
+    }
+    .thumbnail {
+      width: 80px;
+      height: 60px;
+      flex-shrink: 0;
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color 0.2s;
+    }
+    .thumbnail.active { border-color: var(--accent); }
+    .thumbnail img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .thumbnail .remove {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 18px;
+      height: 18px;
+      background: rgba(0,0,0,0.7);
+      border: none;
+      border-radius: 50%;
+      color: #fff;
+      cursor: pointer;
+      font-size: 0.7rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .thumbnail-wrapper {
+      position: relative;
+    }
+    .progress-bar {
+      height: 4px;
+      background: var(--surface2);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 0.5rem;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.1s linear;
+    }
+    .theme-toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 0.5rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 1.2rem;
+    }
+    @media (max-width: 600px) {
+      body { padding: 1rem; }
+      h1 { font-size: 1.4rem; }
+      .slideshow-container { aspect-ratio: 4/3; }
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()">&#9728;</button>
+  <div class="container">
+    <h1>Image Slideshow</h1>
+
+    <div class="upload-area" id="uploadArea">
+      <input type="file" id="fileInput" multiple accept="image/*">
+      <div class="upload-icon">&#128247;</div>
+      <div class="upload-text">Click or drag images here to upload</div>
+    </div>
+
+    <div class="slideshow-container" id="slideshow">
+      <div class="slide active">
+        <span class="slide-placeholder">Upload images to begin</span>
+      </div>
+    </div>
+
+    <div class="progress-bar" id="progressBar" style="display:none;">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-icon" onclick="prevSlide()">&#9664;</button>
+      <button class="btn" id="playBtn" onclick="togglePlay()">&#9654; Play</button>
+      <button class="btn btn-icon" onclick="nextSlide()">&#9654;</button>
+      <div class="settings">
+        <div class="setting-group">
+          <label>Speed:</label>
+          <select id="speedSelect" onchange="updateSpeed()">
+            <option value="2000">2s</option>
+            <option value="3000" selected>3s</option>
+            <option value="5000">5s</option>
+            <option value="8000">8s</option>
+          </select>
+        </div>
+        <div class="setting-group">
+          <label>Effect:</label>
+          <select id="effectSelect" onchange="updateEffect()">
+            <option value="fade">Fade</option>
+            <option value="slide">Slide</option>
+            <option value="zoom">Zoom</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="thumbnails" id="thumbnails"></div>
+  </div>
+
+  <script>
+    const root = document.documentElement;
+    let isDark = true;
+    let images = [];
+    let currentIndex = 0;
+    let isPlaying = false;
+    let playInterval = null;
+    let interval = 3000;
+    let effect = 'fade';
+
+    function toggleTheme() {
+      isDark = !isDark;
+      root.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      document.querySelector('.theme-toggle').innerHTML = isDark ? '&#9728;' : '&#9790;';
+    }
+
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+
+    uploadArea.addEventListener('click', () => fileInput.click());
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      handleFiles(e.dataTransfer.files);
+    });
+    fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+    function handleFiles(files) {
+      Array.from(files).forEach(file => {
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            images.push(e.target.result);
+            if (images.length === 1) updateSlide(0);
+            renderThumbnails();
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
+    function renderThumbnails() {
+      const container = document.getElementById('thumbnails');
+      container.innerHTML = images.map((src, i) => `
+        <div class="thumbnail-wrapper">
+          <div class="thumbnail ${i === currentIndex ? 'active' : ''}" onclick="goToSlide(${i})">
+            <img src="${src}" alt="Slide ${i + 1}">
+          </div>
+          <button class="remove" onclick="removeImage(${i}, event)">x</button>
+        </div>
+      `).join('');
+    }
+
+    function removeImage(index, event) {
+      event.stopPropagation();
+      images.splice(index, 1);
+      if (currentIndex >= images.length) currentIndex = Math.max(0, images.length - 1);
+      if (images.length === 0) {
+        document.getElementById('slideshow').innerHTML = '<div class="slide active"><span class="slide-placeholder">Upload images to begin</span></div>';
+      } else {
+        updateSlide(currentIndex);
+      }
+      renderThumbnails();
+    }
+
+    function updateSlide(index) {
+      currentIndex = index;
+      const container = document.getElementById('slideshow');
+      container.innerHTML = images.map((src, i) => `
+        <div class="slide ${i === index ? 'active' : ''}" style="transition: opacity 0.5s;">
+          <img src="${src}" alt="Slide ${i + 1}">
+        </div>
+      `).join('');
+      applyEffect();
+      renderThumbnails();
+      if (isPlaying) startProgress();
+    }
+
+    function applyEffect() {
+      const slides = document.querySelectorAll('.slide');
+      slides.forEach(slide => {
+        slide.style.transition = effect === 'fade' ? 'opacity 0.5s' :
+                                  effect === 'slide' ? 'transform 0.5s, opacity 0.5s' :
+                                  'transform 0.5s, opacity 0.5s';
+        if (effect === 'slide') {
+          slide.style.transform = 'translateX(100%)';
+          if (slide.classList.contains('active')) slide.style.transform = 'translateX(0)';
+        } else if (effect === 'zoom') {
+          slide.style.transform = 'scale(1.1)';
+          if (slide.classList.contains('active')) slide.style.transform = 'scale(1)';
+        }
+      });
+    }
+
+    function prevSlide() {
+      if (images.length === 0) return;
+      updateSlide((currentIndex - 1 + images.length) % images.length);
+    }
+
+    function nextSlide() {
+      if (images.length === 0) return;
+      updateSlide((currentIndex + 1) % images.length);
+    }
+
+    function goToSlide(index) {
+      if (images.length === 0) return;
+      updateSlide(index);
+    }
+
+    function togglePlay() {
+      isPlaying = !isPlaying;
+      const btn = document.getElementById('playBtn');
+      if (isPlaying) {
+        btn.innerHTML = '&#9646;&#9646; Pause';
+        startProgress();
+        playInterval = setInterval(() => {
+          nextSlide();
+          startProgress();
+        }, interval);
+      } else {
+        btn.innerHTML = '&#9654; Play';
+        clearInterval(playInterval);
+        document.getElementById('progressBar').style.display = 'none';
+      }
+    }
+
+    function startProgress() {
+      const bar = document.getElementById('progressBar');
+      const fill = document.getElementById('progressFill');
+      if (!isPlaying) return;
+      bar.style.display = 'block';
+      fill.style.width = '0%';
+      let progress = 0;
+      const step = 50;
+      const increment = (step / interval) * 100;
+      const progressInterval = setInterval(() => {
+        if (!isPlaying) {
+          clearInterval(progressInterval);
+          return;
+        }
+        progress += increment;
+        fill.style.width = `${Math.min(progress, 100)}%`;
+        if (progress >= 100) clearInterval(progressInterval);
+      }, step);
+    }
+
+    function updateSpeed() {
+      interval = parseInt(document.getElementById('speedSelect').value);
+      if (isPlaying) {
+        clearInterval(playInterval);
+        startProgress();
+        playInterval = setInterval(() => {
+          nextSlide();
+          startProgress();
+        }, interval);
+      }
+    }
+
+    function updateEffect() {
+      effect = document.getElementById('effectSelect').value;
+      applyEffect();
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') prevSlide();
+      if (e.key === 'ArrowRight') nextSlide();
+      if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+    });
+  </script>
+</body>
+</html>

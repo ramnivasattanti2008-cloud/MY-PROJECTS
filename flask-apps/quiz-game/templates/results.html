@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results - Quiz Game</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            min-height: 100vh;
+        }
+        .container { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
+        h1 { color: #58a6ff; font-size: 2.5rem; text-align: center; margin-bottom: 40px; }
+        .score-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .score-value { font-size: 4rem; color: #58a6ff; font-weight: bold; }
+        .score-label { color: #8b949e; margin-bottom: 20px; }
+        .stats { display: flex; justify-content: center; gap: 40px; margin: 30px 0; }
+        .stat { text-align: center; }
+        .stat-value { font-size: 2rem; color: #fff; }
+        .stat-label { color: #8b949e; font-size: 0.9rem; }
+        .percentage { font-size: 1.5rem; margin-top: 20px; }
+        .percentage.good { color: #238636; }
+        .percentage.medium { color: #f0883e; }
+        .percentage.bad { color: #da3633; }
+        .actions { display: flex; gap: 15px; justify-content: center; margin-top: 30px; }
+        .btn {
+            background: #238636;
+            color: #fff;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            text-decoration: none;
+        }
+        .btn:hover { background: #2ea043; }
+        .btn-secondary { background: #30363d; }
+        .btn-secondary:hover { background: #484f58; }
+        .answers-review {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 30px;
+            margin-top: 30px;
+        }
+        .answers-review h2 { color: #fff; margin-bottom: 20px; }
+        .review-item {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        .review-item.correct { border-left: 4px solid #238636; }
+        .review-item.wrong { border-left: 4px solid #da3633; }
+        .review-question { color: #fff; margin-bottom: 10px; }
+        .review-answer { font-size: 0.9rem; }
+        .review-answer span { color: #238636; }
+        .review-answer .wrong-answer { color: #da3633; text-decoration: line-through; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Quiz Complete!</h1>
+
+        <div class="score-card">
+            <div class="score-label">Your Score</div>
+            <div class="score-value">{{ score.score }}</div>
+
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-value">{{ score.correct_answers }}/{{ score.total_questions }}</div>
+                    <div class="stat-label">Correct</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">{{ score.total_questions - score.correct_answers }}</div>
+                    <div class="stat-label">Wrong</div>
+                </div>
+            </div>
+
+            <div class="percentage {{ 'good' if percentage >= 70 else 'medium' if percentage >= 40 else 'bad' }}">
+                {{ percentage }}% Accuracy
+            </div>
+        </div>
+
+        <div class="actions">
+            <a href="/" class="btn">Play Again</a>
+            <a href="/leaderboard" class="btn btn-secondary">Leaderboard</a>
+        </div>
+
+        <div class="answers-review">
+            <h2>Answer Review</h2>
+            {% for answer in answers %}
+            <div class="review-item {{ 'correct' if answer.is_correct else 'wrong' }}">
+                <div class="review-question">{{ loop.index }}. {{ answer.question }}</div>
+                <div class="review-answer">
+                    {% if answer.is_correct %}
+                    <span>Correct: {{ answer.correct }}</span>
+                    {% else %}
+                    <span class="wrong-answer">Your answer: {{ answer.selected }}</span><br>
+                    <span>Correct: {{ answer.correct }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

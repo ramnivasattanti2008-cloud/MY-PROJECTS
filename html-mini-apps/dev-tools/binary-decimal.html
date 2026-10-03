@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary-Decimal Converter</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0d0d0d; --card: #1a1a1a; --border: #2a2a2a;
+            --text: #e0e0e0; --text-dim: #888; --accent: #6366f1;
+            --success: #22c55e; --error: #ef4444; --warning: #f59e0b;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        header { text-align: center; padding: 30px 0 20px; }
+        h1 { font-size: 2rem; margin-bottom: 8px; background: linear-gradient(135deg, #22d3ee, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { color: var(--text-dim); }
+        .converter { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin: 20px 0; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dim); }
+        .input-group input { width: 100%; padding: 14px 16px; border: 2px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; font-size: 1.1rem; transition: border-color 0.2s; }
+        .input-group input:focus { outline: none; border-color: var(--accent); }
+        .input-group input.error { border-color: var(--error); }
+        .input-group input.valid { border-color: var(--success); }
+        .base-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .base-tab { padding: 10px 20px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text); cursor: pointer; font-weight: 600; transition: all 0.2s; }
+        .base-tab:hover { border-color: var(--accent); }
+        .base-tab.active { background: var(--accent); border-color: var(--accent); }
+        .results { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin: 20px 0; }
+        .results h2 { margin-bottom: 16px; font-size: 1.2rem; }
+        .result-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--bg); border-radius: 8px; margin-bottom: 8px; transition: all 0.2s; }
+        .result-row:hover { background: #252525; }
+        .result-label { font-weight: 600; min-width: 100px; }
+        .result-value { font-family: 'Courier New', monospace; font-size: 1rem; word-break: break-all; flex: 1; text-align: right; margin-left: 16px; }
+        .copy-btn { padding: 6px 12px; border: none; border-radius: 6px; background: var(--accent); color: #fff; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+        .copy-btn:hover { opacity: 0.8; }
+        .steps { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin: 20px 0; }
+        .steps h2 { margin-bottom: 16px; font-size: 1.2rem; }
+        .step { padding: 12px 16px; background: var(--bg); border-radius: 8px; margin-bottom: 8px; font-family: 'Courier New', monospace; font-size: 0.9rem; }
+        .step-num { display: inline-block; width: 28px; height: 28px; line-height: 28px; text-align: center; background: var(--accent); color: #fff; border-radius: 50%; margin-right: 12px; font-size: 0.8rem; }
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--success); color: #000; padding: 12px 24px; border-radius: 8px; font-weight: 600; opacity: 0; transition: all 0.3s; z-index: 1000; }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .info { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin: 20px 0; font-size: 0.9rem; color: var(--text-dim); }
+        @media (max-width: 600px) {
+            h1 { font-size: 1.5rem; }
+            .result-row { flex-direction: column; align-items: flex-start; }
+            .result-value { margin-left: 0; margin-top: 8px; text-align: left; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Number Base Converter</h1>
+            <p class="subtitle">Convert between Binary, Decimal, Hex, and Octal</p>
+        </header>
+        <div class="converter">
+            <div class="base-tabs">
+                <button class="base-tab active" data-base="10">Decimal (10)</button>
+                <button class="base-tab" data-base="2">Binary (2)</button>
+                <button class="base-tab" data-base="16">Hexadecimal (16)</button>
+                <button class="base-tab" data-base="8">Octal (8)</button>
+            </div>
+            <div class="input-group">
+                <label id="inputLabel">Enter Decimal Number</label>
+                <input type="text" id="input" placeholder="Enter a number..." autofocus>
+            </div>
+        </div>
+        <div class="results">
+            <h2>Conversions</h2>
+            <div id="results"></div>
+        </div>
+        <div class="steps">
+            <h2>Step-by-Step Conversion</h2>
+            <div id="steps"></div>
+        </div>
+        <div class="info">
+            <strong>Tips:</strong> Supports very large numbers (BigInt). Click any result to copy to clipboard.
+        </div>
+    </div>
+    <div class="toast" id="toast">Copied!</div>
+    <script>
+        let activeBase = 10;
+        const input = document.getElementById('input');
+        const resultsDiv = document.getElementById('results');
+        const stepsDiv = document.getElementById('steps');
+        const inputLabel = document.getElementById('inputLabel');
+        const baseTabs = document.querySelectorAll('.base-tab');
+        const baseNames = { 2: 'Binary', 8: 'Octal', 10: 'Decimal', 16: 'Hexadecimal' };
+        baseTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                baseTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                activeBase = parseInt(tab.dataset.base);
+                inputLabel.textContent = `Enter ${baseNames[activeBase]} Number`;
+                convert();
+            });
+        });
+        input.addEventListener('input', convert);
+        function isValidInput(value, base) {
+            if (value.trim() === '') return false;
+            const regex = base === 16 ? /^[0-9a-fA-FxX+-]*$/ : /^[0-9+-]*$/;
+            return regex.test(value.trim());
+        }
+        function parseNumber(value, base) {
+            if (!isValidInput(value, base)) return null;
+            try {
+                if (base === 10) return BigInt(value.trim());
+                if (base === 16) return BigInt('0x' + value.trim().replace(/^0x/i, ''));
+                return BigInt(value.trim() + (base === 2 ? 'b' : ''), base);
+            } catch { return null; }
+        }
+        function toDecimal(value, base) {
+            const parsed = parseNumber(value, base);
+            if (parsed === null) return null;
+            return parsed;
+        }
+        function fromDecimal(value, base) {
+            if (value < 0n) {
+                const positive = fromDecimal(-value, base);
+                return '-' + positive;
+            }
+            if (value === 0n) return '0';
+            const digits = '0123456789ABCDEF';
+            let result = '';
+            let num = value;
+            while (num > 0n) {
+                result = digits[Number(num % BigInt(base))] + result;
+                num = num / BigInt(base);
+            }
+            return result;
+        }
+        function toBinary(value) { return fromDecimal(value, 2); }
+        function toOctal(value) { return fromDecimal(value, 8); }
+        function toDecimalStr(value) { return value.toString(); }
+        function toHex(value) { return fromDecimal(value, 16).toUpperCase(); }
+        function generateSteps(value, fromBase, toBase) {
+            const steps = [];
+            if (fromBase === toBase) {
+                steps.push({ text: `No conversion needed - same base (${fromBase})`, type: 'info' });
+                return steps;
+            }
+            if (fromBase !== 10) {
+                steps.push({ text: `Convert ${baseNames[fromBase]} to Decimal first`, type: 'info' });
+                const digits = fromBase === 16 ? '0123456789ABCDEF' : '01234567'.slice(0, fromBase);
+                let decimal = 0n;
+                let cleaned = value.trim().toUpperCase();
+                if (fromBase === 16) cleaned = cleaned.replace(/^0X/, '');
+                const parts = [];
+                for (let i = 0; i < cleaned.length; i++) {
+                    const digit = cleaned[i];
+                    const digitVal = BigInt(digits.indexOf(digit));
+                    const power = cleaned.length - 1 - i;
+                    const contribution = digitVal * (BigInt(fromBase) ** BigInt(power));
+                    parts.push(`${digit} × ${fromBase}^${power} = ${contribution}`);
+                }
+                steps.push({ text: `Break down each digit: ${parts.join(', ')}`, type: 'calc' });
+                steps.push({ text: `Sum all contributions to get decimal: ${toDecimalStr(decimal)}`, type: 'result' });
+            }
+            if (toBase !== 10) {
+                steps.push({ text: `Now convert Decimal to ${baseNames[toBase]}`, type: 'info' });
+                let num = Math.abs(Number(toDecimal(value, fromBase)));
+                const digits = '0123456789ABCDEF';
+                const conversionSteps = [];
+                while (num > 0) {
+                    conversionSteps.push(`${num} ÷ ${toBase} = ${Math.floor(num / toBase)} remainder ${digits[num % toBase]}`);
+                    num = Math.floor(num / toBase);
+                }
+                steps.push({ text: `Repeated division by ${toBase}: ${conversionSteps.join(' | ')}`, type: 'calc' });
+                steps.push({ text: `Read remainders bottom to top: ${fromDecimal(toDecimal(value, fromBase), toBase)}`, type: 'result' });
+            }
+            return steps;
+        }
+        function formatBigInt(n) {
+            const str = n.toString();
+            if (str.length <= 20) return str;
+            return str.slice(0, 10) + '...' + str.slice(-10);
+        }
+        function convert() {
+            const value = input.value;
+            input.classList.remove('error', 'valid');
+            if (!value.trim()) {
+                resultsDiv.innerHTML = '<div class="result-row"><span class="result-label">Enter a number</span></div>';
+                stepsDiv.innerHTML = '';
+                return;
+            }
+            const decimal = toDecimal(value, activeBase);
+            if (decimal === null) {
+                input.classList.add('error');
+                resultsDiv.innerHTML = '<div class="result-row"><span class="result-label" style="color:var(--error)">Invalid input</span></div>';
+                stepsDiv.innerHTML = '';
+                return;
+            }
+            input.classList.add('valid');
+            const conversions = [
+                { label: 'Decimal (10)', value: toDecimalStr(decimal), full: toDecimalStr(decimal) },
+                { label: 'Binary (2)', value: toBinary(decimal), full: toBinary(decimal) },
+                { label: 'Octal (8)', value: toOctal(decimal), full: toOctal(decimal) },
+                { label: 'Hexadecimal (16)', value: toHex(decimal), full: toHex(decimal) }
+            ];
+            resultsDiv.innerHTML = conversions.map(c =>
+                `<div class="result-row">
+                    <span class="result-label">${c.label}</span>
+                    <span class="result-value" id="val-${c.label.replace(/[^a-z]/gi, '')}">${c.full}</span>
+                    <button class="copy-btn" data-value="${c.full}">Copy</button>
+                </div>`
+            ).join('');
+            resultsDiv.querySelectorAll('.copy-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    navigator.clipboard.writeText(btn.dataset.value).then(() => showToast('Copied!'));
+                });
+            });
+            resultsDiv.querySelectorAll('.result-value').forEach(el => {
+                el.addEventListener('click', () => {
+                    navigator.clipboard.writeText(el.textContent).then(() => showToast('Copied!'));
+                });
+            });
+            const steps = generateSteps(value, activeBase, activeBase === 10 ? 2 : 10);
+            stepsDiv.innerHTML = steps.length ? steps.map((s, i) =>
+                `<div class="step"><span class="step-num">${i + 1}</span>${s.text}</div>`
+            ).join('') : '<div class="step">Enter a value to see step-by-step conversion</div>';
+        }
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+        convert();
+    </script>
+</body>
+</html>

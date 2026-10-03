@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - Quiz Game</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card {
+            background: #161b22;
+            border: 1px solid #da3633;
+            border-radius: 6px;
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+        }
+        h1 { color: #da3633; margin-bottom: 20px; }
+        p { color: #8b949e; margin-bottom: 30px; }
+        a {
+            background: #238636;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Oops!</h1>
+        <p>{{ message }}</p>
+        <a href="/">Try Again</a>
+    </div>
+</body>
+</html>

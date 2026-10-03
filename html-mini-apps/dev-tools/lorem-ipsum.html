@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lorem Ipsum Generator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent: #58a6ff;
+            --border: #30363d;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 24px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        header h1 span { color: var(--accent); }
+        header p { color: var(--text-secondary); }
+        .controls {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .control-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .control-group {
+            flex: 1;
+            min-width: 150px;
+        }
+        .control-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .control-group select, .control-group input[type="number"] {
+            width: 100%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .control-group select:focus, .control-group input:focus {
+            border-color: var(--accent);
+        }
+        .format-options {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .format-btn {
+            flex: 1;
+            min-width: 100px;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border);
+            color: var(--text-primary);
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .format-btn:hover { border-color: var(--accent); }
+        .format-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+        .generate-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--accent), #a855f7);
+            border: none;
+            color: white;
+            padding: 16px 32px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+        .generate-btn:hover { transform: scale(1.02); box-shadow: 0 4px 20px rgba(88, 166, 255, 0.3); }
+        .output-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .output-header {
+            background: var(--bg-tertiary);
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+        .output-title {
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .output-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .action-btn {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .action-btn:hover { background: var(--accent); border-color: var(--accent); }
+        .action-btn.copied { background: #238636; border-color: #238636; }
+        #output {
+            padding: 24px;
+            line-height: 1.8;
+            font-size: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        #output p { margin-bottom: 16px; }
+        #output ul, #output ol {
+            margin: 16px 0;
+            padding-left: 24px;
+        }
+        #output li { margin: 8px 0; }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--accent);
+            color: var(--text-primary);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .stats {
+            display: flex;
+            gap: 24px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+        .stat {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .stat strong { color: var(--text-primary); }
+        @media (max-width: 768px) {
+            .control-row { flex-direction: column; }
+            .format-btn { min-width: calc(50% - 6px); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><span>&#182;</span> Lorem Ipsum Generator</h1>
+        <p>Generate placeholder text for your designs</p>
+    </header>
+
+    <div class="controls">
+        <div class="control-row">
+            <div class="control-group">
+                <label>Content Type</label>
+                <select id="contentType">
+                    <option value="paragraphs">Paragraphs</option>
+                    <option value="words">Words</option>
+                    <option value="bytes">Bytes</option>
+                    <option value="lists">Lists</option>
+                    <option value="sentences">Sentences</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Amount</label>
+                <input type="number" id="amount" value="3" min="1" max="100">
+            </div>
+        </div>
+        <div class="control-row">
+            <div class="control-group" style="flex: 2;">
+                <label>Output Format</label>
+                <div class="format-options">
+                    <button class="format-btn active" data-format="plain" onclick="setFormat('plain')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                        Plain
+                    </button>
+                    <button class="format-btn" data-format="html" onclick="setFormat('html')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                        HTML
+                    </button>
+                    <button class="format-btn" data-format="markdown" onclick="setFormat('markdown')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M9 15l2 2 4-4"></path></svg>
+                        Markdown
+                    </button>
+                </div>
+            </div>
+        </div>
+        <button class="generate-btn" onclick="generate()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
+            Generate Text
+        </button>
+    </div>
+
+    <div class="output-container">
+        <div class="output-header">
+            <span class="output-title">Generated Output</span>
+            <div class="output-actions">
+                <button class="action-btn" id="copyBtn" onclick="copyOutput()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    Copy
+                </button>
+            </div>
+        </div>
+        <div id="output">
+            <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                <p>Click "Generate Text" to create placeholder content</p>
+            </div>
+        </div>
+        <div class="stats" id="stats" style="display: none;">
+            <span class="stat">Characters: <strong id="charCount">0</strong></span>
+            <span class="stat">Words: <strong id="wordCount">0</strong></span>
+            <span class="stat">Lines: <strong id="lineCount">0</strong></span>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Copied to clipboard!</div>
+
+    <script>
+        let currentFormat = 'plain';
+        let currentOutput = '';
+
+        const loremWords = [
+            'lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit',
+            'sed', 'do', 'eiusmod', 'tempor', 'incididunt', 'ut', 'labore', 'et', 'dolore',
+            'magna', 'aliqua', 'enim', 'ad', 'minim', 'veniam', 'quis', 'nostrud',
+            'exercitation', 'ullamco', 'laboris', 'nisi', 'aliquip', 'ex', 'ea', 'commodo',
+            'consequat', 'duis', 'aute', 'irure', 'in', 'reprehenderit', 'voluptate',
+            'velit', 'esse', 'cillum', 'fugiat', 'nulla', 'pariatur', 'excepteur', 'sint',
+            'occaecat', 'cupidatat', 'non', 'proident', 'sunt', 'culpa', 'qui', 'officia',
+            'deserunt', 'mollit', 'anim', 'id', 'est', 'laborum', 'ac', 'ante', 'arcu',
+            'auctor', 'bibendum', 'blandit', 'condimentum', 'consectetur', 'convallis',
+            'cras', 'curabitur', 'cursus', 'dapibus', 'diam', 'dictum', 'dignissim',
+            'donec', 'efficitur', 'eget', 'elementum', 'faucibus', 'felis', 'fermentum',
+            'finibus', 'gravida', 'habitasse', 'hendrerit', 'iaculis', 'integer',
+            'interdum', 'justo', 'lacinia', 'lacus', 'laoreet', 'lectus', 'leo',
+            'ligula', 'lobortis', 'maecenas', 'massa', 'mattis', 'mauris', 'maximus',
+            'metus', 'mi', 'morbi', 'nam', 'nec', 'neque', 'nibh', 'nisl', 'non',
+            'nullam', 'odio', 'orci', 'ornare', 'pellentesque', 'pharetra', 'phasellus',
+            'placerat', 'platea', 'porta', 'porttitor', 'posuere', 'praesent', 'pretium',
+            'proin', 'pulvinar', 'purus', 'quam', 'quisque', 'rhoncus', 'risus',
+            'rutrum', 'sagittis', 'sapien', 'scelerisque', 'semper', 'senectus', 'sociosqu',
+            'sodales', 'sollicitudin', 'suscipit', 'tellus', 'tincidunt', 'tortor',
+            'tristique', 'turpis', 'ultrices', 'ultricies', 'urna', 'varius', 'vehicula',
+            'vestibulum', 'vitae', 'vivamus', 'viverra', 'volutpat', 'vulputate'
+        ];
+
+        const sentences = [
+            'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+            'Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+            'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.',
+            'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum.',
+            'Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia.',
+            'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.',
+            'Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet.',
+            'At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis.',
+            'Praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias.',
+            'Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus.'
+        ];
+
+        function shuffle(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function getWords(n) {
+            return shuffle(loremWords).slice(0, n).join(' ');
+        }
+
+        function getSentences(n) {
+            const result = [];
+            for (let i = 0; i < n; i++) {
+                result.push(sentences[i % sentences.length]);
+            }
+            return result.join(' ');
+        }
+
+        function getParagraphs(n) {
+            return Array(n).fill(0).map(() =>
+                'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
+            );
+        }
+
+        function getLists(n) {
+            const items = [];
+            for (let i = 0; i < n; i++) {
+                items.push(getWords(3 + Math.floor(Math.random() * 5)));
+            }
+            return items;
+        }
+
+        function generate() {
+            const type = document.getElementById('contentType').value;
+            const amount = parseInt(document.getElementById('amount').value) || 3;
+            let output = '';
+            let plainText = '';
+
+            switch (type) {
+                case 'words':
+                    plainText = getWords(amount);
+                    output = currentFormat === 'plain' ? plainText : plainText;
+                    break;
+                case 'sentences':
+                    plainText = getSentences(amount);
+                    output = plainText;
+                    break;
+                case 'paragraphs':
+                    const paras = getParagraphs(amount);
+                    if (currentFormat === 'html') {
+                        output = paras.map(p => `<p>${p}</p>`).join('\n');
+                    } else if (currentFormat === 'markdown') {
+                        output = paras.map(p => `${p}\n`).join('\n');
+                    } else {
+                        output = paras.join('\n\n');
+                    }
+                    plainText = paras.join(' ');
+                    break;
+                case 'bytes':
+                    const fullText = getParagraphs(10).join(' ');
+                    plainText = fullText.slice(0, amount * 4).substring(0, amount);
+                    output = plainText;
+                    break;
+                case 'lists':
+                    const items = getLists(amount);
+                    if (currentFormat === 'html') {
+                        output = `<ul>\n${items.map(i => `  <li>${i}</li>`).join('\n')}\n</ul>`;
+                    } else if (currentFormat === 'markdown') {
+                        output = items.map(i => `- ${i}`).join('\n');
+                    } else {
+                        output = items.map((item, i) => `${i + 1}. ${item}`).join('\n');
+                    }
+                    plainText = items.join(' ');
+                    break;
+            }
+
+            currentOutput = output;
+            document.getElementById('output').innerHTML = output;
+
+            // Update stats
+            document.getElementById('charCount').textContent = plainText.length;
+            document.getElementById('wordCount').textContent = plainText.split(/\s+/).filter(w => w).length;
+            document.getElementById('lineCount').textContent = output.split('\n').length;
+            document.getElementById('stats').style.display = 'flex';
+        }
+
+        function setFormat(format) {
+            currentFormat = format;
+            document.querySelectorAll('.format-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.format === format);
+            });
+        }
+
+        function copyOutput() {
+            if (!currentOutput) return;
+            navigator.clipboard.writeText(currentOutput);
+            const btn = document.getElementById('copyBtn');
+            btn.classList.add('copied');
+            btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!';
+            showToast('Copied to clipboard!');
+            setTimeout(() => {
+                btn.classList.remove('copied');
+                btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Copy';
+            }, 2000);
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+    </script>
+</body>
+</html>

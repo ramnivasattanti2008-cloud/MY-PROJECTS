@@ -1,0 +1,6 @@
+# clipboard-manager dependencies
+# Install optional pyperclip for cross-platform clipboard support:
+#   pip install pyperclip
+#
+# Without pyperclip, only works on Windows (powershell) or Linux (xclip)
+pyperclip>=1.8.0

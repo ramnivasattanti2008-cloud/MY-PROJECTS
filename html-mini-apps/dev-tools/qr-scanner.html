@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Scanner</title>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #0f0f0f; color: #fff; min-height: 100vh; padding: 2rem; }
+    .container { max-width: 600px; margin: 0 auto; }
+    h1 { text-align: center; margin-bottom: 2rem; color: #22c55e; }
+    .tabs { display: flex; gap: 1rem; margin-bottom: 2rem; }
+    .tab { flex: 1; padding: 0.75rem; background: #27272a; border: none; color: #a1a1aa; cursor: pointer; border-radius: 8px 8px 0 0; font-size: 1rem; transition: all 0.2s; }
+    .tab.active { background: #1c1c1c; color: #fff; }
+    .panel { background: #1c1c1c; border-radius: 0 0 12px 12px; padding: 2rem; }
+    .upload-area { border: 2px dashed #3f3f46; border-radius: 12px; padding: 3rem; text-align: center; cursor: pointer; transition: border-color 0.2s; }
+    .upload-area:hover { border-color: #22c55e; }
+    .upload-area input { display: none; }
+    .upload-icon { font-size: 3rem; margin-bottom: 1rem; }
+    #video { width: 100%; border-radius: 8px; display: none; }
+    #imagePreview { width: 100%; border-radius: 8px; display: none; margin-top: 1rem; }
+    #canvas { display: none; }
+    .result-box { margin-top: 2rem; background: #27272a; border-radius: 8px; padding: 1.5rem; }
+    .result-label { color: #a1a1aa; font-size: 0.85rem; margin-bottom: 0.5rem; }
+    .result-text { font-family: monospace; word-break: break-all; font-size: 1.1rem; }
+    .controls { display: flex; gap: 1rem; margin-top: 1rem; }
+    .btn { flex: 1; padding: 0.75rem; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
+    .btn-scan { background: #22c55e; color: #fff; }
+    .btn-copy { background: #3b82f6; color: #fff; }
+    .btn-stop { background: #ef4444; color: #fff; }
+    .btn:hover { filter: brightness(1.1); }
+    .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); background: #22c55e; color: #fff; padding: 0.75rem 1.5rem; border-radius: 8px; opacity: 0; transition: opacity 0.3s; }
+    .toast.show { opacity: 1; }
+    .status { text-align: center; color: #a1a1aa; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>QR Code Scanner</h1>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('upload')">Upload Image</button>
+      <button class="tab" onclick="switchTab('camera')">Use Camera</button>
+    </div>
+    <div class="panel" id="uploadPanel">
+      <div class="upload-area" id="uploadArea">
+        <div class="upload-icon">📷</div>
+        <p>Click or drag to upload QR code image</p>
+        <input type="file" id="fileInput" accept="image/*">
+      </div>
+      <img id="imagePreview" alt="Preview">
+    </div>
+    <div class="panel" id="cameraPanel" style="display:none;">
+      <video id="video" playsinline></video>
+      <div class="status" id="camStatus">Click Start to begin scanning</div>
+      <div class="controls">
+        <button class="btn btn-scan" id="startBtn" onclick="startCamera()">Start Camera</button>
+        <button class="btn btn-stop" id="stopBtn" onclick="stopCamera()" style="display:none;">Stop</button>
+      </div>
+    </div>
+    <div class="result-box" id="resultBox" style="display:none;">
+      <div class="result-label">Scanned Content:</div>
+      <div class="result-text" id="resultText"></div>
+      <div class="controls">
+        <button class="btn btn-copy" onclick="copyResult()">Copy to Clipboard</button>
+        <button class="btn btn-scan" onclick="scanAgain()">Scan Again</button>
+      </div>
+    </div>
+  </div>
+  <canvas id="canvas"></canvas>
+  <div class="toast" id="toast">Copied!</div>
+  <script>
+    let stream = null;
+    let scanning = false;
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.getElementById('uploadPanel').style.display = tab === 'upload' ? 'block' : 'none';
+      document.getElementById('cameraPanel').style.display = tab === 'camera' ? 'block' : 'none';
+      document.querySelectorAll('.tab')[tab === 'upload' ? 0 : 1].classList.add('active');
+      stopCamera();
+    }
+
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const imagePreview = document.getElementById('imagePreview');
+
+    uploadArea.addEventListener('click', () => fileInput.click());
+    uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.style.borderColor = '#22c55e'; });
+    uploadArea.addEventListener('dragleave', () => uploadArea.style.borderColor = '#3f3f46'; });
+    uploadArea.addEventListener('drop', e => { e.preventDefault(); uploadArea.style.borderColor = '#3f3f46'; handleImage(e.dataTransfer.files[0]); });
+    fileInput.addEventListener('change', e => handleImage(e.target.files[0]));
+
+    function handleImage(file) {
+      if (!file || !file.type.startsWith('image/')) return;
+      const url = URL.createObjectURL(file);
+      imagePreview.src = url;
+      imagePreview.style.display = 'block';
+      imagePreview.onload = () => scanImage(imagePreview);
+    }
+
+    function scanImage(img) {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      ctx.drawImage(img, 0, 0);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(imageData.data, imageData.width, imageData.height);
+      if (code) showResult(code.data);
+      else showResult('No QR code found');
+    }
+
+    async function startCamera() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        const video = document.getElementById('video');
+        video.srcObject = stream;
+        video.style.display = 'block';
+        document.getElementById('startBtn').style.display = 'none';
+        document.getElementById('stopBtn').style.display = 'block';
+        document.getElementById('camStatus').textContent = 'Scanning...';
+        scanning = true;
+        requestAnimationFrame(scanFrame);
+      } catch (e) { alert('Camera access denied'); }
+    }
+
+    function stopCamera() {
+      if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+      document.getElementById('video').style.display = 'none';
+      document.getElementById('startBtn').style.display = 'block';
+      document.getElementById('stopBtn').style.display = 'none';
+      document.getElementById('camStatus').textContent = 'Click Start to begin scanning';
+      scanning = false;
+    }
+
+    function scanFrame() {
+      if (!scanning) return;
+      const video = document.getElementById('video');
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        const canvas = document.getElementById('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        const imageData = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+        if (code) { showResult(code.data); stopCamera(); return; }
+      }
+      requestAnimationFrame(scanFrame);
+    }
+
+    function showResult(data) {
+      document.getElementById('resultBox').style.display = 'block';
+      document.getElementById('resultText').textContent = data;
+      stopCamera();
+    }
+
+    function copyResult() {
+      navigator.clipboard.writeText(document.getElementById('resultText').textContent);
+      const toast = document.getElementById('toast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1500);
+    }
+
+    function scanAgain() {
+      document.getElementById('resultBox').style.display = 'none';
+      imagePreview.style.display = 'none';
+    }
+  </script>
+</body>
+</html>

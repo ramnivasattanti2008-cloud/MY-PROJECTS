@@ -1,0 +1,2 @@
+# disk-usage: No external dependencies
+# Uses Python standard library only

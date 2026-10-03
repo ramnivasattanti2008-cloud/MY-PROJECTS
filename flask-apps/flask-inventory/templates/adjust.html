@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adjust Stock - Inventory</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 500px; margin: 0 auto; }
+        h1 { color: #333; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 500; color: #333; }
+        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; }
+        .btn { background: #007bff; color: white; padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        .btn:hover { background: #0056b3; }
+        .btn-secondary { background: #6c757d; margin-left: 10px; }
+        .btn-secondary:hover { background: #545b62; }
+        .btn-success { background: #28a745; }
+        .btn-danger { background: #dc3545; }
+        .card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .current-stock { text-align: center; padding: 20px; background: #f8f9fa; border-radius: 8px; margin-bottom: 20px; }
+        .current-stock .value { font-size: 48px; font-weight: bold; color: #333; }
+        .current-stock .label { color: #666; font-size: 14px; }
+        .adjust-buttons { display: flex; gap: 10px; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Adjust Stock: {{ item.name }}</h1>
+        <div class="card">
+            <div class="current-stock">
+                <div class="label">Current Stock</div>
+                <div class="value">{{ item.quantity }} {{ item.unit }}</div>
+            </div>
+
+            <form method="post">
+                <div class="form-group">
+                    <label for="adjustment">Adjustment (+/-)</label>
+                    <input type="number" id="adjustment" name="adjustment" value="0" required>
+                    <p style="margin-top: 5px; font-size: 14px; color: #666;">
+                        Use positive numbers to add stock, negative to remove.
+                    </p>
+                </div>
+                <button type="submit" class="btn">Apply Adjustment</button>
+            </form>
+
+            <div class="adjust-buttons">
+                <form method="post" style="display: inline;">
+                    <input type="hidden" name="adjustment" value="1">
+                    <button type="submit" class="btn btn-success">+1</button>
+                </form>
+                <form method="post" style="display: inline;">
+                    <input type="hidden" name="adjustment" value="-1">
+                    <button type="submit" class="btn btn-danger">-1</button>
+                </form>
+                <form method="post" style="display: inline;">
+                    <input type="hidden" name="adjustment" value="10">
+                    <button type="submit" class="btn btn-success">+10</button>
+                </form>
+                <form method="post" style="display: inline;">
+                    <input type="hidden" name="adjustment" value="-10">
+                    <button type="submit" class="btn btn-danger">-10</button>
+                </form>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">Back to Inventory</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

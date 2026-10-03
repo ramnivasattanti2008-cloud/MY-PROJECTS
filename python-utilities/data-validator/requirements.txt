@@ -1,0 +1,2 @@
+# data-validator requirements
+# No external dependencies - uses Python standard library only

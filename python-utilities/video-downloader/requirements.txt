@@ -1,0 +1,11 @@
+# Video Downloader - Requirements
+# Install with: pip install -r requirements.txt
+
+# Core library for YouTube downloading
+yt-dlp>=2024.0.0
+
+# FFmpeg is required for audio extraction and video processing
+# Install FFmpeg from: https://ffmpeg.org/download.html
+# On Windows with winget: winget install ffmpeg
+# On macOS with brew: brew install ffmpeg
+# On Ubuntu/Debian: sudo apt install ffmpeg

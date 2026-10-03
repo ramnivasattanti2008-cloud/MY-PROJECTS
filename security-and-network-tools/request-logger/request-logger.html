@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTTP Request Logger</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --border: #475569;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        header {
+            background: var(--bg-secondary);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        h1::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .btn-danger {
+            background: var(--error);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        main {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 1rem;
+            padding: 1rem;
+            height: calc(100vh - 70px);
+        }
+
+        .request-panel {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            overflow: hidden;
+        }
+
+        .request-form {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .method-url-row {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        select {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.625rem 0.75rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+
+        input, textarea {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.625rem 0.75rem;
+            font-size: 0.875rem;
+            font-family: inherit;
+            width: 100%;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+
+        label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .request-body-section {
+            flex: 1;
+            min-height: 0;
+        }
+
+        .response-panel {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .response-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .response-header h2 {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .response-meta {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.875rem;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-dot.success { background: var(--success); }
+        .status-dot.error { background: var(--error); }
+        .status-dot.redirect { background: var(--warning); }
+
+        .response-body {
+            flex: 1;
+            overflow: auto;
+            padding: 1rem;
+        }
+
+        .response-body pre {
+            background: var(--bg-primary);
+            border-radius: 6px;
+            padding: 1rem;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.8125rem;
+            line-height: 1.6;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .history-panel {
+            flex: 1;
+            overflow-y: auto;
+            border-top: 1px solid var(--border);
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+        }
+
+        .history-header h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.625rem 0.75rem;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .history-item:hover {
+            background: var(--border);
+        }
+
+        .history-item.active {
+            background: var(--accent);
+        }
+
+        .method-badge {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .method-badge.get { background: var(--success); color: #000; }
+        .method-badge.post { background: var(--accent); color: #fff; }
+        .method-badge.put { background: var(--warning); color: #000; }
+        .method-badge.patch { background: #8b5cf6; color: #fff; }
+        .method-badge.delete { background: var(--error); color: #fff; }
+
+        .history-url {
+            flex: 1;
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .history-status {
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .history-status.success { color: var(--success); }
+        .history-status.error { color: var(--error); }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .tab-bar {
+            display: flex;
+            gap: 0.25rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab {
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            background: none;
+            border: none;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+        }
+
+        .tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 1rem;
+            overflow: auto;
+            flex: 1;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .key-value-editor {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .key-value-row {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .key-value-row input {
+            flex: 1;
+        }
+
+        .key-value-row .btn-remove {
+            background: var(--error);
+            color: white;
+            padding: 0.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 900px) {
+            main {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .response-panel {
+                min-height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>HTTP Request Logger</h1>
+        <div class="header-actions">
+            <button class="btn btn-secondary" onclick="exportHistory()">Export</button>
+            <button class="btn btn-danger" onclick="clearHistory()">Clear All</button>
+        </div>
+    </header>
+
+    <main>
+        <div class="request-panel">
+            <form class="request-form" onsubmit="sendRequest(event)">
+                <div class="method-url-row">
+                    <select id="method" name="method">
+                        <option value="GET">GET</option>
+                        <option value="POST">POST</option>
+                        <option value="PUT">PUT</option>
+                        <option value="PATCH">PATCH</option>
+                        <option value="DELETE">DELETE</option>
+                        <option value="HEAD">HEAD</option>
+                        <option value="OPTIONS">OPTIONS</option>
+                    </select>
+                    <input type="url" id="url" name="url" placeholder="https://api.example.com/endpoint" required>
+                </div>
+
+                <div class="tab-bar">
+                    <button type="button" class="tab active" onclick="switchTab('headers')">Headers</button>
+                    <button type="button" class="tab" onclick="switchTab('body')">Body</button>
+                </div>
+
+                <div id="headers-tab" class="tab-content active">
+                    <div class="key-value-editor" id="headers-editor">
+                        <div class="key-value-row">
+                            <input type="text" placeholder="Header name" value="Content-Type">
+                            <input type="text" placeholder="Header value" value="application/json">
+                            <button type="button" class="btn-remove" onclick="removeRow(this)">x</button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary" style="margin-top: 0.5rem;" onclick="addHeaderRow()">+ Add Header</button>
+                </div>
+
+                <div id="body-tab" class="tab-content">
+                    <textarea id="body" name="body" placeholder='{"key": "value"}'></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Send Request</button>
+            </form>
+
+            <div class="history-panel">
+                <div class="history-header">
+                    <h3>History</h3>
+                    <span id="history-count" style="font-size: 0.75rem; color: var(--text-secondary);">0 requests</span>
+                </div>
+                <div class="history-list" id="history-list">
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <p>No requests yet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="response-panel">
+            <div class="response-header">
+                <h2>Response</h2>
+                <div class="response-meta">
+                    <div class="status" id="status-display">
+                        <span class="status-dot"></span>
+                        <span>--</span>
+                    </div>
+                    <span id="time-display" style="color: var(--text-secondary);">-- ms</span>
+                    <span id="size-display" style="color: var(--text-secondary);">-- bytes</span>
+                </div>
+            </div>
+
+            <div class="tab-bar">
+                <button type="button" class="tab active" onclick="switchResponseTab('response-body')">Body</button>
+                <button type="button" class="tab" onclick="switchResponseTab('response-headers')">Headers</button>
+            </div>
+
+            <div id="response-body-tab" class="tab-content active">
+                <div class="response-body" id="response-body">
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <p>Send a request to see the response</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="response-headers-tab" class="tab-content">
+                <div class="response-body" id="response-headers">
+                    <div class="empty-state">
+                        <p>No response headers</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // State
+        let history = [];
+        let currentRequest = null;
+
+        // Initialize from localStorage
+        function init() {
+            const saved = localStorage.getItem('request-history');
+            if (saved) {
+                try {
+                    history = JSON.parse(saved);
+                    renderHistory();
+                } catch (e) {
+                    console.error('Failed to load history:', e);
+                }
+            }
+        }
+
+        // Save to localStorage
+        function saveHistory() {
+            try {
+                localStorage.setItem('request-history', JSON.stringify(history.slice(0, 50)));
+            } catch (e) {
+                console.error('Failed to save history:', e);
+            }
+        }
+
+        // Tab switching
+        function switchTab(tabId) {
+            document.querySelectorAll('#headers-tab, #body-tab').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.request-form .tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId + '-tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function switchResponseTab(tabId) {
+            document.querySelectorAll('#response-body-tab, #response-headers-tab').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.response-panel .tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId + '-tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Header management
+        function addHeaderRow() {
+            const editor = document.getElementById('headers-editor');
+            const row = document.createElement('div');
+            row.className = 'key-value-row';
+            row.innerHTML = `
+                <input type="text" placeholder="Header name">
+                <input type="text" placeholder="Header value">
+                <button type="button" class="btn-remove" onclick="removeRow(this)">x</button>
+            `;
+            editor.appendChild(row);
+        }
+
+        function removeRow(btn) {
+            const row = btn.closest('.key-value-row');
+            const editor = document.getElementById('headers-editor');
+            if (editor.children.length > 1) {
+                row.remove();
+            } else {
+                row.querySelectorAll('input').forEach(input => input.value = '');
+            }
+        }
+
+        function getHeaders() {
+            const headers = {};
+            document.querySelectorAll('#headers-editor .key-value-row').forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                const key = inputs[0].value.trim();
+                const value = inputs[1].value.trim();
+                if (key) {
+                    headers[key] = value;
+                }
+            });
+            return headers;
+        }
+
+        // Send request
+        async function sendRequest(event) {
+            event.preventDefault();
+
+            const method = document.getElementById('method').value;
+            const url = document.getElementById('url').value;
+            const body = document.getElementById('body').value;
+            const headers = getHeaders();
+
+            const request = {
+                method,
+                url,
+                headers,
+                body: body || null,
+                timestamp: new Date().toISOString()
+            };
+
+            currentRequest = request;
+
+            // Update UI
+            document.getElementById('response-body').innerHTML = '<div class="empty-state"><p>Sending request...</p></div>';
+            document.getElementById('status-display').innerHTML = '<span class="status-dot" style="background: var(--warning);"></span><span>Sending</span>';
+
+            const startTime = performance.now();
+
+            try {
+                const options = {
+                    method,
+                    headers
+                };
+
+                if (body && ['POST', 'PUT', 'PATCH'].includes(method)) {
+                    options.body = body;
+                }
+
+                const response = await fetch(url, options);
+                const endTime = performance.now();
+                const duration = Math.round(endTime - startTime);
+
+                // Get response headers
+                const responseHeaders = {};
+                response.headers.forEach((value, key) => {
+                    responseHeaders[key] = value;
+                });
+
+                // Get response body
+                const contentType = response.headers.get('content-type') || '';
+                let responseBody;
+                let responseText;
+
+                try {
+                    responseText = await response.text();
+                    if (contentType.includes('json')) {
+                        const json = JSON.parse(responseText);
+                        responseBody = JSON.stringify(json, null, 2);
+                    } else {
+                        responseBody = responseText;
+                    }
+                } catch (e) {
+                    responseBody = responseText;
+                }
+
+                const result = {
+                    request,
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: responseHeaders,
+                    body: responseBody,
+                    duration,
+                    size: new Blob([responseText]).size
+                };
+
+                // Add to history
+                history.unshift(result);
+                saveHistory();
+                renderHistory();
+
+                // Update response display
+                displayResponse(result);
+
+            } catch (error) {
+                const endTime = performance.now();
+                const duration = Math.round(endTime - startTime);
+
+                const result = {
+                    request,
+                    status: 0,
+                    statusText: 'Network Error',
+                    headers: {},
+                    body: error.message,
+                    duration,
+                    size: 0,
+                    error: true
+                };
+
+                history.unshift(result);
+                saveHistory();
+                renderHistory();
+
+                displayResponse(result);
+            }
+        }
+
+        // Display response
+        function displayResponse(result) {
+            const statusDot = document.querySelector('#status-display .status-dot');
+            const statusText = document.querySelector('#status-display span:last-child');
+
+            if (result.error) {
+                statusDot.className = 'status-dot error';
+                statusText.textContent = 'Error';
+            } else if (result.status >= 200 && result.status < 300) {
+                statusDot.className = 'status-dot success';
+                statusText.textContent = `${result.status} ${result.statusText}`;
+            } else if (result.status >= 300 && result.status < 400) {
+                statusDot.className = 'status-dot redirect';
+                statusText.textContent = `${result.status} ${result.statusText}`;
+            } else {
+                statusDot.className = 'status-dot error';
+                statusText.textContent = `${result.status} ${result.statusText}`;
+            }
+
+            document.getElementById('time-display').textContent = `${result.duration} ms`;
+            document.getElementById('size-display').textContent = formatBytes(result.size);
+
+            // Response body
+            const bodyEl = document.getElementById('response-body');
+            if (result.error) {
+                bodyEl.innerHTML = `<pre style="color: var(--error);">Error: ${escapeHtml(result.body)}</pre>`;
+            } else {
+                bodyEl.innerHTML = `<pre>${escapeHtml(result.body)}</pre>`;
+            }
+
+            // Response headers
+            const headersEl = document.getElementById('response-headers');
+            const headerLines = Object.entries(result.headers).map(
+                ([key, value]) => `<strong>${escapeHtml(key)}:</strong> ${escapeHtml(value)}`
+            );
+            headersEl.innerHTML = headerLines.length
+                ? `<pre style="line-height: 1.8;">${headerLines.join('\n')}</pre>`
+                : '<div class="empty-state"><p>No response headers</p></div>';
+        }
+
+        // Render history
+        function renderHistory() {
+            const list = document.getElementById('history-list');
+            const count = document.getElementById('history-count');
+
+            count.textContent = `${history.length} request${history.length !== 1 ? 's' : ''}`;
+
+            if (history.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <p>No requests yet</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = history.map((item, index) => {
+                const methodClass = item.request.method.toLowerCase();
+                const statusClass = item.status >= 200 && item.status < 300 ? 'success' : 'error';
+                const url = new URL(item.request.url);
+
+                return `
+                    <div class="history-item" onclick="loadFromHistory(${index})">
+                        <span class="method-badge ${methodClass}">${item.request.method}</span>
+                        <span class="history-url">${url.pathname}${url.search}</span>
+                        <span class="history-status ${statusClass}">${item.status || 'ERR'}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Load from history
+        function loadFromHistory(index) {
+            const item = history[index];
+            const request = item.request;
+
+            document.getElementById('method').value = request.method;
+            document.getElementById('url').value = request.url;
+            document.getElementById('body').value = request.body || '';
+
+            // Load headers
+            const editor = document.getElementById('headers-editor');
+            editor.innerHTML = '';
+
+            const headerEntries = Object.entries(request.headers);
+            if (headerEntries.length === 0) {
+                editor.innerHTML = `
+                    <div class="key-value-row">
+                        <input type="text" placeholder="Header name">
+                        <input type="text" placeholder="Header value">
+                        <button type="button" class="btn-remove" onclick="removeRow(this)">x</button>
+                    </div>
+                `;
+            } else {
+                headerEntries.forEach(([key, value]) => {
+                    const row = document.createElement('div');
+                    row.className = 'key-value-row';
+                    row.innerHTML = `
+                        <input type="text" placeholder="Header name" value="${escapeHtml(key)}">
+                        <input type="text" placeholder="Header value" value="${escapeHtml(value)}">
+                        <button type="button" class="btn-remove" onclick="removeRow(this)">x</button>
+                    `;
+                    editor.appendChild(row);
+                });
+            }
+
+            // Switch to body tab if has body
+            if (request.body) {
+                switchTab('body');
+                document.querySelectorAll('.request-form .tab')[1].classList.add('active');
+                document.querySelectorAll('.request-form .tab')[0].classList.remove('active');
+            } else {
+                switchTab('headers');
+            }
+
+            // Highlight active item
+            document.querySelectorAll('.history-item').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.history-item')[index]?.classList.add('active');
+
+            // Display response
+            displayResponse(item);
+        }
+
+        // Clear history
+        function clearHistory() {
+            if (confirm('Clear all request history?')) {
+                history = [];
+                saveHistory();
+                renderHistory();
+                document.getElementById('response-body').innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <p>Send a request to see the response</p>
+                    </div>
+                `;
+                document.getElementById('response-headers').innerHTML = '<div class="empty-state"><p>No response headers</p></div>';
+                document.getElementById('status-display').innerHTML = '<span class="status-dot"></span><span>--</span>';
+                document.getElementById('time-display').textContent = '-- ms';
+                document.getElementById('size-display').textContent = '-- bytes';
+            }
+        }
+
+        // Export history
+        function exportHistory() {
+            const data = JSON.stringify(history, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `request-logger-${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Utilities
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initialize
+        init();
+    </script>
+</body>
+</html>

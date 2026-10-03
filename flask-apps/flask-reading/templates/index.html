@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reading List Tracker</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1100px; margin: 0 auto; }
+        h1 { color: #333; margin-bottom: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .btn { background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; border: none; cursor: pointer; display: inline-block; font-size: 14px; }
+        .btn:hover { background: #0056b3; }
+        .btn-danger { background: #dc3545; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-success { background: #28a745; }
+        .btn-success:hover { background: #218838; }
+        .btn-warning { background: #f0ad4e; }
+        .btn-warning:hover { background: #ec971f; }
+        .btn-sm { padding: 5px 12px; font-size: 13px; }
+        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: white; padding: 20px; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .stat-card h3 { font-size: 14px; color: #666; margin-bottom: 5px; }
+        .stat-card .value { font-size: 36px; font-weight: bold; }
+        .stat-card.to-read .value { color: #6c757d; }
+        .stat-card.reading .value { color: #007bff; }
+        .stat-card.completed .value { color: #28a745; }
+        .filters { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .filters form { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .filters input, .filters select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 5px; }
+        .filters input[type="text"] { flex: 1; min-width: 200px; }
+        .tabs { display: flex; gap: 5px; margin-bottom: 20px; }
+        .tab { padding: 10px 20px; background: white; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; color: #666; }
+        .tab:hover { background: #e9ecef; }
+        .tab.active { background: #007bff; color: white; }
+        .book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .book-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: relative; }
+        .book-card h3 { color: #333; margin-bottom: 5px; }
+        .book-card .author { color: #666; font-style: italic; margin-bottom: 10px; }
+        .book-card .genre { display: inline-block; padding: 3px 10px; background: #e9ecef; border-radius: 12px; font-size: 12px; color: #495057; }
+        .book-card .status-badge { position: absolute; top: 15px; right: 15px; padding: 4px 12px; border-radius: 12px; font-size: 12px; color: white; }
+        .status-to_read { background: #6c757d; }
+        .status-reading { background: #007bff; }
+        .status-completed { background: #28a745; }
+        .book-card .rating { color: #ffc107; font-size: 20px; margin: 10px 0; }
+        .book-card .dates { font-size: 12px; color: #888; margin-top: 10px; }
+        .book-card .review { font-size: 14px; color: #666; margin-top: 10px; font-style: italic; }
+        .book-card .actions { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 15px; }
+        .empty { text-align: center; padding: 40px; color: #666; }
+        .rating-form { display: flex; align-items: center; gap: 5px; }
+        .rating-form input[type="radio"] { display: none; }
+        .rating-form label { cursor: pointer; color: #ddd; font-size: 20px; }
+        .rating-form input[type="radio"]:checked ~ label { color: #ffc107; }
+        .rating-form label:hover, .rating-form label:hover ~ label { color: #ffc107; }
+        .empty { text-align: center; padding: 40px; background: white; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Reading List</h1>
+            <a href="{{ url_for('add') }}" class="btn">+ Add Book</a>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card to-read">
+                <h3>To Read</h3>
+                <div class="value">{{ to_read }}</div>
+            </div>
+            <div class="stat-card reading">
+                <h3>Currently Reading</h3>
+                <div class="value">{{ reading }}</div>
+            </div>
+            <div class="stat-card completed">
+                <h3>Completed</h3>
+                <div class="value">{{ completed }}</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <a href="{{ url_for('index') }}" class="tab {{ 'active' if not status_filter else '' }}">All</a>
+            <a href="?status=to_read" class="tab {{ 'active' if status_filter == 'to_read' else '' }}">To Read</a>
+            <a href="?status=reading" class="tab {{ 'active' if status_filter == 'reading' else '' }}">Reading</a>
+            <a href="?status=completed" class="tab {{ 'active' if status_filter == 'completed' else '' }}">Completed</a>
+        </div>
+
+        <div class="filters">
+            <form method="get">
+                <input type="text" name="search" placeholder="Search by title or author..." value="{{ search }}">
+                <select name="genre">
+                    <option value="">All Genres</option>
+                    {% for genre in genres %}
+                    <option value="{{ genre }}" {% if genre_filter == genre %}selected{% endif %}>{{ genre }}</option>
+                    {% endfor %}
+                </select>
+                {% if status_filter %}
+                <input type="hidden" name="status" value="{{ status_filter }}">
+                {% endif %}
+                <button type="submit" class="btn">Search</button>
+                {% if search or genre_filter %}
+                <a href="{{ url_for('index') }}{% if status_filter %}?status={{ status_filter }}{% endif %}" class="btn btn-sm" style="background:#6c757d;">Clear</a>
+                {% endif %}
+            </form>
+        </div>
+
+        {% if books %}
+        <div class="book-grid">
+        {% for book in books %}
+        <div class="book-card">
+            <span class="status-badge status-{{ book.status }}">
+                {{ {'to_read': 'To Read', 'reading': 'Reading', 'completed': 'Done'}[book.status] }}
+            </span>
+            <h3>{{ book.title }}</h3>
+            {% if book.author %}
+            <p class="author">by {{ book.author }}</p>
+            {% endif %}
+            {% if book.genre %}
+            <span class="genre">{{ book.genre }}</span>
+            {% endif %}
+
+            {% if book.rating %}
+            <div class="rating">
+                {% for i in range(1, 6) %}
+                {% if i <= book.rating %}&#9733;{% else %}&#9734;{% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if book.review %}
+            <p class="review">"{{ book.review }}"</p>
+            {% endif %}
+
+            <div class="dates">
+                {% if book.started_at %}Started: {{ book.started_at }}{% endif %}
+                {% if book.finished_at %}<br>Finished: {{ book.finished_at }}{% endif %}
+            </div>
+
+            <div class="actions">
+                <form method="post" action="{{ url_for('update_status', id=book.id) }}" style="display: inline;">
+                    {% if book.status == 'to_read' %}
+                    <button type="submit" name="status" value="reading" class="btn btn-sm btn-success">Start Reading</button>
+                    {% elif book.status == 'reading' %}
+                    <button type="submit" name="status" value="completed" class="btn btn-sm btn-success">Mark Done</button>
+                    <button type="submit" name="status" value="to_read" class="btn btn-sm btn-warning">Not Now</button>
+                    {% elif book.status == 'completed' %}
+                    <button type="submit" name="status" value="reading" class="btn btn-sm btn-warning">Re-read</button>
+                    {% endif %}
+                </form>
+                <a href="{{ url_for('edit', id=book.id) }}" class="btn btn-sm">Edit</a>
+                <a href="{{ url_for('delete', id=book.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Delete this book?')">Delete</a>
+            </div>
+        </div>
+        {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty">
+            <p>No books found. <a href="{{ url_for('add') }}">Add your first book</a></p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

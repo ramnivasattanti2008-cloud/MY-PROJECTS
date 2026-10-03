@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Mixer</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0d1117; color: #c9d1d9; min-height: 100vh; padding: 24px; }
+        .container { max-width: 700px; margin: 0 auto; }
+        h1 { color: #58a6ff; margin-bottom: 24px; font-size: 1.8rem; }
+        .color-row { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+        .color-block { flex: 1; min-width: 200px; }
+        .label { color: #8b949e; font-size: 13px; margin-bottom: 8px; display: block; }
+        input[type="color"] { width: 100%; height: 60px; border: 1px solid #30363d; border-radius: 6px; cursor: pointer; background: none; padding: 4px; }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: none; border-radius: 4px; }
+        input[type="text"] { width: 100%; padding: 10px 12px; border: 1px solid #30363d; border-radius: 6px; background: #0d1117; color: #c9d1d9; font-family: 'Consolas', monospace; font-size: 14px; margin-top: 8px; }
+        input:focus { outline: none; border-color: #58a6ff; }
+        .sliders { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+        .slider-row { display: flex; align-items: center; gap: 12px; }
+        .slider-row label { width: 20px; color: #8b949e; font-size: 13px; }
+        input[type="range"] { flex: 1; height: 6px; -webkit-appearance: none; background: #30363d; border-radius: 3px; cursor: pointer; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: #58a6ff; border-radius: 50%; cursor: pointer; }
+        .ratio-value { width: 50px; text-align: right; color: #c9d1d9; font-size: 13px; }
+        .preview { display: flex; gap: 16px; flex-wrap: wrap; }
+        .preview-box { flex: 1; min-width: 150px; height: 120px; border-radius: 8px; border: 1px solid #30363d; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; }
+        .mixed-preview { flex: 2; min-width: 200px; }
+        .result-section { margin-top: 24px; background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; }
+        .result-color { width: 100%; height: 80px; border-radius: 6px; margin-bottom: 16px; }
+        .result-values { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+        .result-item { background: #0d1117; padding: 12px; border-radius: 6px; }
+        .result-item .label { margin-bottom: 4px; }
+        .result-item code { font-family: 'Consolas', monospace; font-size: 14px; color: #58a6ff; }
+        button { padding: 10px 16px; border: 1px solid #30363d; border-radius: 6px; background: #1f6feb; color: #fff; cursor: pointer; font-size: 14px; margin-right: 8px; }
+        button:hover { background: #388bfd; }
+        button.secondary { background: #238636; border-color: #238636; }
+        button.secondary:hover { background: #2ea043; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Color Mixer</h1>
+        <div class="color-row">
+            <div class="color-block">
+                <span class="label">Color 1</span>
+                <input type="color" id="color1" value="#ff6b6b">
+                <input type="text" id="hex1" value="#ff6b6b" maxlength="7">
+            </div>
+            <div class="color-block">
+                <span class="label">Color 2</span>
+                <input type="color" id="color2" value="#4ecdc4">
+                <input type="text" id="hex2" value="#4ecdc4" maxlength="7">
+            </div>
+        </div>
+        <div class="sliders">
+            <div class="slider-row">
+                <label>R</label>
+                <input type="range" id="ratio1" min="0" max="100" value="50">
+                <span class="ratio-value" id="ratio1Value">50%</span>
+            </div>
+            <div class="slider-row">
+                <label>G</label>
+                <input type="range" id="ratio2" min="0" max="100" value="50">
+                <span class="ratio-value" id="ratio2Value">50%</span>
+            </div>
+            <div class="slider-row">
+                <label>B</label>
+                <input type="range" id="ratio3" min="0" max="100" value="50">
+                <span class="ratio-value" id="ratio3Value">50%</span>
+            </div>
+        </div>
+        <div class="preview">
+            <div class="preview-box" id="preview1" style="color: #000;">Color 1</div>
+            <div class="preview-box mixed-preview" id="mixedPreview" style="color: #000;">Mixed</div>
+            <div class="preview-box" id="preview2" style="color: #000;">Color 2</div>
+        </div>
+        <div class="result-section">
+            <div class="result-color" id="resultColor"></div>
+            <div class="result-values">
+                <div class="result-item">
+                    <span class="label">HEX</span>
+                    <code id="resultHex">#7F9F9F</code>
+                </div>
+                <div class="result-item">
+                    <span class="label">RGB</span>
+                    <code id="resultRgb">rgb(127, 159, 159)</code>
+                </div>
+                <div class="result-item">
+                    <span class="label">HSL</span>
+                    <code id="resultHsl">hsl(180, 17%, 56%)</code>
+                </div>
+            </div>
+            <div style="margin-top: 16px;">
+                <button onclick="copyValue('hex')">Copy HEX</button>
+                <button onclick="copyValue('rgb')">Copy RGB</button>
+                <button onclick="copyValue('hsl')">Copy HSL</button>
+                <button class="secondary" onclick="copyValue('css')">Copy CSS Variable</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        const color1Input = document.getElementById('color1');
+        const color2Input = document.getElementById('color2');
+        const hex1Input = document.getElementById('hex1');
+        const hex2Input = document.getElementById('hex2');
+        const ratio1 = document.getElementById('ratio1');
+        const ratio2 = document.getElementById('ratio2');
+        const ratio3 = document.getElementById('ratio3');
+        const preview1 = document.getElementById('preview1');
+        const preview2 = document.getElementById('preview2');
+        const mixedPreview = document.getElementById('mixedPreview');
+        const resultColor = document.getElementById('resultColor');
+        const resultHex = document.getElementById('resultHex');
+        const resultRgb = document.getElementById('resultRgb');
+        const resultHsl = document.getElementById('resultHsl');
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function rgbToHex(r, g, b) {
+            return '#' + [r, g, b].map(x => {
+                const hex = Math.round(x).toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            }).join('');
+        }
+
+        function rgbToHsl(r, g, b) {
+            r /= 255; g /= 255; b /= 255;
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+            if (max === min) {
+                h = s = 0;
+            } else {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                    case g: h = ((b - r) / d + 2) / 6; break;
+                    case b: h = ((r - g) / d + 4) / 6; break;
+                }
+            }
+            return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+        }
+
+        function getLuminance(r, g, b) {
+            return (0.299 * r + 0.587 * g + 0.114 * b) > 128 ? '#000' : '#fff';
+        }
+
+        function mixColors() {
+            const hex1 = hex1Input.value;
+            const hex2 = hex2Input.value;
+            const r1 = ratio1.value / 100;
+            const r2 = ratio2.value / 100;
+            const r3 = ratio3.value / 100;
+
+            const c1 = hexToRgb(hex1);
+            const c2 = hexToRgb(hex2);
+
+            if (!c1 || !c2) return;
+
+            const r = c1.r * r1 + c2.r * (1 - r1);
+            const g = c1.g * r2 + c2.g * (1 - r2);
+            const b = c1.b * r3 + c2.b * (1 - r3);
+
+            const hex = rgbToHex(r, g, b);
+            const hsl = rgbToHsl(r, g, b);
+
+            preview1.style.backgroundColor = hex1;
+            preview1.style.color = getLuminance(c1.r, c1.g, c1.b);
+            preview2.style.backgroundColor = hex2;
+            preview2.style.color = getLuminance(c2.r, c2.g, c2.b);
+            mixedPreview.style.backgroundColor = hex;
+            mixedPreview.style.color = getLuminance(r, g, b);
+
+            resultColor.style.backgroundColor = hex;
+            resultHex.textContent = hex.toUpperCase();
+            resultRgb.textContent = `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
+            resultHsl.textContent = `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`;
+        }
+
+        function syncColorInputs() {
+            color1Input.value = hex1Input.value;
+            color2Input.value = hex2Input.value;
+            mixColors();
+        }
+
+        color1Input.addEventListener('input', () => { hex1Input.value = color1Input.value; mixColors(); });
+        color2Input.addEventListener('input', () => { hex2Input.value = color2Input.value; mixColors(); });
+        hex1Input.addEventListener('change', syncColorInputs);
+        hex2Input.addEventListener('change', syncColorInputs);
+        ratio1.addEventListener('input', () => { document.getElementById('ratio1Value').textContent = ratio1.value + '%'; mixColors(); });
+        ratio2.addEventListener('input', () => { document.getElementById('ratio2Value').textContent = ratio2.value + '%'; mixColors(); });
+        ratio3.addEventListener('input', () => { document.getElementById('ratio3Value').textContent = ratio3.value + '%'; mixColors(); });
+
+        function copyValue(format) {
+            let text;
+            switch (format) {
+                case 'hex': text = resultHex.textContent; break;
+                case 'rgb': text = resultRgb.textContent; break;
+                case 'hsl': text = resultHsl.textContent; break;
+                case 'css': text = `--mixed-color: ${resultHex.textContent};`; break;
+            }
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = event.target;
+                const original = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = original, 1500);
+            });
+        }
+
+        mixColors();
+    </script>
+</body>
+</html>

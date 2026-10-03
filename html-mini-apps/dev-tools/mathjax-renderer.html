@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MathJax Renderer</title>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #0f0f0f; color: #fff; min-height: 100vh; padding: 2rem; }
+    .container { max-width: 900px; margin: 0 auto; }
+    h1 { text-align: center; margin-bottom: 2rem; color: #3b82f6; }
+    .editor { display: flex; flex-direction: column; gap: 2rem; }
+    textarea { width: 100%; height: 150px; background: #1c1c1c; border: 1px solid #3f3f46; border-radius: 8px; color: #fff; font-family: 'Fira Code', 'Courier New', monospace; padding: 1rem; font-size: 1rem; resize: vertical; }
+    textarea:focus { outline: none; border-color: #3b82f6; }
+    .preview-box { background: #1c1c1c; border: 1px solid #3f3f46; border-radius: 8px; padding: 2rem; min-height: 150px; font-size: 1.25rem; text-align: center; }
+    .preview-label { margin-bottom: 0.5rem; color: #a1a1aa; font-size: 0.85rem; }
+    .examples { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+    .examples button { background: #27272a; border: 1px solid #3f3f46; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: background 0.2s; }
+    .examples button:hover { background: #3f3f46; }
+    .render-btn { background: #3b82f6; color: #fff; border: none; padding: 0.75rem 2rem; border-radius: 8px; cursor: pointer; font-size: 1rem; align-self: flex-start; }
+    .render-btn:hover { background: #2563eb; }
+    .copy-btn { background: #22c55e; color: #fff; border: none; padding: 0.75rem 2rem; border-radius: 8px; cursor: pointer; font-size: 1rem; }
+    .copy-btn:hover { background: #16a34a; }
+    .buttons { display: flex; gap: 1rem; margin-top: 1rem; }
+    .error { color: #ef4444; margin-top: 0.5rem; font-size: 0.85rem; display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>MathJax Renderer</h1>
+    <div class="editor">
+      <div>
+        <div class="examples">
+          <button onclick="setExample('quadratic')">Quadratic Formula</button>
+          <button onclick="setExample('integral')">Integral</button>
+          <button onclick="setExample('matrix')">Matrix</button>
+          <button onclick="setExample('derivative')">Derivative</button>
+          <button onclick="setExample('sum')">Summation</button>
+        </div>
+        <textarea id="latexInput" placeholder="Enter LaTeX... e.g. E = mc^2"></textarea>
+        <div class="error" id="error"></div>
+      </div>
+      <div>
+        <div class="preview-label">Rendered Output:</div>
+        <div class="preview-box" id="preview"></div>
+      </div>
+      <div class="buttons">
+        <button class="render-btn" onclick="render()">Render</button>
+        <button class="copy-btn" onclick="copyLatex()">Copy LaTeX</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    const examples = {
+      quadratic: 'x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}',
+      integral: '\\int_{0}^{\\infty} e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}',
+      matrix: '\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}^{-1} = \\frac{1}{ad-bc}\\begin{pmatrix} d & -b \\\\ -c & a \\end{pmatrix}',
+      derivative: "\\frac{d}{dx}\\left[f(g(x))\\right] = f'(g(x)) \\cdot g'(x)",
+      sum: '\\sum_{n=1}^{\\infty} \\frac{1}{n^2} = \\frac{\\pi^2}{6}'
+    };
+
+    function setExample(key) {
+      document.getElementById('latexInput').value = examples[key];
+      render();
+    }
+
+    function render() {
+      const input = document.getElementById('latexInput').value;
+      const preview = document.getElementById('preview');
+      const error = document.getElementById('error');
+      try {
+        preview.innerHTML = `\\[${input}\\]`;
+        MathJax.typesetPromise([preview]).then(() => { error.style.display = 'none'; }).catch(() => { error.textContent = 'Error rendering'; error.style.display = 'block'; });
+      } catch (e) {
+        error.textContent = 'Invalid LaTeX syntax';
+        error.style.display = 'block';
+      }
+    }
+
+    function copyLatex() {
+      navigator.clipboard.writeText(document.getElementById('latexInput').value);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: system-ui, sans-serif; background: #faf5ff; color: #1e1b4b; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        h1 { color: #7c3aed; }
+        .btn { padding: 8px 16px; background: #7c3aed; color: white; text-decoration: none; border-radius: 6px; display: inline-block; }
+        .btn:hover { background: #6d28d9; }
+        .flash { padding: 10px 15px; border-radius: 6px; margin-bottom: 15px; }
+        .flash.success { background: #dcfce7; color: #166534; }
+        .flash.info { background: #fae8ff; color: #6b21a8; }
+        .stats { display: flex; gap: 15px; margin-bottom: 20px; }
+        .stat { padding: 10px 15px; background: white; border-radius: 6px; font-size: 14px; }
+        .stat strong { color: #7c3aed; }
+        .filters { display: flex; gap: 10px; margin-bottom: 20px; }
+        .filter { padding: 6px 14px; border-radius: 20px; text-decoration: none; color: #6b7280; background: white; border: 1px solid #e5e7eb; }
+        .filter.active { background: #7c3aed; color: white; border-color: #7c3aed; }
+        .task-list { display: flex; flex-direction: column; gap: 10px; }
+        .task-card { background: white; padding: 15px 20px; border-radius: 8px; display: flex; align-items: center; gap: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .task-card.completed { opacity: 0.7; }
+        .task-card.completed .task-title { text-decoration: line-through; color: #9ca3af; }
+        .checkbox { width: 22px; height: 22px; cursor: pointer; accent-color: #7c3aed; }
+        .task-info { flex: 1; }
+        .task-title { font-weight: 500; color: #1e1b4b; font-size: 16px; }
+        .task-meta { display: flex; gap: 10px; margin-top: 5px; font-size: 13px; color: #6b7280; }
+        .priority { padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+        .priority.high { background: #fee2e2; color: #dc2626; }
+        .priority.medium { background: #fef3c7; color: #d97706; }
+        .priority.low { background: #dbeafe; color: #2563eb; }
+        .due-date { color: #6b7280; }
+        .overdue { color: #dc2626; }
+        .task-actions a { color: #9ca3af; text-decoration: none; margin-left: 10px; font-size: 14px; }
+        .task-actions a:hover { color: #7c3aed; }
+        .empty { text-align: center; padding: 40px; color: #9ca3af; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Task Manager</h1>
+            <a href="{{ url_for('add_task') }}" class="btn">+ Add Task</a>
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+
+        <div class="stats">
+            <div class="stat"><strong>{{ active_count }}</strong> active</div>
+            <div class="stat"><strong>{{ completed_count }}</strong> completed</div>
+        </div>
+
+        <div class="filters">
+            <a href="{{ url_for('index', filter='all') }}" class="filter {% if filter_type == 'all' %}active{% endif %}">All</a>
+            <a href="{{ url_for('index', filter='active') }}" class="filter {% if filter_type == 'active' %}active{% endif %}">Active</a>
+            <a href="{{ url_for('index', filter='completed') }}" class="filter {% if filter_type == 'completed' %}active{% endif %}">Completed</a>
+        </div>
+
+        {% if tasks %}
+            <div class="task-list">
+                {% for task in tasks %}
+                    <div class="task-card {% if task.completed %}completed{% endif %}">
+                        <input type="checkbox" class="checkbox" onclick="window.location.href='{{ url_for('complete_task', id=task.id) }}'" {% if task.completed %}checked{% endif %}>
+                        <div class="task-info">
+                            <div class="task-title">{{ task.title }}</div>
+                            <div class="task-meta">
+                                <span class="priority {{ task.priority }}">{{ task.priority|upper }}</span>
+                                {% if task.due_date %}
+                                    {% set today = now().date() if now else none %}
+                                    {% if task.due_date < today and not task.completed %}
+                                        <span class="due-date overdue">Overdue: {{ task.due_date.strftime('%Y-%m-%d') }}</span>
+                                    {% else %}
+                                        <span class="due-date">Due: {{ task.due_date.strftime('%Y-%m-%d') }}</span>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="task-actions">
+                            <a href="{{ url_for('edit_task', id=task.id) }}">Edit</a>
+                            <a href="{{ url_for('delete_task', id=task.id) }}" onclick="return confirm('Delete this task?')">Delete</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty">
+                <p>No tasks found. <a href="{{ url_for('add_task') }}">Add a task</a></p>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

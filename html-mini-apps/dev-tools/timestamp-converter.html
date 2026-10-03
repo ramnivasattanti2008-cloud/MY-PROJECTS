@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timestamp Converter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --bg-primary: #0d0d0f;
+            --bg-secondary: #1a1a1f;
+            --bg-tertiary: #252530;
+            --accent: #6366f1;
+            --accent-hover: #818cf8;
+            --success: #22c55e;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #2d2d3a;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+        .current-time {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .current-time-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+        .current-time-value {
+            font-size: 2rem;
+            font-weight: 600;
+            font-family: 'Consolas', monospace;
+            color: var(--accent);
+        }
+        .current-time-relative {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+        .converter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .converter-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.25rem;
+        }
+        .converter-card h3 {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .converter-card h3 .icon {
+            width: 24px;
+            height: 24px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+        .input-group {
+            margin-bottom: 0.75rem;
+        }
+        .input-group label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'Consolas', monospace;
+            font-size: 0.9rem;
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        button {
+            flex: 1;
+            padding: 0.6rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: var(--accent-hover);
+        }
+        button.secondary {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+        }
+        button.secondary:hover {
+            background: var(--border);
+        }
+        .conversions {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.25rem;
+        }
+        .conversions h3 {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+        .conversion-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .conversion-row:last-child {
+            border-bottom: none;
+        }
+        .conversion-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        .conversion-value {
+            font-family: 'Consolas', monospace;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+        }
+        .conversion-value.clickable {
+            cursor: pointer;
+            color: var(--accent);
+        }
+        .conversion-value.clickable:hover {
+            text-decoration: underline;
+        }
+        .timezone-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-top: 1.5rem;
+        }
+        .timezone-section h3 {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+        .timezone-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 0.75rem;
+        }
+        .timezone-item {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 0.75rem;
+            text-align: center;
+        }
+        .timezone-item .tz-name {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+        .timezone-item .tz-time {
+            font-family: 'Consolas', monospace;
+            font-size: 0.9rem;
+        }
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--accent);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Timestamp Converter</h1>
+        <p class="subtitle">Convert between Unix, ISO, and human-readable timestamps with live updates</p>
+
+        <div class="current-time">
+            <div class="current-time-label">Current Time</div>
+            <div class="current-time-value" id="currentTime">--:--:--</div>
+            <div class="current-time-relative" id="currentRelative">--</div>
+        </div>
+
+        <div class="converter-grid">
+            <div class="converter-card">
+                <h3><span class="icon">U</span> Unix Timestamp (seconds)</h3>
+                <div class="input-group">
+                    <label>Unix (seconds since 1970)</label>
+                    <input type="number" id="unixInput" placeholder="1704067200">
+                </div>
+                <div class="buttons">
+                    <button onclick="fromUnix()">Convert</button>
+                    <button class="secondary" onclick="setUnixNow()">Now</button>
+                </div>
+            </div>
+
+            <div class="converter-card">
+                <h3><span class="icon">ms</span> Unix Timestamp (milliseconds)</h3>
+                <div class="input-group">
+                    <label>Unix (ms since 1970)</label>
+                    <input type="number" id="unixMsInput" placeholder="1704067200000">
+                </div>
+                <div class="buttons">
+                    <button onclick="fromUnixMs()">Convert</button>
+                    <button class="secondary" onclick="setUnixMsNow()">Now</button>
+                </div>
+            </div>
+
+            <div class="converter-card">
+                <h3><span class="icon">ISO</span> ISO 8601</h3>
+                <div class="input-group">
+                    <label>ISO 8601 String</label>
+                    <input type="text" id="isoInput" placeholder="2024-01-01T00:00:00Z">
+                </div>
+                <div class="buttons">
+                    <button onclick="fromISO()">Convert</button>
+                    <button class="secondary" onclick="setISONow()">Now</button>
+                </div>
+            </div>
+
+            <div class="converter-card">
+                <h3><span class="icon">&#128197;</span> Human Readable</h3>
+                <div class="input-group">
+                    <label>Date</label>
+                    <input type="date" id="dateInput">
+                </div>
+                <div class="input-group">
+                    <label>Time</label>
+                    <input type="time" id="timeInput">
+                </div>
+                <div class="buttons">
+                    <button onclick="fromHuman()">Convert</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="conversions">
+            <h3>All Conversions</h3>
+            <div class="conversion-row">
+                <span class="conversion-label">Unix (seconds)</span>
+                <span class="conversion-value clickable" id="convUnix" onclick="copyValue(this)">--</span>
+            </div>
+            <div class="conversion-row">
+                <span class="conversion-label">Unix (milliseconds)</span>
+                <span class="conversion-value clickable" id="convUnixMs" onclick="copyValue(this)">--</span>
+            </div>
+            <div class="conversion-row">
+                <span class="conversion-label">ISO 8601</span>
+                <span class="conversion-value clickable" id="convISO" onclick="copyValue(this)">--</span>
+            </div>
+            <div class="conversion-row">
+                <span class="conversion-label">Local DateTime</span>
+                <span class="conversion-value clickable" id="convLocal" onclick="copyValue(this)">--</span>
+            </div>
+            <div class="conversion-row">
+                <span class="conversion-label">UTC</span>
+                <span class="conversion-value clickable" id="convUTC" onclick="copyValue(this)">--</span>
+            </div>
+            <div class="conversion-row">
+                <span class="conversion-label">Relative</span>
+                <span class="conversion-value" id="convRelative">--</span>
+            </div>
+        </div>
+
+        <div class="timezone-section">
+            <h3>World Time Zones</h3>
+            <div class="timezone-grid">
+                <div class="timezone-item">
+                    <div class="tz-name">New York (EST)</div>
+                    <div class="tz-time" id="tzNewYork">--</div>
+                </div>
+                <div class="timezone-item">
+                    <div class="tz-name">London (GMT)</div>
+                    <div class="tz-time" id="tzLondon">--</div>
+                </div>
+                <div class="timezone-item">
+                    <div class="tz-name">Paris (CET)</div>
+                    <div class="tz-time" id="tzParis">--</div>
+                </div>
+                <div class="timezone-item">
+                    <div class="tz-name">Dubai (GST)</div>
+                    <div class="tz-time" id="tzDubai">--</div>
+                </div>
+                <div class="timezone-item">
+                    <div class="tz-name">Singapore (SGT)</div>
+                    <div class="tz-time" id="tzSingapore">--</div>
+                </div>
+                <div class="timezone-item">
+                    <div class="tz-name">Tokyo (JST)</div>
+                    <div class="tz-time" id="tzTokyo">--</div>
+                </div>
+                <div class="timezone-item">
+                    <div class="tz-name">Sydney (AEST)</div>
+                    <div class="tz-time" id="tzSydney">--</div>
+                </div>
+                <div class="timezone-item">
+                    <div class="tz-name">Los Angeles (PST)</div>
+                    <div class="tz-time" id="tzLA">--</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let currentTimestamp = Date.now();
+        let updateInterval;
+
+        function updateCurrentTime() {
+            currentTimestamp = Date.now();
+            const now = new Date();
+
+            document.getElementById('currentTime').textContent = now.toLocaleTimeString('en-US', {
+                hour12: false
+            }) + '.' + String(now.getMilliseconds()).padStart(3, '0');
+
+            document.getElementById('currentRelative').textContent = getRelativeTime(now);
+
+            updateConversions(currentTimestamp);
+            updateTimezones();
+        }
+
+        function updateConversions(ts) {
+            const date = new Date(ts);
+
+            document.getElementById('convUnix').textContent = Math.floor(ts / 1000);
+            document.getElementById('convUnixMs').textContent = ts;
+            document.getElementById('convISO').textContent = date.toISOString();
+            document.getElementById('convLocal').textContent = date.toLocaleString();
+            document.getElementById('convUTC').textContent = date.toUTCString();
+            document.getElementById('convRelative').textContent = getRelativeTime(date);
+        }
+
+        function updateTimezones() {
+            const now = new Date();
+
+            const formats = {
+                'tzNewYork': { timeZone: 'America/New_York', label: 'EST/EDT' },
+                'tzLondon': { timeZone: 'Europe/London', label: 'GMT/BST' },
+                'tzParis': { timeZone: 'Europe/Paris', label: 'CET/CEST' },
+                'tzDubai': { timeZone: 'Asia/Dubai', label: 'GST' },
+                'tzSingapore': { timeZone: 'Asia/Singapore', label: 'SGT' },
+                'tzTokyo': { timeZone: 'Asia/Tokyo', label: 'JST' },
+                'tzSydney': { timeZone: 'Australia/Sydney', label: 'AEST' },
+                'tzLA': { timeZone: 'America/Los_Angeles', label: 'PST/PDT' }
+            };
+
+            Object.entries(formats).forEach(([id, config]) => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.textContent = now.toLocaleTimeString('en-US', {
+                        timeZone: config.timeZone,
+                        hour12: false
+                    });
+                    el.previousElementSibling.textContent = config.label;
+                }
+            });
+        }
+
+        function getRelativeTime(date) {
+            const now = new Date();
+            const diff = now - date;
+            const absDiff = Math.abs(diff);
+            const isFuture = diff < 0;
+
+            const seconds = Math.floor(absDiff / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+
+            let result;
+            if (days > 0) result = days + ' day' + (days > 1 ? 's' : '');
+            else if (hours > 0) result = hours + ' hour' + (hours > 1 ? 's' : '');
+            else if (minutes > 0) result = minutes + ' minute' + (minutes > 1 ? 's' : '');
+            else result = seconds + ' second' + (seconds !== 1 ? 's' : '');
+
+            return (isFuture ? 'in ' : '') + result + (isFuture ? '' : ' ago');
+        }
+
+        function fromUnix() {
+            const val = document.getElementById('unixInput').value;
+            if (!val) return;
+            currentTimestamp = parseInt(val) * 1000;
+            updateConversions(currentTimestamp);
+            document.getElementById('unixMsInput').value = '';
+            document.getElementById('isoInput').value = '';
+            document.getElementById('dateInput').value = '';
+            document.getElementById('timeInput').value = '';
+        }
+
+        function fromUnixMs() {
+            const val = document.getElementById('unixMsInput').value;
+            if (!val) return;
+            currentTimestamp = parseInt(val);
+            updateConversions(currentTimestamp);
+            document.getElementById('unixInput').value = '';
+            document.getElementById('isoInput').value = '';
+            document.getElementById('dateInput').value = '';
+            document.getElementById('timeInput').value = '';
+        }
+
+        function fromISO() {
+            const val = document.getElementById('isoInput').value;
+            if (!val) return;
+            const date = new Date(val);
+            if (isNaN(date.getTime())) {
+                showToast('Invalid ISO date');
+                return;
+            }
+            currentTimestamp = date.getTime();
+            updateConversions(currentTimestamp);
+            document.getElementById('unixInput').value = '';
+            document.getElementById('unixMsInput').value = '';
+            document.getElementById('dateInput').value = '';
+            document.getElementById('timeInput').value = '';
+        }
+
+        function fromHuman() {
+            const dateVal = document.getElementById('dateInput').value;
+            const timeVal = document.getElementById('timeInput').value;
+            if (!dateVal || !timeVal) {
+                showToast('Please enter both date and time');
+                return;
+            }
+            const date = new Date(dateVal + 'T' + timeVal);
+            currentTimestamp = date.getTime();
+            updateConversions(currentTimestamp);
+            document.getElementById('unixInput').value = '';
+            document.getElementById('unixMsInput').value = '';
+            document.getElementById('isoInput').value = '';
+        }
+
+        function setUnixNow() {
+            document.getElementById('unixInput').value = Math.floor(Date.now() / 1000);
+            fromUnix();
+        }
+
+        function setUnixMsNow() {
+            document.getElementById('unixMsInput').value = Date.now();
+            fromUnixMs();
+        }
+
+        function setISONow() {
+            document.getElementById('isoInput').value = new Date().toISOString();
+            fromISO();
+        }
+
+        function copyValue(el) {
+            navigator.clipboard.writeText(el.textContent);
+            showToast('Copied: ' + el.textContent);
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // Initialize
+        updateCurrentTime();
+        updateInterval = setInterval(updateCurrentTime, 100);
+
+        // Stop live update when user enters a value
+        ['unixInput', 'unixMsInput', 'isoInput', 'dateInput', 'timeInput'].forEach(id => {
+            document.getElementById(id).addEventListener('focus', () => {
+                clearInterval(updateInterval);
+            });
+        });
+    </script>
+</body>
+</html>

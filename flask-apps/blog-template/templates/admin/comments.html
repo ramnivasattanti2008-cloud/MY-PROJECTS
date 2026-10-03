@@ -1,0 +1,75 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Comments{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1>Comments</h1>
+    <div class="filter-tabs">
+        <a href="{{ url_for('admin_comments', status='pending') }}" class="tab {% if status == 'pending' %}active{% endif %}">Pending</a>
+        <a href="{{ url_for('admin_comments', status='approved') }}" class="tab {% if status == 'approved' %}active{% endif %}">Approved</a>
+        <a href="{{ url_for('admin_comments', status='all') }}" class="tab {% if status == 'all' %}active{% endif %}">All</a>
+    </div>
+</div>
+
+<div class="card">
+    {% if comments.items %}
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Author</th>
+                <th>Comment</th>
+                <th>Post</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for comment in comments.items %}
+            <tr>
+                <td>
+                    <div class="comment-author-info">
+                        <strong>{{ comment.author_name }}</strong>
+                        <span>{{ comment.author_email }}</span>
+                    </div>
+                </td>
+                <td class="comment-cell">{{ comment.content[:100] }}...</td>
+                <td><a href="{{ url_for('post', slug=comment.post.slug) }}" target="_blank">{{ comment.post.title[:30] }}...</a></td>
+                <td>
+                    <span class="badge {% if comment.is_approved %}published{% else %}pending{% endif %}">
+                        {{ 'Approved' if comment.is_approved else 'Pending' }}
+                    </span>
+                </td>
+                <td>{{ comment.created_at.strftime('%b %d, %Y') }}</td>
+                <td>
+                    {% if not comment.is_approved %}
+                    <a href="{{ url_for('approve_comment', id=comment.id) }}" class="btn btn-sm btn-success">Approve</a>
+                    {% endif %}
+                    <a href="{{ url_for('delete_comment', id=comment.id) }}" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="empty-state">No comments found.</p>
+    {% endif %}
+</div>
+
+{% if comments.pages > 1 %}
+<div class="pagination admin-pagination">
+    {% if comments.has_prev %}
+    <a href="{{ url_for('admin_comments', status=status, page=comments.prev_num) }}" class="btn btn-outline">&laquo; Previous</a>
+    {% endif %}
+    {% for p in comments.iter_pages() %}
+        {% if p %}
+        <a href="{{ url_for('admin_comments', status=status, page=p) }}" class="btn {% if p == comments.page %}btn-primary{% else %}btn-outline{% endif %}">{{ p }}</a>
+        {% endif %}
+    {% endfor %}
+    {% if comments.has_next %}
+    <a href="{{ url_for('admin_comments', status=status, page=comments.next_num) }}" class="btn btn-outline">Next &raquo;</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

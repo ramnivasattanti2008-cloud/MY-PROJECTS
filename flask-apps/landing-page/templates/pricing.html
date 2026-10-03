@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Pricing - BrandName{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1>Simple, Transparent Pricing</h1>
+        <p>Choose the plan that fits your needs. No hidden fees.</p>
+    </div>
+</section>
+
+<section class="pricing">
+    <div class="container">
+        <div class="pricing-grid">
+            <div class="pricing-card">
+                <div class="pricing-header">
+                    <h3>Starter</h3>
+                    <div class="price">
+                        <span class="amount">$0</span>
+                        <span class="period">/month</span>
+                    </div>
+                    <p>Perfect for getting started</p>
+                </div>
+                <ul class="pricing-features">
+                    <li>5 Projects</li>
+                    <li>100MB Storage</li>
+                    <li>Basic Analytics</li>
+                    <li>Email Support</li>
+                    <li class="disabled">API Access</li>
+                    <li class="disabled">Custom Domain</li>
+                </ul>
+                <a href="#" class="btn btn-outline">Get Started</a>
+            </div>
+
+            <div class="pricing-card featured">
+                <div class="badge">Most Popular</div>
+                <div class="pricing-header">
+                    <h3>Pro</h3>
+                    <div class="price">
+                        <span class="amount">$29</span>
+                        <span class="period">/month</span>
+                    </div>
+                    <p>Best for growing teams</p>
+                </div>
+                <ul class="pricing-features">
+                    <li>Unlimited Projects</li>
+                    <li>10GB Storage</li>
+                    <li>Advanced Analytics</li>
+                    <li>Priority Support</li>
+                    <li>API Access</li>
+                    <li class="disabled">Custom Domain</li>
+                </ul>
+                <a href="#" class="btn btn-primary">Start Free Trial</a>
+            </div>
+
+            <div class="pricing-card">
+                <div class="pricing-header">
+                    <h3>Enterprise</h3>
+                    <div class="price">
+                        <span class="amount">$99</span>
+                        <span class="period">/month</span>
+                    </div>
+                    <p>For large organizations</p>
+                </div>
+                <ul class="pricing-features">
+                    <li>Everything in Pro</li>
+                    <li>Unlimited Storage</li>
+                    <li>Custom Analytics</li>
+                    <li>24/7 Phone Support</li>
+                    <li>API Access</li>
+                    <li>Custom Domain</li>
+                </ul>
+                <a href="#" class="btn btn-outline">Contact Sales</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="faq">
+    <div class="container">
+        <h2>Frequently Asked Questions</h2>
+        <div class="faq-grid">
+            <div class="faq-item">
+                <h4>Can I switch plans later?</h4>
+                <p>Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately.</p>
+            </div>
+            <div class="faq-item">
+                <h4>What payment methods do you accept?</h4>
+                <p>We accept all major credit cards, PayPal, and bank transfers for annual plans.</p>
+            </div>
+            <div class="faq-item">
+                <h4>Is there a free trial?</h4>
+                <p>Yes! All paid plans come with a 14-day free trial. No credit card required.</p>
+            </div>
+            <div class="faq-item">
+                <h4>What about refunds?</h4>
+                <p>We offer a 30-day money-back guarantee. If you're not satisfied, get a full refund.</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

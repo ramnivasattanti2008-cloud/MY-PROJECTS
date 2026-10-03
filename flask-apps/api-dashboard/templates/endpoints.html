@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Endpoints - API Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">API Endpoints</h1>
+</div>
+
+<div class="card">
+    {% if endpoints %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Method</th>
+                <th>Endpoint</th>
+                <th>Description</th>
+                <th>Format</th>
+                <th>Auth</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for endpoint in endpoints %}
+            <tr>
+                <td><span class="method-badge method-{{ endpoint.method|lower }}">{{ endpoint.method }}</span></td>
+                <td class="code" style="color: #10b981;">{{ endpoint.path }}</td>
+                <td style="color: #a1a1aa;">{{ endpoint.description or '-' }}</td>
+                <td><span class="badge badge-blue">{{ endpoint.response_format }}</span></td>
+                <td>
+                    <span class="badge badge-{{ 'green' if endpoint.requires_auth else 'yellow' }}">
+                        {{ 'Required' if endpoint.requires_auth else 'Optional' }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="text-align: center; color: #71717a; padding: 40px;">No endpoints registered.</p>
+    {% endif %}
+</div>
+{% endblock %}

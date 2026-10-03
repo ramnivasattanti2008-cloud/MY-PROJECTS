@@ -1,0 +1,109 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Billing{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="header-content">
+        <h1>Billing</h1>
+        <p>Manage your subscription and payment methods</p>
+    </div>
+</div>
+
+<div class="billing-grid">
+    <div class="billing-main">
+        <div class="current-plan">
+            <div class="plan-info">
+                <span class="plan-label">Current Plan</span>
+                <span class="plan-name">{{ current_plan|ccapitalize }}</span>
+            </div>
+            <button class="btn btn-outline">Change Plan</button>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3>Available Plans</h3>
+            </div>
+            <div class="plans-list">
+                {% for plan in plans %}
+                <div class="plan-option {% if plan.id == current_plan %}current{% endif %}">
+                    <div class="plan-details">
+                        <h4>{{ plan.name }}</h4>
+                        <div class="plan-price">
+                            <span class="amount">${{ plan.price }}</span>
+                            <span class="period">/month</span>
+                        </div>
+                    </div>
+                    <ul class="plan-features">
+                        {% for feature in plan.features %}
+                        <li>{{ feature }}</li>
+                        {% endfor %}
+                    </ul>
+                    <button class="btn {% if plan.id == current_plan %}btn-outline{% else %}btn-primary{% endif %}">
+                        {% if plan.id == current_plan %}Current Plan{% else %}Upgrade{% endif %}
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="billing-sidebar">
+        <div class="card">
+            <div class="card-header">
+                <h3>Payment Method</h3>
+            </div>
+            <div class="payment-method">
+                <div class="card-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="1" y="4" width="22" height="16" rx="2"/>
+                        <path d="M1 10h22"/>
+                    </svg>
+                </div>
+                <div class="card-info">
+                    <span class="card-number">**** **** **** 4242</span>
+                    <span class="card-expiry">Expires 12/25</span>
+                </div>
+                <button class="btn btn-sm btn-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
+                    </svg>
+                </button>
+            </div>
+            <button class="btn btn-outline btn-block">Add Payment Method</button>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3>Billing History</h3>
+            </div>
+            <div class="invoice-list">
+                <div class="invoice-item">
+                    <div class="invoice-info">
+                        <span class="invoice-date">Sep 1, 2024</span>
+                        <span class="invoice-amount">$29.00</span>
+                    </div>
+                    <span class="invoice-status paid">Paid</span>
+                    <a href="#" class="invoice-link">PDF</a>
+                </div>
+                <div class="invoice-item">
+                    <div class="invoice-info">
+                        <span class="invoice-date">Aug 1, 2024</span>
+                        <span class="invoice-amount">$29.00</span>
+                    </div>
+                    <span class="invoice-status paid">Paid</span>
+                    <a href="#" class="invoice-link">PDF</a>
+                </div>
+                <div class="invoice-item">
+                    <div class="invoice-info">
+                        <span class="invoice-date">Jul 1, 2024</span>
+                        <span class="invoice-amount">$29.00</span>
+                    </div>
+                    <span class="invoice-status paid">Paid</span>
+                    <a href="#" class="invoice-link">PDF</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

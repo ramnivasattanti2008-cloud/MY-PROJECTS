@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit Converter & Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --bg-primary: #0d0d12;
+            --bg-secondary: #16161f;
+            --bg-tertiary: #1e1e2a;
+            --bg-card: #1a1a24;
+            --border: #2a2a3a;
+            --text-primary: #e4e4eb;
+            --text-secondary: #9090a0;
+            --text-muted: #606070;
+            --accent: #10b981;
+            --accent-hover: #34d399;
+            --accent-secondary: #06b6d4;
+            --warning: #f59e0b;
+        }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 2rem 0;
+        }
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent) 0%, #06b6d4 50%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+        .category-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .tab-btn:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+        .tab-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--bg-primary);
+        }
+        .tab-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+        .converter-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        .converter-header {
+            padding: 1.25rem 1.5rem;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .converter-title {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .swap-btn {
+            padding: 0.5rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .swap-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--bg-primary);
+        }
+        .converter-body {
+            padding: 1.5rem;
+        }
+        .conversion-row {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 1rem;
+            align-items: end;
+        }
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .field-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+        .field-input {
+            padding: 1rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+        .field-input:focus {
+            border-color: var(--accent);
+        }
+        .field-select {
+            padding: 0.75rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.9rem;
+            cursor: pointer;
+            outline: none;
+        }
+        .swap-arrow {
+            padding: 1rem;
+            color: var(--accent);
+        }
+        .result-display {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: var(--bg-primary);
+            border-radius: 12px;
+            text-align: center;
+        }
+        .result-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+            word-break: break-all;
+        }
+        .result-formula {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        .currency-rates {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .currency-rates span {
+            color: var(--accent);
+        }
+        .quick-conversions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .quick-card {
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .quick-from, .quick-to {
+            font-size: 0.9rem;
+        }
+        .quick-from { color: var(--text-secondary); }
+        .quick-arrow { color: var(--accent); }
+        .quick-to { font-weight: 600; }
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-card);
+            border: 1px solid var(--success);
+            color: var(--text-primary);
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        .time-zone-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        .tz-card {
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            text-align: center;
+        }
+        .tz-city {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+        .tz-time {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent);
+            font-size: 1.1rem;
+        }
+        .category-content {
+            display: none;
+        }
+        .category-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-in {
+            animation: fadeIn 0.4s ease forwards;
+        }
+        @media (max-width: 700px) {
+            .conversion-row {
+                grid-template-columns: 1fr;
+            }
+            .swap-arrow {
+                transform: rotate(90deg);
+                text-align: center;
+            }
+            h1 { font-size: 1.8rem; }
+            .container { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="animate-in">
+            <h1>Unit Converter & Calculator</h1>
+            <p class="subtitle">Convert length, weight, temperature, currency, and time zones</p>
+        </header>
+
+        <div class="category-tabs animate-in">
+            <button class="tab-btn active" onclick="switchCategory('length')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h20M12 2v20"/></svg>
+                Length
+            </button>
+            <button class="tab-btn" onclick="switchCategory('weight')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M6 12h12M3 12l9-9M3 12l9 9"/></svg>
+                Weight
+            </button>
+            <button class="tab-btn" onclick="switchCategory('temperature')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4v10.54a4 4 0 11-4 0V4a2 2 0 014 0z"/></svg>
+                Temperature
+            </button>
+            <button class="tab-btn" onclick="switchCategory('currency')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+                Currency
+            </button>
+            <button class="tab-btn" onclick="switchCategory('timezone')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                Time Zones
+            </button>
+        </div>
+
+        <!-- Length Converter -->
+        <div class="category-content active" id="length-content">
+            <div class="converter-card animate-in">
+                <div class="converter-header">
+                    <span class="converter-title">Length Conversion</span>
+                    <button class="swap-btn" onclick="swapUnits('length')">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+                    </button>
+                </div>
+                <div class="converter-body">
+                    <div class="conversion-row">
+                        <div class="field-group">
+                            <label class="field-label">From</label>
+                            <input type="number" class="field-input" id="length-value" value="1" oninput="convert('length')">
+                            <select class="field-select" id="length-from" onchange="convert('length')">
+                                <option value="mm">Millimeter (mm)</option>
+                                <option value="cm">Centimeter (cm)</option>
+                                <option value="m" selected>Meter (m)</option>
+                                <option value="km">Kilometer (km)</option>
+                                <option value="in">Inch (in)</option>
+                                <option value="ft">Foot (ft)</option>
+                                <option value="yd">Yard (yd)</option>
+                                <option value="mi">Mile (mi)</option>
+                            </select>
+                        </div>
+                        <div class="swap-arrow">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">To</label>
+                            <input type="number" class="field-input" id="length-result" readonly>
+                            <select class="field-select" id="length-to" onchange="convert('length')">
+                                <option value="mm">Millimeter (mm)</option>
+                                <option value="cm" selected>Centimeter (cm)</option>
+                                <option value="m">Meter (m)</option>
+                                <option value="km">Kilometer (km)</option>
+                                <option value="in">Inch (in)</option>
+                                <option value="ft">Foot (ft)</option>
+                                <option value="yd">Yard (yd)</option>
+                                <option value="mi">Mile (mi)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weight Converter -->
+        <div class="category-content" id="weight-content">
+            <div class="converter-card animate-in">
+                <div class="converter-header">
+                    <span class="converter-title">Weight Conversion</span>
+                    <button class="swap-btn" onclick="swapUnits('weight')">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+                    </button>
+                </div>
+                <div class="converter-body">
+                    <div class="conversion-row">
+                        <div class="field-group">
+                            <label class="field-label">From</label>
+                            <input type="number" class="field-input" id="weight-value" value="1" oninput="convert('weight')">
+                            <select class="field-select" id="weight-from" onchange="convert('weight')">
+                                <option value="mg">Milligram (mg)</option>
+                                <option value="g" selected>Gram (g)</option>
+                                <option value="kg">Kilogram (kg)</option>
+                                <option value="oz">Ounce (oz)</option>
+                                <option value="lb">Pound (lb)</option>
+                                <option value="ton">Metric Ton (t)</option>
+                            </select>
+                        </div>
+                        <div class="swap-arrow">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">To</label>
+                            <input type="number" class="field-input" id="weight-result" readonly>
+                            <select class="field-select" id="weight-to" onchange="convert('weight')">
+                                <option value="mg">Milligram (mg)</option>
+                                <option value="g">Gram (g)</option>
+                                <option value="kg" selected>Kilogram (kg)</option>
+                                <option value="oz">Ounce (oz)</option>
+                                <option value="lb">Pound (lb)</option>
+                                <option value="ton">Metric Ton (t)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Temperature Converter -->
+        <div class="category-content" id="temperature-content">
+            <div class="converter-card animate-in">
+                <div class="converter-header">
+                    <span class="converter-title">Temperature Conversion</span>
+                    <button class="swap-btn" onclick="swapUnits('temperature')">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+                    </button>
+                </div>
+                <div class="converter-body">
+                    <div class="conversion-row">
+                        <div class="field-group">
+                            <label class="field-label">From</label>
+                            <input type="number" class="field-input" id="temperature-value" value="0" oninput="convert('temperature')">
+                            <select class="field-select" id="temperature-from" onchange="convert('temperature')">
+                                <option value="c" selected>Celsius (C)</option>
+                                <option value="f">Fahrenheit (F)</option>
+                                <option value="k">Kelvin (K)</option>
+                            </select>
+                        </div>
+                        <div class="swap-arrow">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">To</label>
+                            <input type="number" class="field-input" id="temperature-result" readonly>
+                            <select class="field-select" id="temperature-to" onchange="convert('temperature')">
+                                <option value="c">Celsius (C)</option>
+                                <option value="f" selected>Fahrenheit (F)</option>
+                                <option value="k">Kelvin (K)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Currency Converter -->
+        <div class="category-content" id="currency-content">
+            <div class="converter-card animate-in">
+                <div class="converter-header">
+                    <span class="converter-title">Currency Conversion (Live Rates)</span>
+                    <button class="swap-btn" onclick="swapUnits('currency')">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+                    </button>
+                </div>
+                <div class="converter-body">
+                    <div class="conversion-row">
+                        <div class="field-group">
+                            <label class="field-label">From</label>
+                            <input type="number" class="field-input" id="currency-value" value="100" oninput="convert('currency')">
+                            <select class="field-select" id="currency-from" onchange="convert('currency')">
+                                <option value="USD" selected>USD - US Dollar</option>
+                                <option value="EUR">EUR - Euro</option>
+                                <option value="GBP">GBP - British Pound</option>
+                                <option value="INR">INR - Indian Rupee</option>
+                                <option value="JPY">JPY - Japanese Yen</option>
+                                <option value="CNY">CNY - Chinese Yuan</option>
+                                <option value="AUD">AUD - Australian Dollar</option>
+                                <option value="CAD">CAD - Canadian Dollar</option>
+                            </select>
+                        </div>
+                        <div class="swap-arrow">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">To</label>
+                            <input type="number" class="field-input" id="currency-result" readonly>
+                            <select class="field-select" id="currency-to" onchange="convert('currency')">
+                                <option value="USD">USD - US Dollar</option>
+                                <option value="EUR" selected>EUR - Euro</option>
+                                <option value="GBP">GBP - British Pound</option>
+                                <option value="INR">INR - Indian Rupee</option>
+                                <option value="JPY">JPY - Japanese Yen</option>
+                                <option value="CNY">CNY - Chinese Yuan</option>
+                                <option value="AUD">AUD - Australian Dollar</option>
+                                <option value="CAD">CAD - Canadian Dollar</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="currency-rates" id="currency-rates">
+                        Loading exchange rates...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Time Zone Converter -->
+        <div class="category-content" id="timezone-content">
+            <div class="converter-card animate-in">
+                <div class="converter-header">
+                    <span class="converter-title">World Time Zones</span>
+                </div>
+                <div class="converter-body">
+                    <div class="conversion-row" style="margin-bottom: 1.5rem;">
+                        <div class="field-group">
+                            <label class="field-label">Select Time Zone</label>
+                            <select class="field-select" id="base-timezone" onchange="updateAllTimezones()">
+                                <option value="local" selected>Local Time</option>
+                                <option value="UTC">UTC</option>
+                                <option value="America/New_York">New York (EST/EDT)</option>
+                                <option value="America/Los_Angeles">Los Angeles (PST/PDT)</option>
+                                <option value="Europe/London">London (GMT/BST)</option>
+                                <option value="Europe/Paris">Paris (CET/CEST)</option>
+                                <option value="Asia/Tokyo">Tokyo (JST)</option>
+                                <option value="Asia/Shanghai">Shanghai (CST)</option>
+                                <option value="Asia/Kolkata">Mumbai/Delhi (IST)</option>
+                                <option value="Australia/Sydney">Sydney (AEST/AEDT)</option>
+                                <option value="Asia/Dubai">Dubai (GST)</option>
+                                <option value="Asia/Singapore">Singapore (SGT)</option>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">Base Time</label>
+                            <input type="time" class="field-input" id="base-time" oninput="updateAllTimezones()" value="12:00">
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label">Base Date</label>
+                            <input type="date" class="field-input" id="base-date" oninput="updateAllTimezones()" value="">
+                        </div>
+                    </div>
+                    <div class="time-zone-grid" id="timezone-grid">
+                        <!-- Generated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Copied to clipboard!</div>
+
+    <script>
+        // Conversion factors to base unit (meter, gram, seconds)
+        const lengthFactors = {
+            mm: 0.001, cm: 0.01, m: 1, km: 1000,
+            in: 0.0254, ft: 0.3048, yd: 0.9144, mi: 1609.344
+        };
+        const weightFactors = {
+            mg: 0.000001, g: 0.001, kg: 1, oz: 0.0283495, lb: 0.453592, ton: 1000
+        };
+        const temperatureFactors = {
+            c: { toBase: v => v, fromBase: v => v },
+            f: { toBase: v => (v - 32) * 5/9, fromBase: v => v * 9/5 + 32 },
+            k: { toBase: v => v - 273.15, fromBase: v => v + 273.15 }
+        };
+
+        // Fallback currency rates (when API unavailable)
+        const fallbackRates = {
+            USD: 1, EUR: 0.92, GBP: 0.79, INR: 83.12, JPY: 149.50, CNY: 7.24, AUD: 1.53, CAD: 1.36
+        };
+        let currencyRates = { ...fallbackRates };
+        let ratesLastUpdated = null;
+
+        const timeZones = [
+            { id: 'UTC', city: 'UTC', offset: 0 },
+            { id: 'America/New_York', city: 'New York', offset: -5 },
+            { id: 'America/Los_Angeles', city: 'Los Angeles', offset: -8 },
+            { id: 'Europe/London', city: 'London', offset: 0 },
+            { id: 'Europe/Paris', city: 'Paris', offset: 1 },
+            { id: 'Asia/Tokyo', city: 'Tokyo', offset: 9 },
+            { id: 'Asia/Shanghai', city: 'Shanghai', offset: 8 },
+            { id: 'Asia/Kolkata', city: 'Mumbai', offset: 5.5 },
+            { id: 'Australia/Sydney', city: 'Sydney', offset: 10 },
+            { id: 'Asia/Dubai', city: 'Dubai', offset: 4 },
+            { id: 'Asia/Singapore', city: 'Singapore', offset: 8 },
+        ];
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        function switchCategory(category) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.closest('.tab-btn').classList.add('active');
+
+            document.querySelectorAll('.category-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(`${category}-content`).classList.add('active');
+
+            if (category === 'currency') fetchCurrencyRates();
+            if (category === 'timezone') {
+                initTimeZones();
+                updateAllTimezones();
+            }
+        }
+
+        function swapUnits(type) {
+            const fromSelect = document.getElementById(`${type}-from`);
+            const toSelect = document.getElementById(`${type}-to`);
+            const temp = fromSelect.value;
+            fromSelect.value = toSelect.value;
+            toSelect.value = temp;
+            convert(type);
+        }
+
+        function convert(type) {
+            const value = parseFloat(document.getElementById(`${type}-value`).value) || 0;
+            const from = document.getElementById(`${type}-from`).value;
+            const to = document.getElementById(`${type}-to`).value;
+            let result;
+
+            if (type === 'length') {
+                const meters = value * lengthFactors[from];
+                result = meters / lengthFactors[to];
+            } else if (type === 'weight') {
+                const grams = value * weightFactors[from];
+                result = grams / weightFactors[to];
+            } else if (type === 'temperature') {
+                const celsius = temperatureFactors[from].toBase(value);
+                result = temperatureFactors[to].fromBase(celsius);
+            } else if (type === 'currency') {
+                const usdValue = value / currencyRates[from];
+                result = usdValue * currencyRates[to];
+            }
+
+            const resultEl = document.getElementById(`${type}-result`);
+            resultEl.value = result.toLocaleString('en-US', {
+                maximumFractionDigits: type === 'currency' ? 2 : 6,
+                minimumFractionDigits: 0
+            });
+        }
+
+        async function fetchCurrencyRates() {
+            try {
+                // Try free API
+                const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+                if (response.ok) {
+                    const data = await response.json();
+                    currencyRates = data.rates;
+                    ratesLastUpdated = new Date();
+                }
+            } catch (e) {
+                console.log('Using fallback rates');
+            }
+
+            updateCurrencyRatesDisplay();
+            convert('currency');
+        }
+
+        function updateCurrencyRatesDisplay() {
+            const el = document.getElementById('currency-rates');
+            const from = document.getElementById('currency-from').value;
+            const to = document.getElementById('currency-to').value;
+            const rate = (currencyRates[to] / currencyRates[from]).toFixed(4);
+            const lastUpdate = ratesLastUpdated ? ratesLastUpdated.toLocaleTimeString() : 'fallback rates';
+            el.innerHTML = `1 ${from} = <span>${rate}</span> ${to} | Rates: <span>${lastUpdate}</span> | <button onclick="fetchCurrencyRates()" style="background:none;border:none;color:var(--accent);cursor:pointer;">Refresh</button>`;
+        }
+
+        document.getElementById('currency-from').addEventListener('change', updateCurrencyRatesDisplay);
+        document.getElementById('currency-to').addEventListener('change', updateCurrencyRatesDisplay);
+
+        function initTimeZones() {
+            const grid = document.getElementById('timezone-grid');
+            grid.innerHTML = timeZones.map(tz => `
+                <div class="tz-card">
+                    <div class="tz-city">${tz.city}</div>
+                    <div class="tz-time" id="tz-${tz.id.replace('/', '-')}">--:--</div>
+                </div>
+            `).join('');
+
+            // Set today's date
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('base-date').value = today;
+        }
+
+        function updateAllTimezones() {
+            const baseTz = document.getElementById('base-timezone').value;
+            const time = document.getElementById('base-time').value;
+            const date = document.getElementById('base-date').value;
+
+            if (!time) return;
+
+            let baseDate;
+            if (baseTz === 'local') {
+                baseDate = new Date(`${date}T${time}`);
+            } else {
+                baseDate = new Date(`${date}T${time}`);
+            }
+
+            timeZones.forEach(tz => {
+                const tzEl = document.getElementById(`tz-${tz.id.replace('/', '-')}`);
+                if (tzEl) {
+                    const targetOffset = tz.offset * 60;
+                    const localOffset = baseDate.getTimezoneOffset();
+                    const diff = targetOffset + localOffset;
+                    const targetTime = new Date(baseDate.getTime() + diff * 60000);
+                    tzEl.textContent = targetTime.toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true
+                    });
+                }
+            });
+        }
+
+        // Initialize
+        convert('length');
+        convert('weight');
+        convert('temperature');
+    </script>
+</body>
+</html>

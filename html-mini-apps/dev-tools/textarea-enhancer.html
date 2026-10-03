@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Textarea Enhancer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --bg-primary: #0d0d0f;
+            --bg-secondary: #1a1a1f;
+            --bg-tertiary: #252530;
+            --accent: #6366f1;
+            --accent-hover: #818cf8;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #2d2d3a;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+        .textarea-wrapper {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 1rem;
+            padding-bottom: 3.5rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+            line-height: 1.6;
+            resize: vertical;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+        textarea::placeholder {
+            color: var(--text-muted);
+        }
+        .stats-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 0.75rem 1rem;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            border-radius: 0 0 12px 12px;
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.85rem;
+        }
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .stat-label {
+            color: var(--text-muted);
+        }
+        .stat-value {
+            color: var(--text-primary);
+            font-weight: 500;
+            min-width: 50px;
+        }
+        .suggestions {
+            margin-bottom: 2rem;
+        }
+        .suggestions h2 {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+        .suggestion-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .chip {
+            padding: 0.5rem 1rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .chip:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+        .controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 0.6rem 1.25rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: var(--accent-hover);
+        }
+        button.secondary {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+        }
+        button.secondary:hover {
+            background: var(--border);
+        }
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--accent);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Textarea Enhancer</h1>
+        <p class="subtitle">Auto-expanding textarea with live stats and placeholder suggestions</p>
+
+        <div class="textarea-wrapper">
+            <textarea id="enhancedTextarea" placeholder="Start typing here... The textarea will auto-expand and show live statistics below."></textarea>
+            <div class="stats-bar">
+                <div class="stat">
+                    <span class="stat-label">Characters:</span>
+                    <span class="stat-value" id="charCount">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Words:</span>
+                    <span class="stat-value" id="wordCount">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Lines:</span>
+                    <span class="stat-value" id="lineCount">1</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Reading time:</span>
+                    <span class="stat-value" id="readTime">0s</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="suggestions">
+            <h2>Placeholder Suggestions (click to apply)</h2>
+            <div class="suggestion-chips">
+                <span class="chip" data-placeholder="Enter your feedback here...">Feedback</span>
+                <span class="chip" data-placeholder="Describe your issue in detail...">Bug Report</span>
+                <span class="chip" data-placeholder="Share your thoughts and ideas...">Comment</span>
+                <span class="chip" data-placeholder="What would you like to accomplish?">Goal Setting</span>
+                <span class="chip" data-placeholder="List your tasks here...">To-Do List</span>
+                <span class="chip" data-placeholder="Write your notes...">Notes</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button onclick="clearText()">Clear</button>
+            <button class="secondary" onclick="copyText()">Copy Text</button>
+            <button class="secondary" onclick="uppercase()">UPPERCASE</button>
+            <button class="secondary" onclick="lowercase()">lowercase</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const textarea = document.getElementById('enhancedTextarea');
+        const charCount = document.getElementById('charCount');
+        const wordCount = document.getElementById('wordCount');
+        const lineCount = document.getElementById('lineCount');
+        const readTime = document.getElementById('readTime');
+        const toast = document.getElementById('toast');
+
+        // Auto-resize textarea
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.max(200, this.scrollHeight) + 'px';
+            updateStats();
+        });
+
+        // Update statistics
+        function updateStats() {
+            const text = textarea.value;
+            const chars = text.length;
+            const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+            const lines = text ? text.split('\n').length : 1;
+            const minutes = Math.ceil(words / 200);
+            const seconds = Math.ceil(words / 3.33);
+
+            charCount.textContent = chars.toLocaleString();
+            wordCount.textContent = words.toLocaleString();
+            lineCount.textContent = lines;
+            readTime.textContent = words === 0 ? '0s' : (minutes >= 1 ? `${minutes}m` : `${seconds}s`);
+        }
+
+        // Placeholder suggestions
+        document.querySelectorAll('.chip').forEach(chip => {
+            chip.addEventListener('click', function() {
+                textarea.placeholder = this.dataset.placeholder;
+                textarea.focus();
+            });
+        });
+
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        function clearText() {
+            textarea.value = '';
+            updateStats();
+            textarea.style.height = '200px';
+            showToast('Text cleared');
+        }
+
+        function copyText() {
+            if (!textarea.value) return showToast('Nothing to copy');
+            navigator.clipboard.writeText(textarea.value);
+            showToast('Copied to clipboard');
+        }
+
+        function uppercase() {
+            textarea.value = textarea.value.toUpperCase();
+            showToast('Converted to uppercase');
+        }
+
+        function lowercase() {
+            textarea.value = textarea.value.toLowerCase();
+            showToast('Converted to lowercase');
+        }
+
+        // Initialize
+        updateStats();
+    </script>
+</body>
+</html>

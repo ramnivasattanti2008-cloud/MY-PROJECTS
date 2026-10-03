@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Password Vault{% endblock %}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            min-height: 100vh;
+        }
+        nav {
+            background: #161b22;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #30363d;
+        }
+        nav h1 {
+            color: #58a6ff;
+            font-size: 1.5rem;
+        }
+        nav a {
+            color: #c9d1d9;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        nav a:hover {
+            background: #21262d;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .card {
+            background: #161b22;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #30363d;
+        }
+        .btn {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: #238636;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        .btn:hover {
+            background: #2ea043;
+        }
+        .btn-primary {
+            background: #58a6ff;
+        }
+        .btn-primary:hover {
+            background: #79c0ff;
+        }
+        .btn-secondary {
+            background: #21262d;
+            color: #c9d1d9;
+        }
+        .btn-secondary:hover {
+            background: #30363d;
+        }
+        .btn-danger {
+            background: #da3633;
+        }
+        .btn-danger:hover {
+            background: #f85149;
+        }
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.85rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #8b949e;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            font-size: 1rem;
+            background: #0d1117;
+            color: #c9d1d9;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #58a6ff;
+        }
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .alert {
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        .alert-success {
+            background: rgba(35, 134, 54, 0.2);
+            border: 1px solid #238636;
+            color: #3fb950;
+        }
+        .alert-error {
+            background: rgba(218, 54, 51, 0.2);
+            border: 1px solid #da3633;
+            color: #f85149;
+        }
+        .search-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .search-bar input {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.75rem;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            background: #0d1117;
+            color: #c9d1d9;
+        }
+        .tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin: 0.5rem 0;
+        }
+        .tag {
+            background: #21262d;
+            color: #58a6ff;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            text-decoration: none;
+            border: 1px solid #30363d;
+        }
+        .tag:hover {
+            border-color: #58a6ff;
+        }
+        .entry-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .entry-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #161b22;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+            transition: all 0.2s;
+        }
+        .entry-item:hover {
+            border-color: #58a6ff;
+        }
+        .entry-info h3 {
+            color: #c9d1d9;
+            margin-bottom: 0.25rem;
+        }
+        .entry-info .username {
+            color: #8b949e;
+            font-size: 0.9rem;
+        }
+        .entry-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .password-field {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #0d1117;
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+        }
+        .password-field code {
+            font-family: monospace;
+            color: #3fb950;
+        }
+        .copy-btn {
+            background: #21262d;
+            border: none;
+            color: #8b949e;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .copy-btn:hover {
+            color: #c9d1d9;
+        }
+        .auth-container {
+            max-width: 400px;
+            margin: 4rem auto;
+        }
+        .auth-container h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: #58a6ff;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #8b949e;
+        }
+        .stats {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        .stat {
+            background: #161b22;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #58a6ff;
+        }
+        .stat-label {
+            color: #8b949e;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div style="max-width: 1200px; margin: 1rem auto; padding: 0 2rem;">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    {% if session.get('authenticated') %}
+    <nav>
+        <h1>Password Vault</h1>
+        <div>
+            <a href="{{ url_for('index') }}">All Passwords</a>
+            <a href="{{ url_for('add_entry') }}">Add New</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>
+    {% endif %}
+
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copied to clipboard!');
+            });
+        }
+    </script>
+</body>
+</html>

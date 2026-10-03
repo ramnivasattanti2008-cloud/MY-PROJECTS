@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Planner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .date-nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .date-nav button {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .date-nav button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .current-date {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+        }
+
+        .task-pool {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .task-pool h2 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .task-input {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .task-input input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 0.9rem;
+        }
+
+        .task-input input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .task-input input:focus {
+            outline: none;
+            border-color: #00d9ff;
+        }
+
+        .category-select {
+            padding: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .add-btn {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #00d9ff, #00ff88);
+            border: none;
+            border-radius: 8px;
+            color: #1a1a2e;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 217, 255, 0.4);
+        }
+
+        .unplanned-tasks {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .task-card {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            cursor: grab;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border: 1px solid transparent;
+        }
+
+        .task-card:hover {
+            transform: translateX(4px);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .task-card.dragging {
+            opacity: 0.5;
+            transform: scale(0.98);
+        }
+
+        .task-card .drag-handle {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 1.2rem;
+        }
+
+        .task-card .task-text {
+            flex: 1;
+            font-size: 0.9rem;
+        }
+
+        .task-card .delete-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            font-size: 1rem;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .task-card:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .delete-btn:hover {
+            color: #ff4757;
+        }
+
+        .category-work { background: rgba(255, 107, 107, 0.2); border-left: 3px solid #ff6b6b; }
+        .category-personal { background: rgba(0, 217, 255, 0.2); border-left: 3px solid #00d9ff; }
+        .category-health { background: rgba(0, 255, 136, 0.2); border-left: 3px solid #00ff88; }
+        .category-learning { background: rgba(255, 193, 7, 0.2); border-left: 3px solid #ffc107; }
+        .category-social { background: rgba(156, 39, 176, 0.2); border-left: 3px solid #9c27b0; }
+
+        .planner-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .time-slot {
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            gap: 1rem;
+            min-height: 60px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            padding: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .time-slot.drag-over {
+            background: rgba(0, 217, 255, 0.1);
+            border: 2px dashed rgba(0, 217, 255, 0.5);
+        }
+
+        .time-slot .time-label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        .time-slot .slot-tasks {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .time-slot .task-chip {
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .time-slot .task-chip:hover {
+            transform: scale(1.02);
+        }
+
+        .time-slot .task-chip.completed {
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+
+        .time-slot .task-chip .chip-delete {
+            background: none;
+            border: none;
+            color: inherit;
+            opacity: 0.5;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .time-slot .task-chip .chip-delete:hover {
+            opacity: 1;
+            color: #ff4757;
+        }
+
+        .legend {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 4px;
+        }
+
+        .legend-dot.work { background: #ff6b6b; }
+        .legend-dot.personal { background: #00d9ff; }
+        .legend-dot.health { background: #00ff88; }
+        .legend-dot.learning { background: #ffc107; }
+        .legend-dot.social { background: #9c27b0; }
+
+        .empty-slot {
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 0.8rem;
+            font-style: italic;
+        }
+
+        @media (max-width: 900px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .time-slot {
+                grid-template-columns: 60px 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .task-input {
+                flex-direction: column;
+            }
+
+            .time-slot {
+                grid-template-columns: 50px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Daily Planner</h1>
+            <div class="date-nav">
+                <button onclick="changeDate(-1)">←</button>
+                <div class="current-date" id="currentDate"></div>
+                <button onclick="changeDate(1)">→</button>
+            </div>
+        </header>
+
+        <div class="main-layout">
+            <div class="task-pool">
+                <h2>Tasks</h2>
+                <div class="task-input">
+                    <input type="text" id="taskInput" placeholder="Add a new task..." onkeypress="handleKeyPress(event)">
+                    <select class="category-select" id="categorySelect">
+                        <option value="work">Work</option>
+                        <option value="personal">Personal</option>
+                        <option value="health">Health</option>
+                        <option value="learning">Learning</option>
+                        <option value="social">Social</option>
+                    </select>
+                    <button class="add-btn" onclick="addTask()">+</button>
+                </div>
+                <div class="unplanned-tasks" id="unplannedTasks"></div>
+            </div>
+
+            <div class="planner-grid" id="plannerGrid"></div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item"><div class="legend-dot work"></div> Work</div>
+            <div class="legend-item"><div class="legend-dot personal"></div> Personal</div>
+            <div class="legend-item"><div class="legend-dot health"></div> Health</div>
+            <div class="legend-item"><div class="legend-dot learning"></div> Learning</div>
+            <div class="legend-item"><div class="legend-dot social"></div> Social</div>
+        </div>
+    </div>
+
+    <script>
+        let currentDate = new Date();
+        let tasks = [];
+        let scheduledTasks = {};
+        let completedTasks = {};
+        let draggedTask = null;
+
+        function formatDateKey(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        function updateDateDisplay() {
+            const options = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
+            document.getElementById('currentDate').textContent = currentDate.toLocaleDateString('en-US', options);
+        }
+
+        function changeDate(delta) {
+            currentDate.setDate(currentDate.getDate() + delta);
+            updateDateDisplay();
+            loadData();
+        }
+
+        function generateTimeSlots() {
+            const grid = document.getElementById('plannerGrid');
+            grid.innerHTML = '';
+
+            for (let hour = 6; hour <= 22; hour++) {
+                const slot = document.createElement('div');
+                slot.className = 'time-slot';
+                slot.dataset.hour = hour;
+
+                const timeLabel = document.createElement('div');
+                timeLabel.className = 'time-label';
+                const h = hour > 12 ? hour - 12 : hour;
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                timeLabel.textContent = `${h}:00 ${ampm}`;
+
+                const slotTasks = document.createElement('div');
+                slotTasks.className = 'slot-tasks';
+                slotTasks.id = `slot-${hour}`;
+
+                slot.appendChild(timeLabel);
+                slot.appendChild(slotTasks);
+                grid.appendChild(slot);
+
+                // Drag events
+                slot.addEventListener('dragover', handleDragOver);
+                slot.addEventListener('dragleave', handleDragLeave);
+                slot.addEventListener('drop', handleDrop);
+            }
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') addTask();
+        }
+
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            const category = document.getElementById('categorySelect').value;
+            const text = input.value.trim();
+
+            if (!text) return;
+
+            const task = {
+                id: Date.now(),
+                text,
+                category,
+                created: new Date().toISOString()
+            };
+
+            tasks.push(task);
+            input.value = '';
+            saveData();
+            renderUnplannedTasks();
+        }
+
+        function renderUnplannedTasks() {
+            const container = document.getElementById('unplannedTasks');
+            const dateKey = formatDateKey(currentDate);
+            const scheduled = scheduledTasks[dateKey] || [];
+            const scheduledIds = new Set(scheduled.map(t => t.id));
+
+            const unplanned = tasks.filter(t => !scheduledIds.has(t.id));
+
+            if (unplanned.length === 0) {
+                container.innerHTML = '<p class="empty-slot">No tasks yet. Add one above!</p>';
+                return;
+            }
+
+            container.innerHTML = unplanned.map(task => `
+                <div class="task-card category-${task.category}" draggable="true"
+                     data-task-id="${task.id}" ondragstart="handleDragStart(event)">
+                    <span class="drag-handle">⋮⋮</span>
+                    <span class="task-text">${task.text}</span>
+                    <button class="delete-btn" onclick="deleteTask(${task.id})">×</button>
+                </div>
+            `).join('');
+        }
+
+        function renderScheduledTasks() {
+            const dateKey = formatDateKey(currentDate);
+            const scheduled = scheduledTasks[dateKey] || [];
+            const completed = completedTasks[dateKey] || new Set();
+
+            // Clear all slots
+            document.querySelectorAll('.slot-tasks').forEach(slot => slot.innerHTML = '');
+
+            scheduled.forEach(task => {
+                const slot = document.getElementById(`slot-${task.hour}`);
+                if (slot) {
+                    const chip = document.createElement('div');
+                    chip.className = `task-chip category-${task.category}${completed.has(task.id) ? ' completed' : ''}`;
+                    chip.innerHTML = `
+                        <span onclick="toggleComplete(${task.id})">${task.text}</span>
+                        <button class="chip-delete" onclick="unscheduleTask(${task.id})">×</button>
+                    `;
+                    slot.appendChild(chip);
+                }
+            });
+        }
+
+        function handleDragStart(e) {
+            draggedTask = e.target.dataset.taskId;
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+
+            if (!draggedTask) return;
+
+            const hour = parseInt(e.currentTarget.dataset.hour);
+            const task = tasks.find(t => t.id === parseInt(draggedTask));
+
+            if (!task) return;
+
+            const dateKey = formatDateKey(currentDate);
+            if (!scheduledTasks[dateKey]) scheduledTasks[dateKey] = [];
+
+            // Remove if already scheduled
+            scheduledTasks[dateKey] = scheduledTasks[dateKey].filter(t => t.id !== task.id);
+
+            // Add to new slot
+            scheduledTasks[dateKey].push({ ...task, hour });
+
+            draggedTask = null;
+            saveData();
+            renderUnplannedTasks();
+            renderScheduledTasks();
+        }
+
+        function unscheduleTask(taskId) {
+            const dateKey = formatDateKey(currentDate);
+            if (scheduledTasks[dateKey]) {
+                scheduledTasks[dateKey] = scheduledTasks[dateKey].filter(t => t.id !== taskId);
+                saveData();
+                renderUnplannedTasks();
+                renderScheduledTasks();
+            }
+        }
+
+        function toggleComplete(taskId) {
+            const dateKey = formatDateKey(currentDate);
+            if (!completedTasks[dateKey]) completedTasks[dateKey] = new Set();
+
+            if (completedTasks[dateKey].has(taskId)) {
+                completedTasks[dateKey].delete(taskId);
+            } else {
+                completedTasks[dateKey].add(taskId);
+            }
+
+            saveData();
+            renderScheduledTasks();
+        }
+
+        function deleteTask(taskId) {
+            tasks = tasks.filter(t => t.id !== taskId);
+
+            // Also remove from scheduled
+            Object.keys(scheduledTasks).forEach(key => {
+                scheduledTasks[key] = scheduledTasks[key].filter(t => t.id !== taskId);
+            });
+
+            saveData();
+            renderUnplannedTasks();
+            renderScheduledTasks();
+        }
+
+        function saveData() {
+            localStorage.setItem('plannerTasks', JSON.stringify(tasks));
+            localStorage.setItem('plannerScheduled', JSON.stringify(scheduledTasks));
+            localStorage.setItem('plannerCompleted', JSON.stringify(
+                Object.fromEntries(
+                    Object.entries(completedTasks).map(([k, v]) => [k, [...v]])
+                )
+            ));
+        }
+
+        function loadData() {
+            tasks = JSON.parse(localStorage.getItem('plannerTasks') || '[]');
+            scheduledTasks = JSON.parse(localStorage.getItem('plannerScheduled') || '{}');
+            const completedRaw = JSON.parse(localStorage.getItem('plannerCompleted') || '{}');
+            completedTasks = Object.fromEntries(
+                Object.entries(completedRaw).map(([k, v]) => [k, new Set(v)])
+            );
+
+            renderUnplannedTasks();
+            renderScheduledTasks();
+        }
+
+        // Initialize
+        generateTimeSlots();
+        updateDateDisplay();
+        loadData();
+    </script>
+</body>
+</html>

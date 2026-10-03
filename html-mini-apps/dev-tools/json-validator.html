@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Validator</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border: #30363d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent: #58a6ff;
+            --accent-hover: #79c0ff;
+            --success: #3fb950;
+            --error: #f85149;
+            --line-num-bg: #1c2128;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+        .subtitle { color: var(--text-secondary); margin-bottom: 2rem; }
+        .toolbar {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 0.6rem 1.2rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn:hover { border-color: var(--accent); color: var(--accent); }
+        .btn.primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+        .btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+        .editor-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .editor-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border);
+        }
+        .panel-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+        .editor-container {
+            display: flex;
+            flex: 1;
+            min-height: 400px;
+        }
+        .line-numbers {
+            background: var(--line-num-bg);
+            padding: 1rem 0.75rem;
+            text-align: right;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            color: var(--text-secondary);
+            user-select: none;
+            min-width: 40px;
+            border-right: 1px solid var(--border);
+        }
+        .code-editor {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 1rem;
+            color: var(--text-primary);
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            resize: none;
+            white-space: pre;
+            overflow: auto;
+            tab-size: 2;
+        }
+        .code-editor:focus { outline: none; }
+        .code-editor::placeholder { color: var(--text-secondary); opacity: 0.5; }
+        .code-editor.error { background: rgba(248, 81, 73, 0.05); }
+        .error-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            display: none;
+        }
+        .error-panel.show { display: block; }
+        .error-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        .error-icon { color: var(--error); font-size: 1.2rem; }
+        .error-title { font-weight: 600; color: var(--error); }
+        .error-details {
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            padding: 1rem;
+            font-family: monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+        .error-line {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        .error-message {
+            color: var(--error);
+            padding: 0.5rem;
+            background: rgba(248, 81, 73, 0.1);
+            border-radius: 4px;
+            margin-top: 0.5rem;
+        }
+        .error-suggestion {
+            color: var(--accent);
+            padding: 0.5rem;
+            background: rgba(88, 166, 255, 0.1);
+            border-radius: 4px;
+            margin-top: 0.5rem;
+        }
+        .stats-bar {
+            display: flex;
+            gap: 2rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .stat-label { font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; }
+        .stat-value { font-family: monospace; color: var(--accent); }
+        @media (max-width: 900px) {
+            .editor-wrapper { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>JSON Validator</h1>
+        <p class="subtitle">Validate, format, and beautify JSON with error highlighting</p>
+
+        <div class="toolbar">
+            <button class="btn primary" id="formatBtn">Format</button>
+            <button class="btn" id="minifyBtn">Minify</button>
+            <button class="btn" id="validateBtn">Validate</button>
+            <button class="btn" id="clearBtn">Clear</button>
+            <button class="btn" id="copyBtn">Copy Output</button>
+            <button class="btn" id="sampleBtn">Load Sample</button>
+        </div>
+
+        <div class="editor-wrapper">
+            <div class="editor-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Input JSON</span>
+                </div>
+                <div class="editor-container">
+                    <div class="line-numbers" id="inputLines">1</div>
+                    <textarea class="code-editor" id="inputArea" spellcheck="false" placeholder='{"key": "value"}'></textarea>
+                </div>
+            </div>
+            <div class="editor-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Formatted Output</span>
+                </div>
+                <div class="editor-container">
+                    <div class="line-numbers" id="outputLines">1</div>
+                    <textarea class="code-editor" id="outputArea" spellcheck="false" readonly placeholder="Formatted JSON will appear here..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="error-panel" id="errorPanel">
+            <div class="error-header">
+                <span class="error-icon">&#9888;</span>
+                <span class="error-title">JSON Error</span>
+            </div>
+            <div class="error-details" id="errorDetails"></div>
+        </div>
+
+        <div class="stats-bar" id="statsBar">
+            <div class="stat-item">
+                <span class="stat-label">Lines:</span>
+                <span class="stat-value" id="statLines">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Characters:</span>
+                <span class="stat-value" id="statChars">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Keys:</span>
+                <span class="stat-value" id="statKeys">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Depth:</span>
+                <span class="stat-value" id="statDepth">0</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const inputArea = document.getElementById('inputArea');
+        const outputArea = document.getElementById('outputArea');
+        const inputLines = document.getElementById('inputLines');
+        const outputLines = document.getElementById('outputLines');
+        const errorPanel = document.getElementById('errorPanel');
+        const errorDetails = document.getElementById('errorDetails');
+
+        const sampleJSON = {
+            "name": "Project Atlas",
+            "version": "2.1.0",
+            "description": "A comprehensive monitoring system",
+            "features": ["analytics", "reporting", "alerts"],
+            "config": {
+                "database": {
+                    "host": "db.example.com",
+                    "port": 5432,
+                    "credentials": {
+                        "username": "admin",
+                        "password": "********"
+                    }
+                },
+                "cache": {
+                    "enabled": true,
+                    "ttl": 3600
+                }
+            },
+            "metadata": {
+                "author": "DevTeam",
+                "created": "2024-01-15",
+                "tags": ["production", "monitoring"]
+            }
+        };
+
+        function updateLineNumbers(textarea, lineNumbersEl) {
+            const lines = textarea.value.split('\n').length;
+            lineNumbersEl.innerHTML = Array.from({length: lines}, (_, i) => i + 1).join('<br>');
+        }
+
+        function countKeys(obj, depth = 0) {
+            if (typeof obj !== 'object' || obj === null) return { keys: 0, depth };
+            let keys = Object.keys(obj).length;
+            let maxDepth = depth;
+            for (const key of Object.keys(obj)) {
+                if (typeof obj[key] === 'object' && obj[key] !== null) {
+                    const nested = countKeys(obj[key], depth + 1);
+                    keys += nested.keys;
+                    maxDepth = Math.max(maxDepth, nested.depth);
+                }
+            }
+            return { keys, depth: maxDepth };
+        }
+
+        function updateStats(json) {
+            const stats = countKeys(json);
+            document.getElementById('statLines').textContent = inputArea.value.split('\n').length;
+            document.getElementById('statChars').textContent = inputArea.value.length.toLocaleString();
+            document.getElementById('statKeys').textContent = stats.keys;
+            document.getElementById('statDepth').textContent = stats.depth;
+        }
+
+        function parseError(error, input) {
+            const match = error.message.match(/position (\d+)/);
+            let line = 1, column = 1;
+
+            if (match) {
+                const pos = parseInt(match[1]);
+                const lines = input.substring(0, pos).split('\n');
+                line = lines.length;
+                column = lines[lines.length - 1].length + 1;
+            }
+
+            let suggestion = '';
+            const lastChar = input.trim().slice(-1);
+            if (lastChar === ',' || lastChar === ';') {
+                suggestion = 'Remove trailing comma or semicolon';
+            } else if (lastChar === "'") {
+                suggestion = 'Use double quotes (") instead of single quotes (\')';
+            } else if (!input.trim()) {
+                suggestion = 'Input is empty - paste or type valid JSON';
+            } else {
+                suggestion = 'Check for missing quotes, brackets, or commas';
+            }
+
+            return { line, column, suggestion };
+        }
+
+        function validateAndFormat(input, format = true) {
+            const trimmed = input.trim();
+            if (!trimmed) {
+                outputArea.value = '';
+                errorPanel.classList.remove('show');
+                inputArea.classList.remove('error');
+                return { valid: true };
+            }
+
+            try {
+                const parsed = JSON.parse(trimmed);
+                if (format) {
+                    outputArea.value = JSON.stringify(parsed, null, 2);
+                    updateLineNumbers(outputArea, outputLines);
+                }
+                updateStats(parsed);
+                errorPanel.classList.remove('show');
+                inputArea.classList.remove('error');
+                return { valid: true, data: parsed };
+            } catch (e) {
+                const errorInfo = parseError(e, trimmed);
+                errorPanel.classList.add('show');
+                inputArea.classList.add('error');
+
+                errorDetails.innerHTML = `
+                    <div class="error-line">Line ${errorInfo.line}, Column ${errorInfo.column}</div>
+                    <div class="error-message">${e.message}</div>
+                    <div class="error-suggestion">${errorInfo.suggestion}</div>
+                `;
+                return { valid: false, error: e, ...errorInfo };
+            }
+        }
+
+        inputArea.addEventListener('input', () => {
+            updateLineNumbers(inputArea, inputLines);
+            const result = validateAndFormat(inputArea.value);
+            if (result.valid) {
+                outputArea.value = inputArea.value;
+                updateLineNumbers(outputArea, outputLines);
+            }
+        });
+
+        inputArea.addEventListener('scroll', () => {
+            inputLines.scrollTop = inputArea.scrollTop;
+        });
+
+        outputArea.addEventListener('scroll', () => {
+            outputLines.scrollTop = outputArea.scrollTop;
+        });
+
+        document.getElementById('formatBtn').addEventListener('click', () => {
+            validateAndFormat(inputArea.value, true);
+        });
+
+        document.getElementById('minifyBtn').addEventListener('click', () => {
+            try {
+                const parsed = JSON.parse(inputArea.value.trim());
+                outputArea.value = JSON.stringify(parsed);
+                updateLineNumbers(outputArea, outputLines);
+                errorPanel.classList.remove('show');
+                inputArea.classList.remove('error');
+            } catch (e) {
+                const errorInfo = parseError(e, inputArea.value);
+                errorPanel.classList.add('show');
+                errorDetails.innerHTML = `
+                    <div class="error-line">Line ${errorInfo.line}, Column ${errorInfo.column}</div>
+                    <div class="error-message">${e.message}</div>
+                    <div class="error-suggestion">${errorInfo.suggestion}</div>
+                `;
+            }
+        });
+
+        document.getElementById('validateBtn').addEventListener('click', () => {
+            validateAndFormat(inputArea.value, false);
+        });
+
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            inputArea.value = '';
+            outputArea.value = '';
+            updateLineNumbers(inputArea, inputLines);
+            updateLineNumbers(outputArea, outputLines);
+            errorPanel.classList.remove('show');
+            inputArea.classList.remove('error');
+            document.getElementById('statLines').textContent = '0';
+            document.getElementById('statChars').textContent = '0';
+            document.getElementById('statKeys').textContent = '0';
+            document.getElementById('statDepth').textContent = '0';
+        });
+
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            navigator.clipboard.writeText(outputArea.value).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = 'Copy Output', 1500);
+            });
+        });
+
+        document.getElementById('sampleBtn').addEventListener('click', () => {
+            inputArea.value = JSON.stringify(sampleJSON, null, 2);
+            updateLineNumbers(inputArea, inputLines);
+            outputArea.value = inputArea.value;
+            updateLineNumbers(outputArea, outputLines);
+            updateStats(sampleJSON);
+            errorPanel.classList.remove('show');
+            inputArea.classList.remove('error');
+        });
+
+        // Initial state
+        updateLineNumbers(inputArea, inputLines);
+        updateLineNumbers(outputArea, outputLines);
+    </script>
+</body>
+</html>

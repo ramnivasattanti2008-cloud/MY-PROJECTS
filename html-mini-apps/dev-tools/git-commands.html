@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git Commands Cheatsheet</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --border: #30363d;
+            --text: #e6edf3;
+            --text-muted: #8b949e;
+            --accent: #f0883e;
+            --success: #3fb950;
+            --method-get: #3fb950;
+            --method-post: #f0883e;
+            --method-put: #58a6ff;
+            --method-delete: #f85149;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            animation: fadeIn 0.6s ease;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), #f85149);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .git-icon {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 1rem;
+        }
+
+        .category-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+            animation: slideUp 0.5s ease;
+        }
+
+        .category-btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.6rem 1.2rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .category-btn:hover {
+            background: var(--border);
+            color: var(--text);
+        }
+
+        .category-btn.active {
+            background: var(--accent);
+            color: var(--bg);
+            border-color: var(--accent);
+        }
+
+        .category-section {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .category-section.active {
+            display: block;
+        }
+
+        .category-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .command-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .command-card:hover {
+            border-color: var(--accent);
+            transform: translateX(4px);
+        }
+
+        .command-card:active {
+            transform: translateX(2px);
+        }
+
+        .command-info {
+            flex: 1;
+        }
+
+        .command-code {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+            color: var(--success);
+            margin-bottom: 0.25rem;
+        }
+
+        .command-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .copy-icon {
+            width: 20px;
+            height: 20px;
+            color: var(--text-muted);
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .command-card:hover .copy-icon {
+            color: var(--accent);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--success);
+            color: var(--bg);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .section-icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 1rem; }
+            .command-card { flex-direction: column; align-items: flex-start; }
+            .copy-icon { align-self: flex-end; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <svg class="git-icon" viewBox="0 0 24 24" fill="currentColor" style="color: #f0883e">
+                <path d="M23.546 10.93L13.067.452c-.604-.603-1.582-.603-2.188 0L8.708 2.627l2.76 2.76c.645-.215 1.379-.07 1.889.441.516.515.658 1.258.438 1.9l2.658 2.66c.645-.223 1.387-.078 1.9.435.721.72.721 1.884 0 2.604-.719.719-1.881.719-2.6 0-.539-.541-.674-1.337-.404-1.996L12.86 8.955v6.525c.176.086.342.203.488.348.713.721.713 1.883 0 2.6-.719.721-1.889.721-2.609 0-.719-.719-.719-1.879 0-2.598.182-.18.387-.316.605-.406V8.835c-.217-.091-.424-.222-.6-.401-.545-.545-.676-1.342-.396-2.009L7.636 3.7.45 10.881c-.6.605-.6 1.584 0 2.189l10.48 10.477c.604.604 1.582.604 2.186 0l10.43-10.43c.605-.603.605-1.582 0-2.187"/>
+            </svg>
+            <h1>Git Commands Cheatsheet</h1>
+            <p class="subtitle">Click any command to copy it to clipboard</p>
+        </header>
+
+        <nav class="category-nav">
+            <button class="category-btn active" data-category="basics">Basics</button>
+            <button class="category-btn" data-category="branching">Branching</button>
+            <button class="category-btn" data-category="remote">Remote</button>
+            <button class="category-btn" data-category="stash">Stash</button>
+            <button class="category-btn" data-category="undo">Undo</button>
+            <button class="category-btn" data-category="advanced">Advanced</button>
+        </nav>
+
+        <section class="category-section active" id="basics">
+            <h2 class="category-title">
+                <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                Getting Started
+            </h2>
+            <div class="command-card" data-command="git init">
+                <div class="command-info"><div class="command-code">git init</div><div class="command-desc">Initialize a new Git repository</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git clone https://repository-url.git">
+                <div class="command-info"><div class="command-code">git clone &lt;url&gt;</div><div class="command-desc">Clone a repository</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git config --global user.name 'Your Name'">
+                <div class="command-info"><div class="command-code">git config --global user.name "Your Name"</div><div class="command-desc">Set your username</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git config --global user.email 'you@email.com'">
+                <div class="command-info"><div class="command-code">git config --global user.email "you@email.com"</div><div class="command-desc">Set your email</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+        </section>
+
+        <section class="category-section" id="branching">
+            <h2 class="category-title">
+                <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 009 9"/></svg>
+                Branching
+            </h2>
+            <div class="command-card" data-command="git branch">
+                <div class="command-info"><div class="command-code">git branch</div><div class="command-desc">List all local branches</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git branch feature-name">
+                <div class="command-info"><div class="command-code">git branch &lt;branch-name&gt;</div><div class="command-desc">Create a new branch</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git checkout feature-name">
+                <div class="command-info"><div class="command-code">git checkout &lt;branch&gt;</div><div class="command-desc">Switch to a branch</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git checkout -b feature-name">
+                <div class="command-info"><div class="command-code">git checkout -b &lt;branch&gt;</div><div class="command-desc">Create and switch to new branch</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git switch feature-name">
+                <div class="command-info"><div class="command-code">git switch &lt;branch&gt;</div><div class="command-desc">Switch branch (modern)</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git switch -c feature-name">
+                <div class="command-info"><div class="command-code">git switch -c &lt;branch&gt;</div><div class="command-desc">Create and switch (modern)</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git branch -d feature-name">
+                <div class="command-info"><div class="command-code">git branch -d &lt;branch&gt;</div><div class="command-desc">Delete a branch</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git merge feature-name">
+                <div class="command-info"><div class="command-code">git merge &lt;branch&gt;</div><div class="command-desc">Merge branch into current</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+        </section>
+
+        <section class="category-section" id="remote">
+            <h2 class="category-title">
+                <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 010 8.49m-8.48-.01a6 6 0 010-8.49m11.31-2.82a10 10 0 010 14.14m-14.14 0a10 10 0 010-14.14"/></svg>
+                Remote Operations
+            </h2>
+            <div class="command-card" data-command="git remote -v">
+                <div class="command-info"><div class="command-code">git remote -v</div><div class="command-desc">List remote repositories</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git remote add origin https://github.com/user/repo.git">
+                <div class="command-info"><div class="command-code">git remote add origin &lt;url&gt;</div><div class="command-desc">Add a remote</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git fetch">
+                <div class="command-info"><div class="command-code">git fetch</div><div class="command-desc">Download changes from remote</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git pull">
+                <div class="command-info"><div class="command-code">git pull</div><div class="command-desc">Fetch and merge changes</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git push">
+                <div class="command-info"><div class="command-code">git push</div><div class="command-desc">Upload local changes</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git push -u origin feature-name">
+                <div class="command-info"><div class="command-code">git push -u origin &lt;branch&gt;</div><div class="command-desc">Push and set upstream</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+        </section>
+
+        <section class="category-section" id="stash">
+            <h2 class="category-title">
+                <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+                Stash
+            </h2>
+            <div class="command-card" data-command="git stash">
+                <div class="command-info"><div class="command-code">git stash</div><div class="command-desc">Save working changes temporarily</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git stash pop">
+                <div class="command-info"><div class="command-code">git stash pop</div><div class="command-desc">Apply stash and remove it</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git stash apply">
+                <div class="command-info"><div class="command-code">git stash apply</div><div class="command-desc">Apply stash without removing</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git stash list">
+                <div class="command-info"><div class="command-code">git stash list</div><div class="command-desc">List all stashes</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git stash drop">
+                <div class="command-info"><div class="command-code">git stash drop</div><div class="command-desc">Remove a stash</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+        </section>
+
+        <section class="category-section" id="undo">
+            <h2 class="category-title">
+                <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                Undo Changes
+            </h2>
+            <div class="command-card" data-command="git status">
+                <div class="command-info"><div class="command-code">git status</div><div class="command-desc">Check repository status</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git diff">
+                <div class="command-info"><div class="command-code">git diff</div><div class="command-desc">Show unstaged changes</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git diff --staged">
+                <div class="command-info"><div class="command-code">git diff --staged</div><div class="command-desc">Show staged changes</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git add .">
+                <div class="command-info"><div class="command-code">git add .</div><div class="command-desc">Stage all changes</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git commit -m 'Your commit message'">
+                <div class="command-info"><div class="command-code">git commit -m "message"</div><div class="command-desc">Commit staged changes</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git reset HEAD file.txt">
+                <div class="command-info"><div class="command-code">git reset HEAD &lt;file&gt;</div><div class="command-desc">Unstage a file</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git checkout -- file.txt">
+                <div class="command-info"><div class="command-code">git checkout -- &lt;file&gt;</div><div class="command-desc">Discard local changes</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git reset --soft HEAD~1">
+                <div class="command-info"><div class="command-code">git reset --soft HEAD~1</div><div class="command-desc">Undo last commit (keep changes)</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git revert HEAD">
+                <div class="command-info"><div class="command-code">git revert HEAD</div><div class="command-desc">Create revert commit</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+        </section>
+
+        <section class="category-section" id="advanced">
+            <h2 class="category-title">
+                <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                Advanced
+            </h2>
+            <div class="command-card" data-command="git log --oneline --graph --all">
+                <div class="command-info"><div class="command-code">git log --oneline --graph --all</div><div class="command-desc">Visual branch history</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git rebase main">
+                <div class="command-info"><div class="command-code">git rebase &lt;branch&gt;</div><div class="command-desc">Rebase onto another branch</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git cherry-pick abc123">
+                <div class="command-info"><div class="command-code">git cherry-pick &lt;commit&gt;</div><div class="command-desc">Pick a specific commit</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git bisect start">
+                <div class="command-info"><div class="command-code">git bisect start</div><div class="command-desc">Find buggy commit</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git reflog">
+                <div class="command-info"><div class="command-code">git reflog</div><div class="command-desc">View all ref updates</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git submodule add https://github.com/user/repo.git">
+                <div class="command-info"><div class="command-code">git submodule add &lt;url&gt;</div><div class="command-desc">Add a submodule</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git tag v1.0.0">
+                <div class="command-info"><div class="command-code">git tag &lt;version&gt;</div><div class="command-desc">Create a tag</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+            <div class="command-card" data-command="git push --tags">
+                <div class="command-info"><div class="command-code">git push --tags</div><div class="command-desc">Push all tags</div></div>
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </div>
+        </section>
+    </div>
+
+    <div class="toast" id="toast">Copied to clipboard!</div>
+
+    <script>
+        const toast = document.getElementById('toast');
+        const categoryBtns = document.querySelectorAll('.category-btn');
+        const sections = document.querySelectorAll('.category-section');
+        const cards = document.querySelectorAll('.command-card');
+
+        categoryBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                categoryBtns.forEach(b => b.classList.remove('active'));
+                sections.forEach(s => s.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.category).classList.add('active');
+            });
+        });
+
+        cards.forEach(card => {
+            card.addEventListener('click', () => {
+                const command = card.dataset.command;
+                navigator.clipboard.writeText(command).then(() => {
+                    toast.classList.add('show');
+                    card.style.borderColor = 'var(--success)';
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                        card.style.borderColor = '';
+                    }, 1500);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

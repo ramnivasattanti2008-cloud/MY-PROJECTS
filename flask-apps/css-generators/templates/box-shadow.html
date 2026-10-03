@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Box Shadow Generator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0d1117; --bg-secondary: #161b22; --bg-tertiary: #21262d;
+            --border: #30363d; --text: #e6edf3; --text-secondary: #8b949e;
+            --accent: #58a6ff; --success: #3fb950; --error: #f85149;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+        header { display: flex; align-items: center; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+        header h1 { font-size: 24px; }
+        header a { color: var(--text-secondary); text-decoration: none; font-size: 14px; }
+        header a:hover { color: var(--accent); }
+        .main-grid { display: grid; grid-template-columns: 1fr 400px; gap: 24px; }
+        @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+        .panel { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+        .panel-header { padding: 16px 20px; background: var(--bg-tertiary); border-bottom: 1px solid var(--border); font-weight: 600; font-size: 14px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .panel-body { padding: 20px; }
+        .preview-container { display: flex; align-items: center; justify-content: center; height: 350px; background: repeating-conic-gradient(#1a1a2e 0% 25%, #16213e 0% 50%) 50% / 20px 20px; border-radius: 8px; }
+        .preview-box { width: 200px; height: 150px; background: white; border-radius: 12px; transition: box-shadow 0.3s; }
+        .controls { display: flex; flex-direction: column; gap: 20px; }
+        .control-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; }
+        .control-row { display: flex; gap: 12px; align-items: center; }
+        input[type="range"] { flex: 1; height: 8px; border-radius: 4px; background: var(--bg-tertiary); -webkit-appearance: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+        input[type="number"] { width: 80px; background: var(--bg); border: 2px solid var(--border); border-radius: 8px; color: var(--text); padding: 8px; font-size: 14px; text-align: center; }
+        input[type="number"]:focus, input[type="color"]:focus { outline: none; border-color: var(--accent); }
+        input[type="color"] { width: 48px; height: 40px; border: 2px solid var(--border); border-radius: 8px; cursor: pointer; background: none; }
+        .code-output { background: var(--bg); border-radius: 8px; padding: 16px; font-family: 'Consolas', monospace; font-size: 13px; word-break: break-all; }
+        .code-output code { color: var(--accent); }
+        .copy-btn { background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; margin-top: 12px; }
+        .copy-btn:hover { background: var(--border); }
+        .shadow-layer { background: var(--bg-tertiary); border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+        .shadow-layer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .shadow-layer-title { font-size: 12px; font-weight: 600; color: var(--accent); }
+        .remove-btn { background: var(--error); border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+        .add-btn { background: var(--accent); border: none; color: white; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; width: 100%; }
+        .range-display { min-width: 50px; text-align: right; font-size: 12px; color: var(--text-secondary); }
+        .presets { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+        .preset-btn { background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+        .preset-btn:hover { border-color: var(--accent); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="/">&larr; Back to All Generators</a>
+            <h1>Box Shadow Generator</h1>
+        </header>
+        <div class="main-grid">
+            <div class="left">
+                <div class="panel">
+                    <div class="panel-header">Preview</div>
+                    <div class="panel-body">
+                        <div class="preview-container">
+                            <div class="preview-box" id="previewBox"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel" style="margin-top: 24px;">
+                    <div class="panel-header">CSS Code</div>
+                    <div class="panel-body">
+                        <div class="code-output" id="codeOutput"></div>
+                        <button class="copy-btn" onclick="copyCode()">Copy to Clipboard</button>
+                    </div>
+                </div>
+            </div>
+            <div class="right">
+                <div class="panel">
+                    <div class="panel-header">Controls</div>
+                    <div class="panel-body">
+                        <div class="controls">
+                            <div class="control-group">
+                                <label>Presets</label>
+                                <div class="presets">
+                                    <button class="preset-btn" onclick="loadPreset('subtle')">Subtle</button>
+                                    <button class="preset-btn" onclick="loadPreset('elevated')">Elevated</button>
+                                    <button class="preset-btn" onclick="loadPreset('dramatic')">Dramatic</button>
+                                    <button class="preset-btn" onclick="loadPreset('inset')">Inset</button>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label>Box Shadow Layers</label>
+                                <div id="shadowLayers"></div>
+                                <button class="add-btn" onclick="addShadowLayer()">+ Add Shadow Layer</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        let shadowLayers = [
+            { x: 0, y: 4, blur: 6, spread: 0, color: 'rgba(0,0,0,0.1)', inset: false },
+            { x: 0, y: 2, blur: 4, spread: 0, color: 'rgba(0,0,0,0.05)', inset: false }
+        ];
+
+        function addShadowLayer() {
+            shadowLayers.push({ x: 0, y: 4, blur: 10, spread: 0, color: 'rgba(0,0,0,0.15)', inset: false });
+            renderShadowLayers();
+            update();
+        }
+
+        function removeShadowLayer(index) {
+            if (shadowLayers.length > 1) {
+                shadowLayers.splice(index, 1);
+                renderShadowLayers();
+                update();
+            }
+        }
+
+        function updateShadowValue(index, property, value) {
+            shadowLayers[index][property] = value;
+            update();
+        }
+
+        function renderShadowLayers() {
+            document.getElementById('shadowLayers').innerHTML = shadowLayers.map((shadow, i) => `
+                <div class="shadow-layer">
+                    <div class="shadow-layer-header">
+                        <span class="shadow-layer-title">Shadow ${i + 1}</span>
+                        <button class="remove-btn" onclick="removeShadowLayer(${i})">Remove</button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="control-group">
+                            <label>X Offset</label>
+                            <div class="control-row">
+                                <input type="range" min="-50" max="50" value="${shadow.x}" oninput="updateShadowValue(${i}, 'x', parseInt(this.value)); document.getElementById('x${i}').value = this.value">
+                                <input type="number" id="x${i}" value="${shadow.x}" onchange="updateShadowValue(${i}, 'x', parseInt(this.value)); this.previousSibling.value = this.value">
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label>Y Offset</label>
+                            <div class="control-row">
+                                <input type="range" min="-50" max="50" value="${shadow.y}" oninput="updateShadowValue(${i}, 'y', parseInt(this.value)); document.getElementById('y${i}').value = this.value">
+                                <input type="number" id="y${i}" value="${shadow.y}" onchange="updateShadowValue(${i}, 'y', parseInt(this.value)); this.previousSibling.value = this.value">
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label>Blur</label>
+                            <div class="control-row">
+                                <input type="range" min="0" max="100" value="${shadow.blur}" oninput="updateShadowValue(${i}, 'blur', parseInt(this.value)); document.getElementById('blur${i}').value = this.value">
+                                <input type="number" id="blur${i}" value="${shadow.blur}" onchange="updateShadowValue(${i}, 'blur', parseInt(this.value)); this.previousSibling.value = this.value">
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label>Spread</label>
+                            <div class="control-row">
+                                <input type="range" min="-50" max="50" value="${shadow.spread}" oninput="updateShadowValue(${i}, 'spread', parseInt(this.value)); document.getElementById('spread${i}').value = this.value">
+                                <input type="number" id="spread${i}" value="${shadow.spread}" onchange="updateShadowValue(${i}, 'spread', parseInt(this.value)); this.previousSibling.value = this.value">
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label>Color</label>
+                            <div class="control-row">
+                                <input type="color" value="#000000" onchange="updateShadowValue(${i}, 'color', this.value + Math.floor(document.getElementById('opacity${i}').value * 2.55).toString(16).padStart(2, '0'))">
+                                <input type="number" id="opacity${i}" min="0" max="100" value="10" onchange="updateShadowValue(${i}, 'color', '#000000' + Math.floor(this.value * 2.55).toString(16).padStart(2, '0'))">
+                                <span class="range-display">%</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label>Inset</label>
+                            <label style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
+                                <input type="checkbox" ${shadow.inset ? 'checked' : ''} onchange="updateShadowValue(${i}, 'inset', this.checked)">
+                                <span style="text-transform: none; font-size: 12px;">Inset Shadow</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function loadPreset(name) {
+            const presets = {
+                subtle: [{ x: 0, y: 2, blur: 4, spread: 0, color: 'rgba(0,0,0,0.06)', inset: false }],
+                elevated: [{ x: 0, y: 4, blur: 6, spread: -1, color: 'rgba(0,0,0,0.1)', inset: false }, { x: 0, y: 10, blur: 15, spread: -3, color: 'rgba(0,0,0,0.1)', inset: false }],
+                dramatic: [{ x: 0, y: 25, blur: 50, spread: -5, color: 'rgba(0,0,0,0.25)', inset: false }, { x: 0, y: 10, blur: 10, spread: -5, color: 'rgba(0,0,0,0.2)', inset: false }],
+                inset: [{ x: 0, y: 2, blur: 5, spread: 0, color: 'rgba(0,0,0,0.1)', inset: true }]
+            };
+            shadowLayers = presets[name] || presets.subtle;
+            renderShadowLayers();
+            update();
+        }
+
+        function update() {
+            const shadows = shadowLayers.map(s => {
+                const inset = s.inset ? 'inset ' : '';
+                return `${inset}${s.x}px ${s.y}px ${s.blur}px ${s.spread}px ${s.color}`;
+            });
+            const css = shadows.join(',\n    ');
+            document.getElementById('previewBox').style.boxShadow = shadows.join(', ');
+            document.getElementById('codeOutput').innerHTML = `<code>box-shadow:\n    ${css};</code>`;
+        }
+
+        function copyCode() {
+            const code = document.getElementById('codeOutput').textContent;
+            navigator.clipboard.writeText(code);
+            const btn = document.querySelector('.copy-btn');
+            btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = 'Copy to Clipboard', 2000);
+        }
+
+        renderShadowLayers();
+        update();
+    </script>
+</body>
+</html>

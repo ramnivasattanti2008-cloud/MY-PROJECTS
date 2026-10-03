@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - Password Vault{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="card">
+        <h2>Unlock Vault</h2>
+
+        <form method="post">
+            <div class="form-group">
+                <label for="password">Master Password</label>
+                <input type="password" id="password" name="password" required autofocus
+                       placeholder="Enter your master password">
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Unlock</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

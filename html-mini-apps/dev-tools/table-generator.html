@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table Generator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0d0d0d; --card: #1a1a1a; --border: #2a2a2a;
+            --text: #e0e0e0; --text-dim: #888; --accent: #6366f1;
+            --success: #22c55e;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+        .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+        header { text-align: center; padding: 30px 0 20px; }
+        h1 { font-size: 2rem; margin-bottom: 8px; background: linear-gradient(135deg, #22d3ee, #34d399, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .subtitle { color: var(--text-dim); }
+        .controls { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin: 20px 0; }
+        .control-row { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+        .control-group { flex: 1; min-width: 120px; }
+        .control-group label { display: block; margin-bottom: 6px; font-weight: 600; color: var(--text-dim); font-size: 0.9rem; }
+        .control-group input, .control-group select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 1rem; }
+        .control-group input:focus, .control-group select:focus { outline: none; border-color: var(--accent); }
+        .preview-section { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin: 20px 0; }
+        .preview-section h2 { margin-bottom: 16px; font-size: 1.2rem; }
+        .preview-box { background: var(--bg); border-radius: 12px; padding: 20px; overflow-x: auto; margin-bottom: 16px; }
+        .preview-box pre { margin: 0; font-family: 'Courier New', monospace; font-size: 0.9rem; white-space: pre-wrap; word-break: break-all; }
+        .format-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .format-tab { padding: 10px 20px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text); cursor: pointer; font-weight: 600; transition: all 0.2s; }
+        .format-tab:hover { border-color: var(--accent); }
+        .format-tab.active { background: var(--accent); border-color: var(--accent); }
+        .btn-row { display: flex; gap: 12px; flex-wrap: wrap; }
+        .btn { padding: 12px 24px; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-primary { background: var(--accent); color: #fff; flex: 1; }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-secondary { background: var(--border); color: var(--text); }
+        .btn-secondary:hover { background: #333; }
+        .editor-section { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin: 20px 0; }
+        .editor-section h2 { margin-bottom: 16px; font-size: 1.2rem; }
+        .editor-section p { color: var(--text-dim); margin-bottom: 16px; font-size: 0.9rem; }
+        .editor-grid { display: grid; gap: 12px; }
+        .editor-row { display: flex; gap: 8px; align-items: center; }
+        .editor-row input { flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.95rem; }
+        .editor-row input:focus { outline: none; border-color: var(--accent); }
+        .editor-row .row-num { color: var(--text-dim); font-size: 0.85rem; min-width: 30px; text-align: center; }
+        .remove-row { background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 6px; font-size: 1.2rem; }
+        .remove-row:hover { color: #ef4444; }
+        .header-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .header-row input { flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 0.95rem; }
+        .header-row .col-num { color: var(--text-dim); font-size: 0.85rem; min-width: 30px; text-align: center; }
+        .add-row-btn { width: 100%; padding: 12px; border: 2px dashed var(--border); border-radius: 8px; background: transparent; color: var(--text-dim); cursor: pointer; transition: all 0.2s; margin-top: 12px; }
+        .add-row-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--success); color: #000; padding: 12px 24px; border-radius: 8px; font-weight: 600; opacity: 0; transition: all 0.3s; z-index: 1000; }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .styles { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+        .style-option { display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+        .style-option input { display: none; }
+        .style-option input:checked + span { color: var(--accent); }
+        .style-option:hover { border-color: var(--accent); }
+        @media (max-width: 600px) {
+            h1 { font-size: 1.5rem; }
+            .control-group { min-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Table Generator</h1>
+            <p class="subtitle">Create ASCII, Markdown, and HTML tables</p>
+        </header>
+        <div class="controls">
+            <div class="control-row">
+                <div class="control-group">
+                    <label>Rows</label>
+                    <input type="number" id="rows" value="3" min="1" max="50">
+                </div>
+                <div class="control-group">
+                    <label>Columns</label>
+                    <input type="number" id="cols" value="3" min="1" max="20">
+                </div>
+                <div class="control-group">
+                    <label>Empty Cells</label>
+                    <input type="text" id="emptyVal" value="-" placeholder="Default: empty">
+                </div>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-primary" id="generateBtn">Generate Table</button>
+                <button class="btn btn-secondary" id="resetBtn">Reset</button>
+            </div>
+        </div>
+        <div class="editor-section">
+            <h2>Edit Table Data</h2>
+            <p>Click on any cell to edit. Headers are in the first row.</p>
+            <div id="headerRow" class="header-row"></div>
+            <div id="editorGrid" class="editor-grid"></div>
+            <button class="add-row-btn" id="addRowBtn">+ Add Row</button>
+        </div>
+        <div class="preview-section">
+            <h2>Table Preview</h2>
+            <div class="format-tabs">
+                <button class="format-tab active" data-format="markdown">Markdown</button>
+                <button class="format-tab" data-format="html">HTML</button>
+                <button class="format-tab" data-format="ascii">ASCII</button>
+                <button class="format-tab" data-format="csv">CSV</button>
+            </div>
+            <div class="preview-box"><pre id="preview"></pre></div>
+            <div class="btn-row">
+                <button class="btn btn-primary" id="copyBtn">Copy to Clipboard</button>
+            </div>
+            <div class="styles">
+                <label class="style-option"><input type="checkbox" id="styleBorders" checked><span>Borders</span></label>
+                <label class="style-option"><input type="checkbox" id="stylePadding"><span>HTML Padding</span></label>
+                <label class="style-option"><input type="checkbox" id="styleAlign"><span>Alignment</span></label>
+            </div>
+        </div>
+    </div>
+    <div class="toast" id="toast">Copied!</div>
+    <script>
+        let currentFormat = 'markdown';
+        let headers = [];
+        let data = [];
+        const rowsInput = document.getElementById('rows');
+        const colsInput = document.getElementById('cols');
+        const emptyVal = document.getElementById('emptyVal');
+        const headerRowEl = document.getElementById('headerRow');
+        const editorGrid = document.getElementById('editorGrid');
+        const preview = document.getElementById('preview');
+        const formatTabs = document.querySelectorAll('.format-tab');
+        const generateBtn = document.getElementById('generateBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const addRowBtn = document.getElementById('addRowBtn');
+        const styleBorders = document.getElementById('styleBorders');
+        const stylePadding = document.getElementById('stylePadding');
+        const styleAlign = document.getElementById('styleAlign');
+        function initializeTable() {
+            const rows = parseInt(rowsInput.value) || 3;
+            const cols = parseInt(colsInput.value) || 3;
+            const empty = emptyVal.value || '';
+            headers = Array(cols).fill('').map((_, i) => `Header ${i + 1}`);
+            data = Array(rows).fill(null).map(() => Array(cols).fill(empty));
+            renderEditor();
+            updatePreview();
+        }
+        function renderEditor() {
+            headerRowEl.innerHTML = headers.map((h, i) =>
+                `<span class="col-num">${i + 1}</span><input type="text" value="${h}" data-type="header" data-col="${i}" placeholder="Header ${i + 1}">`
+            ).join('');
+            editorGrid.innerHTML = data.map((row, rowIndex) =>
+                `<div class="editor-row">
+                    <span class="row-num">${rowIndex + 1}</span>
+                    ${row.map((cell, colIndex) =>
+                        `<input type="text" value="${cell}" data-row="${rowIndex}" data-col="${colIndex}" placeholder="-">`
+                    ).join('')}
+                </div>`
+            ).join('');
+            headerRowEl.querySelectorAll('input').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    headers[e.target.dataset.col] = e.target.value;
+                    updatePreview();
+                });
+            });
+            editorGrid.querySelectorAll('input').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const row = parseInt(e.target.dataset.row);
+                    const col = parseInt(e.target.dataset.col);
+                    data[row][col] = e.target.value;
+                    updatePreview();
+                });
+            });
+        }
+        function updatePreview() {
+            const empty = emptyVal.value || '';
+            const rows = data.map((row, i) =>
+                row.map(cell => cell || empty)
+            );
+            switch (currentFormat) {
+                case 'markdown': preview.textContent = generateMarkdown(headers, rows, empty); break;
+                case 'html': preview.innerHTML = generateHTML(headers, rows, empty); break;
+                case 'ascii': preview.textContent = generateASCII(headers, rows, empty); break;
+                case 'csv': preview.textContent = generateCSV(headers, rows, empty); break;
+            }
+        }
+        function generateMarkdown(headers, rows, empty) {
+            const align = styleAlign.checked ? '| :---' : '| ---';
+            const colAlign = headers.map(() => align).join('');
+            const headerRow = '| ' + headers.map(h => h || empty).join(' | ') + ' |';
+            const sepRow = '|' + colAlign + '|';
+            const dataRows = rows.map(row => '| ' + row.join(' | ') + ' |').join('\n');
+            return [headerRow, sepRow, dataRows].join('\n');
+        }
+        function generateHTML(headers, rows, empty) {
+            const padding = stylePadding.checked ? ' padding="8px"' : '';
+            const border = styleBorders.checked ? ' border="1"' : '';
+            const align = styleAlign.checked ? ' align="left"' : '';
+            let html = `<table${border}><thead><tr>`;
+            headers.forEach(h => { html += `<th${padding}${align}>${h || empty}</th>`; });
+            html += '</tr></thead><tbody>';
+            rows.forEach(row => {
+                html += '<tr>';
+                row.forEach(cell => { html += `<td${padding}${align}>${cell || empty}</td>`; });
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+            return html;
+        }
+        function generateASCII(headers, rows, empty) {
+            const allCells = [headers, ...rows].map(row => row.map(c => c || empty));
+            const colWidths = allCells[0].map((_, i) => Math.max(...allCells.map(row => row[i].length)) + 2);
+            const border = styleBorders.checked
+                ? '+' + colWidths.map(w => '-'.repeat(w)).join('+') + '+\n'
+                : '';
+            const headerLine = '|' + headers.map((h, i) => ` ${(h || empty).padEnd(colWidths[i] - 1)}`).join('|') + '|';
+            const sepLine = '+' + colWidths.map(w => '-'.repeat(w)).join('+') + '+';
+            const dataLines = rows.map(row =>
+                '|' + row.map((c, i) => ` ${c.padEnd(colWidths[i] - 1)}`).join('|') + '|'
+            ).join('\n');
+            if (styleBorders.checked) {
+                return border + headerLine + '\n' + sepLine + '\n' + dataLines + '\n' + border.replace('\n', '');
+            }
+            return headerLine + '\n' + dataLines;
+        }
+        function generateCSV(headers, rows, empty) {
+            const escape = (s) => {
+                s = s || empty;
+                if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+                    return '"' + s.replace(/"/g, '""') + '"';
+                }
+                return s;
+            };
+            const allRows = [headers, ...rows].map(row => row.map(escape).join(','));
+            return allRows.join('\n');
+        }
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+        formatTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                formatTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentFormat = tab.dataset.format;
+                updatePreview();
+            });
+        });
+        generateBtn.addEventListener('click', initializeTable);
+        resetBtn.addEventListener('click', () => {
+            rowsInput.value = 3;
+            colsInput.value = 3;
+            emptyVal.value = '-';
+            initializeTable();
+        });
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(preview.textContent || preview.innerHTML).then(() => showToast('Copied to clipboard!'));
+        });
+        addRowBtn.addEventListener('click', () => {
+            const cols = headers.length;
+            const empty = emptyVal.value || '';
+            data.push(Array(cols).fill(empty));
+            rowsInput.value = data.length;
+            renderEditor();
+            updatePreview();
+        });
+        [styleBorders, stylePadding, styleAlign].forEach(el => {
+            el.addEventListener('change', updatePreview);
+        });
+        initializeTable();
+    </script>
+</body>
+</html>

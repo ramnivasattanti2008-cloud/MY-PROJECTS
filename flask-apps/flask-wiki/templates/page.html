@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ page.title }} - Wiki{% endblock %}
+{% block content %}
+<aside class="sidebar">
+    <h3>Pages</h3>
+    <ul>
+        {% for slug, p in pages.items() %}
+        <li><a href="/wiki/{{ slug }}">{{ p.title }}</a></li>
+        {% endfor %}
+    </ul>
+</aside>
+<main class="main-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1 style="font-size: 2rem; color: #f59e0b;">{{ page.title }}</h1>
+        <a href="/edit/{{ page.title.lower().replace(' ', '-') }}" style="background: #1a1a2e; padding: 0.5rem 1rem; border-radius: 6px;">Edit Page</a>
+    </div>
+    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; color: #666; font-size: 0.9rem;">
+        <span>Last edited: {{ page.last_edited }}</span>
+        <span>|</span>
+        <span>Category: {{ page.category }}</span>
+    </div>
+    <div class="markdown-body" style="color: #e0e0e0;">{{ page.html_content|safe }}</div>
+</main>
+{% endblock %}

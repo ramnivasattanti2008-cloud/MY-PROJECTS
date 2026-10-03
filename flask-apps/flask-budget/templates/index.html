@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Planner</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        h1 { color: #333; margin-bottom: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .btn { background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; border: none; cursor: pointer; display: inline-block; font-size: 14px; }
+        .btn:hover { background: #0056b3; }
+        .btn-danger { background: #dc3545; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-success { background: #28a745; }
+        .btn-success:hover { background: #218838; }
+        .btn-sm { padding: 5px 12px; font-size: 13px; }
+        .btn-secondary { background: #6c757d; }
+        .btn-secondary:hover { background: #545b62; }
+        .flash { padding: 12px 20px; border-radius: 5px; margin-bottom: 20px; }
+        .flash.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .flash.warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        .flash.danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .flash.info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .month-selector { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .month-selector form { display: flex; gap: 10px; align-items: center; }
+        .month-selector select, .month-selector input { padding: 8px 12px; border: 1px solid #ddd; border-radius: 5px; }
+        .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .summary-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .summary-card h3 { color: #666; font-size: 14px; margin-bottom: 10px; }
+        .summary-card .value { font-size: 28px; font-weight: bold; }
+        .summary-card.remaining .value { color: #28a745; }
+        .summary-card.over .value { color: #dc3545; }
+        .progress-bar { height: 20px; background: #e9ecef; border-radius: 10px; overflow: hidden; margin-top: 10px; }
+        .progress-fill { height: 100%; transition: width 0.3s; }
+        .progress-fill.good { background: #28a745; }
+        .progress-fill.warning { background: #ffc107; }
+        .progress-fill.danger { background: #dc3545; }
+        .budget-form, .expense-form { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .budget-form h3, .expense-form h3 { margin-bottom: 15px; color: #333; }
+        .form-row { display: flex; gap: 10px; flex-wrap: wrap; }
+        .form-row .form-group { flex: 1; min-width: 150px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 500; color: #333; font-size: 14px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
+        .expenses-list { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .expense-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
+        .expense-item:last-child { border-bottom: none; }
+        .expense-info h4 { color: #333; margin-bottom: 5px; }
+        .expense-info p { font-size: 13px; color: #666; }
+        .expense-amount { font-weight: bold; font-size: 18px; color: #333; }
+        .expense-actions { display: flex; gap: 5px; }
+        .category-badge { display: inline-block; padding: 2px 8px; background: #e9ecef; border-radius: 10px; font-size: 12px; color: #495057; }
+        .no-budget { text-align: center; padding: 40px; background: white; border-radius: 8px; }
+        .categories-breakdown { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .category-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Budget Planner</h1>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <div class="month-selector">
+            <form method="get">
+                <label>Viewing Month:</label>
+                <input type="month" name="month" value="{{ current_month }}">
+                <button type="submit" class="btn">Go</button>
+            </form>
+        </div>
+
+        {% if budget %}
+        <div class="summary">
+            <div class="summary-card">
+                <h3>Budget</h3>
+                <div class="value">${{ "%.2f"|format(budget.amount) }}</div>
+            </div>
+            <div class="summary-card">
+                <h3>Spent</h3>
+                <div class="value">${{ "%.2f"|format(total_spent) }}</div>
+                <div class="progress-bar">
+                    <div class="progress-fill {% if percentage > 100 %}danger{% elif percentage > 80 %}warning{% else %}good{% endif %}"
+                         style="width: {{ [percentage, 100]|min }}%"></div>
+                </div>
+            </div>
+            <div class="summary-card {% if remaining < 0 %}over{% else %}remaining{% endif %}">
+                <h3>{{ 'Over Budget' if remaining < 0 else 'Remaining' }}</h3>
+                <div class="value">${{ "%.2f"|format(remaining|abs) }}</div>
+            </div>
+        </div>
+
+        <div class="two-col">
+            <div class="expense-form">
+                <h3>+ Add Expense</h3>
+                <form method="post" action="{{ url_for('add_expense') }}">
+                    <input type="hidden" name="budget_id" value="{{ budget.id }}">
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" name="description" required placeholder="What did you spend on?">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Amount ($)</label>
+                            <input type="number" name="amount" step="0.01" min="0" required placeholder="0.00">
+                        </div>
+                        <div class="form-group">
+                            <label>Category</label>
+                            <select name="category">
+                                <option value="">Select</option>
+                                <option value="Food">Food</option>
+                                <option value="Transport">Transport</option>
+                                <option value="Entertainment">Entertainment</option>
+                                <option value="Utilities">Utilities</option>
+                                <option value="Shopping">Shopping</option>
+                                <option value="Health">Health</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" name="date" value="{{ current_month }}-01">
+                    </div>
+                    <button type="submit" class="btn btn-success">Add Expense</button>
+                </form>
+            </div>
+
+            <div class="categories-breakdown">
+                <h3>By Category</h3>
+                {% if categories %}
+                {% for cat in categories %}
+                <div class="category-item">
+                    <span>{{ cat.category or 'Uncategorized' }}</span>
+                    <strong>${{ "%.2f"|format(cat.total) }}</strong>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p style="color: #666; padding: 20px 0; text-align: center;">No expenses yet</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="expenses-list">
+            <h3>Recent Expenses</h3>
+            {% if expenses %}
+            {% for expense in expenses %}
+            <div class="expense-item">
+                <div class="expense-info">
+                    <h4>{{ expense.description }}</h4>
+                    <p>
+                        {% if expense.category %}
+                        <span class="category-badge">{{ expense.category }}</span>
+                        {% endif %}
+                        {{ expense.date }}
+                    </p>
+                </div>
+                <div class="expense-actions">
+                    <span class="expense-amount">${{ "%.2f"|format(expense.amount) }}</span>
+                    <a href="{{ url_for('edit_expense', id=expense.id) }}" class="btn btn-sm btn-secondary">Edit</a>
+                    <a href="{{ url_for('delete_expense', id=expense.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Delete this expense?')">X</a>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p style="color: #666; text-align: center; padding: 30px;">No expenses recorded yet.</p>
+            {% endif %}
+        </div>
+
+        {% else %}
+        <div class="no-budget">
+            <h2>No budget set for {{ current_month }}</h2>
+            <p style="color: #666; margin: 15px 0;">Set your monthly budget to start tracking expenses.</p>
+        </div>
+        {% endif %}
+
+        <div class="budget-form" style="margin-top: 20px;">
+            <h3>Set Budget for {{ current_month }}</h3>
+            <form method="post" action="{{ url_for('set_budget') }}">
+                <input type="hidden" name="month" value="{{ current_month }}">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Monthly Budget ($)</label>
+                        <input type="number" name="amount" step="0.01" min="0" required placeholder="0.00" value="{{ budget.amount if budget else '' }}">
+                    </div>
+                    <div class="form-group" style="display: flex; align-items: flex-end;">
+                        <button type="submit" class="btn">{{ 'Update' if budget else 'Set' }} Budget</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Button Generator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0d1117; --bg-secondary: #161b22; --bg-tertiary: #21262d;
+            --border: #30363d; --text: #e6edf3; --text-secondary: #8b949e;
+            --accent: #58a6ff; --success: #3fb950; --error: #f85149;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+        header { display: flex; align-items: center; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+        header h1 { font-size: 24px; }
+        header a { color: var(--text-secondary); text-decoration: none; font-size: 14px; }
+        header a:hover { color: var(--accent); }
+        .main-grid { display: grid; grid-template-columns: 1fr 400px; gap: 24px; }
+        @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+        .panel { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+        .panel-header { padding: 16px 20px; background: var(--bg-tertiary); border-bottom: 1px solid var(--border); font-weight: 600; font-size: 14px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .panel-body { padding: 20px; }
+        .preview-container { display: flex; align-items: center; justify-content: center; gap: 24px; height: 250px; background: var(--bg-tertiary); border-radius: 8px; flex-wrap: wrap; }
+        .preview-button { cursor: pointer; transition: all 0.3s; }
+        .controls { display: flex; flex-direction: column; gap: 20px; }
+        .control-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; }
+        .control-row { display: flex; gap: 12px; align-items: center; }
+        input[type="range"] { flex: 1; height: 8px; border-radius: 4px; background: var(--bg-tertiary); -webkit-appearance: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+        input[type="number"], input[type="text"] { width: 80px; background: var(--bg); border: 2px solid var(--border); border-radius: 8px; color: var(--text); padding: 8px; font-size: 14px; text-align: center; }
+        input[type="color"] { width: 48px; height: 40px; border: 2px solid var(--border); border-radius: 8px; cursor: pointer; background: none; }
+        select { flex: 1; background: var(--bg); border: 2px solid var(--border); border-radius: 8px; color: var(--text); padding: 10px; font-size: 14px; }
+        .range-display { min-width: 50px; text-align: right; font-size: 12px; color: var(--text-secondary); }
+        .code-output { background: var(--bg); border-radius: 8px; padding: 16px; font-family: 'Consolas', monospace; font-size: 13px; word-break: break-all; white-space: pre; overflow-x: auto; }
+        .code-output code { color: var(--accent); }
+        .copy-btn { background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; margin-top: 12px; }
+        .copy-btn:hover { background: var(--border); }
+        .presets { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+        .preset-btn { background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+        .preset-btn:hover { border-color: var(--accent); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="/">&larr; Back to All Generators</a>
+            <h1>Button Generator</h1>
+        </header>
+        <div class="main-grid">
+            <div class="left">
+                <div class="panel">
+                    <div class="panel-header">Preview</div>
+                    <div class="panel-body">
+                        <div class="preview-container">
+                            <button class="preview-button" id="previewButton">Click Me</button>
+                            <button class="preview-button" id="previewButtonSmall">Small</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel" style="margin-top: 24px;">
+                    <div class="panel-header">CSS Code</div>
+                    <div class="panel-body">
+                        <div class="code-output" id="codeOutput"></div>
+                        <button class="copy-btn" onclick="copyCode()">Copy to Clipboard</button>
+                    </div>
+                </div>
+            </div>
+            <div class="right">
+                <div class="panel">
+                    <div class="panel-header">Controls</div>
+                    <div class="panel-body">
+                        <div class="controls">
+                            <div class="control-group">
+                                <label>Presets</label>
+                                <div class="presets">
+                                    <button class="preset-btn" onclick="loadPreset('primary')">Primary</button>
+                                    <button class="preset-btn" onclick="loadPreset('outline')">Outline</button>
+                                    <button class="preset-btn" onclick="loadPreset('ghost')">Ghost</button>
+                                    <button class="preset-btn" onclick="loadPreset('gradient')">Gradient</button>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label>Background Color</label>
+                                <div class="control-row">
+                                    <input type="color" id="bgColor" value="#0969da" onchange="update()">
+                                    <span class="range-display" id="bgColorValue">#0969da</span>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label>Text Color</label>
+                                <div class="control-row">
+                                    <input type="color" id="textColor" value="#ffffff" onchange="update()">
+                                    <span class="range-display" id="textColorValue">#ffffff</span>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label>Border Radius</label>
+                                <div class="control-row">
+                                    <input type="range" id="borderRadius" min="0" max="50" value="8" oninput="document.getElementById('radiusValue').textContent = this.value + 'px'; update()">
+                                    <span class="range-display" id="radiusValue">8px</span>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label>Padding</label>
+                                <div class="control-row">
+                                    <span style="font-size: 12px;">H:</span>
+                                    <input type="number" id="paddingH" value="16" min="0" max="100" onchange="update()">
+                                    <span style="font-size: 12px;">V:</span>
+                                    <input type="number" id="paddingV" value="12" min="0" max="100" onchange="update()">
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label>Font Size</label>
+                                <div class="control-row">
+                                    <input type="range" id="fontSize" min="10" max="24" value="14" oninput="document.getElementById('fontSizeValue').textContent = this.value + 'px'; update()">
+                                    <span class="range-display" id="fontSizeValue">14px</span>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label>Hover Effect</label>
+                                <select id="hoverEffect" onchange="update()">
+                                    <option value="brightness">Brightness</option>
+                                    <option value="scale">Scale Up</option>
+                                    <option value="lift">Lift Up</option>
+                                    <option value="none">None</option>
+                                </select>
+                            </div>
+                            <div class="control-group">
+                                <label>Transition Duration</label>
+                                <div class="control-row">
+                                    <input type="range" id="transition" min="0" max="1000" value="200" oninput="document.getElementById('transitionValue').textContent = this.value + 'ms'; update()">
+                                    <span class="range-display" id="transitionValue">200ms</span>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label>Box Shadow</label>
+                                <div class="control-row">
+                                    <input type="range" id="shadow" min="0" max="20" value="4" oninput="document.getElementById('shadowValue').textContent = this.value + 'px'; update()">
+                                    <span class="range-display" id="shadowValue">4px</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function update() {
+            const bgColor = document.getElementById('bgColor').value;
+            const textColor = document.getElementById('textColor').value;
+            const borderRadius = document.getElementById('borderRadius').value;
+            const paddingH = document.getElementById('paddingH').value;
+            const paddingV = document.getElementById('paddingV').value;
+            const fontSize = document.getElementById('fontSize').value;
+            const hoverEffect = document.getElementById('hoverEffect').value;
+            const transition = document.getElementById('transition').value;
+            const shadow = document.getElementById('shadow').value;
+
+            document.getElementById('bgColorValue').textContent = bgColor;
+            document.getElementById('textColorValue').textContent = textColor;
+
+            let hoverStyles = '';
+            switch (hoverEffect) {
+                case 'brightness':
+                    hoverStyles = 'filter: brightness(1.1);';
+                    break;
+                case 'scale':
+                    hoverStyles = 'transform: scale(1.05);';
+                    break;
+                case 'lift':
+                    hoverStyles = 'transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.2);';
+                    break;
+            }
+
+            const css = `.btn {
+  background-color: ${bgColor};
+  color: ${textColor};
+  border: none;
+  border-radius: ${borderRadius}px;
+  padding: ${paddingV}px ${paddingH}px;
+  font-size: ${fontSize}px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all ${transition}ms ease;
+  box-shadow: 0 ${shadow}px ${shadow * 2}px rgba(0, 0, 0, 0.15);
+}
+
+.btn:hover {
+  ${hoverStyles}
+}
+
+.btn:active {
+  transform: scale(0.98);
+}`;
+
+            document.getElementById('previewButton').style.cssText = `
+                background-color: ${bgColor};
+                color: ${textColor};
+                border: none;
+                border-radius: ${borderRadius}px;
+                padding: ${paddingV}px ${paddingH}px;
+                font-size: ${fontSize}px;
+                font-weight: 600;
+                transition: all ${transition}ms ease;
+                box-shadow: 0 ${shadow}px ${shadow * 2}px rgba(0, 0, 0, 0.15);
+            `;
+
+            document.getElementById('previewButtonSmall').style.cssText = document.getElementById('previewButton').style.cssText + '; transform: scale(0.8);';
+
+            document.getElementById('codeOutput').innerHTML = `<code>${css.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code>`;
+        }
+
+        function loadPreset(name) {
+            const presets = {
+                primary: { bg: '#0969da', text: '#ffffff', radius: 8 },
+                outline: { bg: 'transparent', text: '#0969da', radius: 8 },
+                ghost: { bg: 'transparent', text: '#0969da', radius: 8 },
+                gradient: { bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', text: '#ffffff', radius: 8 }
+            };
+            const p = presets[name];
+            document.getElementById('bgColor').value = p.bg.startsWith('#') ? p.bg : '#0969da';
+            document.getElementById('textColor').value = p.text.startsWith('#') ? p.text : '#ffffff';
+            document.getElementById('borderRadius').value = p.radius;
+            document.getElementById('radiusValue').textContent = p.radius + 'px';
+            update();
+        }
+
+        function copyCode() {
+            const code = document.getElementById('codeOutput').textContent;
+            navigator.clipboard.writeText(code);
+            const btn = document.querySelector('.copy-btn');
+            btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = 'Copy to Clipboard', 2000);
+        }
+
+        update();
+    </script>
+</body>
+</html>

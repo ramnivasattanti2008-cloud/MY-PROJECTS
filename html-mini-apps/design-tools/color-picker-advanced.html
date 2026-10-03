@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Color Picker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent: #58a6ff;
+            --border: #30363d;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 24px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        header h1 span { color: var(--accent); }
+        header p { color: var(--text-secondary); }
+        .main-color {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+        .color-preview {
+            flex: 1;
+            min-width: 200px;
+            height: 200px;
+            border-radius: 16px;
+            border: 2px solid var(--border);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .color-preview::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .color-controls {
+            flex: 2;
+            min-width: 300px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        .input-group label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .input-group label span {
+            font-family: 'Consolas', monospace;
+            color: var(--text-primary);
+            text-transform: none;
+        }
+        .slider-container {
+            position: relative;
+            height: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .slider-container input[type="range"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 2;
+        }
+        .slider-track {
+            height: 100%;
+            border-radius: 8px;
+            pointer-events: none;
+        }
+        .slider-thumb {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            pointer-events: none;
+            transition: transform 0.1s;
+        }
+        .slider-thumb:hover { transform: translate(-50%, -50%) scale(1.1); }
+        .hex-input {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .hex-input input {
+            flex: 1;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-family: 'Consolas', monospace;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .hex-input input:focus { border-color: var(--accent); }
+        .copy-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .copy-btn:hover { background: var(--accent); border-color: var(--accent); }
+        .copy-btn.copied { background: #238636; border-color: #238636; }
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+        .harmony-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .harmony-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            transition: all 0.2s;
+        }
+        .harmony-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+        .harmony-swatch {
+            height: 60px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            display: flex;
+            gap: 4px;
+            overflow: hidden;
+        }
+        .harmony-swatch span {
+            flex: 1;
+        }
+        .harmony-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        .harmony-values {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .harmony-color {
+            background: var(--bg-tertiary);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .harmony-color:hover { background: var(--accent); }
+        .palette-generator {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+        .generate-btn {
+            background: linear-gradient(135deg, var(--accent), #a855f7);
+            border: none;
+            color: white;
+            padding: 14px 28px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            transition: all 0.2s;
+        }
+        .generate-btn:hover { transform: scale(1.02); box-shadow: 0 4px 20px rgba(88, 166, 255, 0.3); }
+        .palette-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+        }
+        .palette-swatch {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .palette-swatch:hover { transform: scale(1.05); }
+        .palette-swatch::after {
+            content: attr(data-color);
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            font-family: 'Consolas', monospace;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            white-space: nowrap;
+        }
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--accent);
+            color: var(--text-primary);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .formats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 24px;
+        }
+        .format-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .format-value {
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        @media (max-width: 768px) {
+            .main-color { flex-direction: column; }
+            .color-preview { height: 150px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><span>&#9679;</span> Advanced Color Picker</h1>
+        <p>Pick, convert, and explore color harmonies</p>
+    </header>
+
+    <div class="main-color">
+        <div class="color-preview" id="colorPreview"></div>
+        <div class="color-controls">
+            <div class="input-group">
+                <label>Hue <span id="hueValue">210</span></label>
+                <div class="slider-container" id="hueSlider">
+                    <div class="slider-track" style="background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);"></div>
+                    <div class="slider-thumb" id="hueThumb"></div>
+                    <input type="range" min="0" max="360" value="210" id="hueInput">
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Saturation <span id="satValue">75%</span></label>
+                <div class="slider-container" id="satSlider">
+                    <div class="slider-track" id="satTrack"></div>
+                    <div class="slider-thumb" id="satThumb"></div>
+                    <input type="range" min="0" max="100" value="75" id="satInput">
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Lightness <span id="lightValue">50%</span></label>
+                <div class="slider-container" id="lightSlider">
+                    <div class="slider-track" id="lightTrack"></div>
+                    <div class="slider-thumb" id="lightThumb"></div>
+                    <input type="range" min="0" max="100" value="50" id="lightInput">
+                </div>
+            </div>
+            <div class="input-group">
+                <label>HEX Color</label>
+                <div class="hex-input">
+                    <input type="text" id="hexInput" value="#4F7DF3">
+                    <button class="copy-btn" id="copyHex">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        Copy
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="formats-grid">
+        <div class="format-card">
+            <span class="format-value" id="rgbValue">rgb(79, 125, 243)</span>
+            <button class="copy-btn small" onclick="copyFormat('rgb')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            </button>
+        </div>
+        <div class="format-card">
+            <span class="format-value" id="hslValue">hsl(210, 75%, 50%)</span>
+            <button class="copy-btn small" onclick="copyFormat('hsl')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="palette-generator">
+        <h3 class="section-title">Palette Generator</h3>
+        <button class="generate-btn" onclick="generatePalette()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:8px;"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
+            Generate Random Palette
+        </button>
+        <div class="palette-grid" id="paletteGrid"></div>
+    </div>
+
+    <h3 class="section-title">Color Harmonies</h3>
+    <div class="harmony-grid" id="harmonyGrid"></div>
+
+    <div class="toast" id="toast">Copied!</div>
+
+    <script>
+        let hue = 210, sat = 75, light = 50;
+        let currentColor = '#4F7DF3';
+
+        const elements = {
+            preview: document.getElementById('colorPreview'),
+            hueInput: document.getElementById('hueInput'),
+            satInput: document.getElementById('satInput'),
+            lightInput: document.getElementById('lightInput'),
+            hueValue: document.getElementById('hueValue'),
+            satValue: document.getElementById('satValue'),
+            lightValue: document.getElementById('lightValue'),
+            hueThumb: document.getElementById('hueThumb'),
+            satThumb: document.getElementById('satThumb'),
+            lightThumb: document.getElementById('lightThumb'),
+            satTrack: document.getElementById('satTrack'),
+            lightTrack: document.getElementById('lightTrack'),
+            hexInput: document.getElementById('hexInput'),
+            rgbValue: document.getElementById('rgbValue'),
+            hslValue: document.getElementById('hslValue'),
+            harmonyGrid: document.getElementById('harmonyGrid'),
+            paletteGrid: document.getElementById('paletteGrid'),
+            toast: document.getElementById('toast')
+        };
+
+        function hslToHex(h, s, l) {
+            s /= 100;
+            l /= 100;
+            const a = s * Math.min(l, 1 - l);
+            const f = n => {
+                const k = (n + h / 30) % 12;
+                const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+                return Math.round(255 * color).toString(16).padStart(2, '0');
+            };
+            return `#${f(0)}${f(8)}${f(4)}`;
+        }
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function rgbToHsl(r, g, b) {
+            r /= 255; g /= 255; b /= 255;
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+            if (max === min) {
+                h = s = 0;
+            } else {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                    case g: h = ((b - r) / d + 2) / 6; break;
+                    case b: h = ((r - g) / d + 4) / 6; break;
+                }
+            }
+            return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+        }
+
+        function updateColor() {
+            currentColor = hslToHex(hue, sat, light);
+            elements.preview.style.background = currentColor;
+            elements.hexInput.value = currentColor.toUpperCase();
+
+            const rgb = hexToRgb(currentColor);
+            elements.rgbValue.textContent = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+            elements.hslValue.textContent = `hsl(${hue}, ${sat}%, ${light}%)`;
+
+            elements.hueValue.textContent = hue;
+            elements.satValue.textContent = sat + '%';
+            elements.lightValue.textContent = light + '%';
+
+            // Update slider thumbs
+            elements.hueThumb.style.left = (hue / 360 * 100) + '%';
+            elements.satThumb.style.left = sat + '%';
+            elements.lightThumb.style.left = light + '%';
+
+            // Update gradient tracks
+            elements.satTrack.style.background = `linear-gradient(to right, hsl(${hue}, 0%, ${light}%), hsl(${hue}, 100%, ${light}%))`;
+            elements.lightTrack.style.background = `linear-gradient(to right, hsl(${hue}, ${sat}%, 0%), hsl(${hue}, ${sat}%, 50%), hsl(${hue}, ${sat}%, 100%))`;
+
+            updateHarmonies();
+        }
+
+        function updateFromHex() {
+            const hex = elements.hexInput.value;
+            if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
+                const rgb = hexToRgb(hex);
+                const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+                hue = hsl.h;
+                sat = hsl.s;
+                light = hsl.l;
+                elements.hueInput.value = hue;
+                elements.satInput.value = sat;
+                elements.lightInput.value = light;
+                updateColor();
+            }
+        }
+
+        function updateHarmonies() {
+            const harmonies = [
+                { name: 'Complementary', angles: [0] },
+                { name: 'Analogous', angles: [-30, 0, 30] },
+                { name: 'Triadic', angles: [0, 120, 240] },
+                { name: 'Split-Complementary', angles: [0, 150, 210] },
+                { name: 'Tetradic', angles: [0, 90, 180, 270] },
+                { name: 'Monochromatic', sat: true }
+            ];
+
+            elements.harmonyGrid.innerHTML = harmonies.map(h => {
+                const colors = h.sat
+                    ? [20, 40, 50, 60, 80].map(l => hslToHex(hue, sat, l))
+                    : h.angles.map(a => hslToHex((hue + a + 360) % 360, sat, light));
+
+                return `
+                    <div class="harmony-card">
+                        <div class="harmony-swatch">
+                            ${colors.map(c => `<span style="background:${c}"></span>`).join('')}
+                        </div>
+                        <div class="harmony-label">${h.name}</div>
+                        <div class="harmony-values">
+                            ${colors.map(c => `<span class="harmony-color" onclick="selectColor('${c}')">${c}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectColor(hex) {
+            const rgb = hexToRgb(hex);
+            const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+            hue = hsl.h;
+            sat = hsl.s;
+            light = hsl.l;
+            elements.hueInput.value = hue;
+            elements.satInput.value = sat;
+            elements.lightInput.value = light;
+            updateColor();
+        }
+
+        function generatePalette() {
+            const baseHue = Math.random() * 360;
+            const colors = [];
+            for (let i = 0; i < 6; i++) {
+                const h = (baseHue + i * 60) % 360;
+                const s = 50 + Math.random() * 40;
+                const l = 30 + Math.random() * 40;
+                colors.push(hslToHex(h, s, l));
+            }
+
+            elements.paletteGrid.innerHTML = colors.map(c =>
+                `<div class="palette-swatch" style="background:${c}" data-color="${c}" onclick="selectColor('${c}')"></div>`
+            ).join('');
+        }
+
+        function copyFormat(format) {
+            const text = format === 'rgb' ? elements.rgbValue.textContent : elements.hslValue.textContent;
+            navigator.clipboard.writeText(text);
+            showToast(`${format.toUpperCase()} copied!`);
+        }
+
+        function showToast(message) {
+            elements.toast.textContent = message;
+            elements.toast.classList.add('show');
+            setTimeout(() => elements.toast.classList.remove('show'), 2000);
+        }
+
+        // Event listeners
+        elements.hueInput.addEventListener('input', e => { hue = +e.target.value; updateColor(); });
+        elements.satInput.addEventListener('input', e => { sat = +e.target.value; updateColor(); });
+        elements.lightInput.addEventListener('input', e => { light = +e.target.value; updateColor(); });
+
+        elements.hexInput.addEventListener('change', updateFromHex);
+
+        document.getElementById('copyHex').addEventListener('click', () => {
+            navigator.clipboard.writeText(elements.hexInput.value);
+            const btn = document.getElementById('copyHex');
+            btn.classList.add('copied');
+            btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!';
+            showToast('HEX copied!');
+            setTimeout(() => {
+                btn.classList.remove('copied');
+                btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Copy';
+            }, 2000);
+        });
+
+        // Initialize
+        updateColor();
+        generatePalette();
+    </script>
+</body>
+</html>

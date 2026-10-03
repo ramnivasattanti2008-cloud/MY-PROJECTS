@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Scheduler</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { color: #333; margin-bottom: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .btn { padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; border: none; cursor: pointer; }
+        .btn:hover { background: #0056b3; }
+        .btn-danger { background: #dc3545; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-success { background: #28a745; }
+        .btn-success:hover { background: #218838; }
+        .task-card { background: white; padding: 20px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .task-card.completed { opacity: 0.6; }
+        .task-card h3 { color: #333; margin-bottom: 10px; }
+        .task-card p { color: #666; margin-bottom: 8px; }
+        .task-meta { display: flex; gap: 15px; font-size: 14px; color: #888; }
+        .priority-high { color: #dc3545; }
+        .priority-medium { color: #ffc107; }
+        .priority-low { color: #28a745; }
+        .status-pending { color: #6c757d; }
+        .status-completed { color: #28a745; }
+        .task-actions { margin-top: 15px; display: flex; gap: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Task Scheduler</h1>
+            <a href="/add" class="btn">Add Task</a>
+        </div>
+
+        {% for task in tasks %}
+        <div class="task-card {{ 'completed' if task['status'] == 'completed' else '' }}">
+            <h3>{{ task['title'] }}</h3>
+            {% if task['description'] %}
+            <p>{{ task['description'] }}</p>
+            {% endif %}
+            <div class="task-meta">
+                <span>Due: {{ task['due_date'] or 'No date' }}</span>
+                <span class="priority-{{ task['priority'] }}">Priority: {{ task['priority']|upper }}</span>
+                <span class="status-{{ task['status'] }}">Status: {{ task['status'] }}</span>
+            </div>
+            <div class="task-actions">
+                <a href="/edit/{{ task['id'] }}" class="btn">Edit</a>
+                <a href="/complete/{{ task['id'] }}" class="btn btn-success">Complete</a>
+                <a href="/delete/{{ task['id'] }}" class="btn btn-danger" onclick="return confirm('Delete this task?')">Delete</a>
+            </div>
+        </div>
+        {% else %}
+        <p>No tasks found. <a href="/add">Add your first task</a></p>
+        {% endfor %}
+    </div>
+</body>
+</html>

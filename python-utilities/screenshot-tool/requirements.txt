@@ -1,0 +1,5 @@
+# Screenshot Tool - Requirements
+mss>=6.1.0        # Fast cross-platform screenshot utility
+pyautogui>=0.9.54  # Automation and hotkey support
+keyboard>=0.13.5   # Global keyboard hotkey support
+Pillow>=9.0.0      # Image processing (for macOS fallback)

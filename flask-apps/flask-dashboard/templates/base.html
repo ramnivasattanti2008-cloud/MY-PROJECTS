@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0a0a0f; color: #e0e0e0; display: flex; min-height: 100vh; }
+        a { color: #22c55e; text-decoration: none; }
+        a:hover { color: #4ade80; }
+        .sidebar { width: 250px; background: #12121a; border-right: 1px solid #1a1a2e; padding: 1.5rem; display: flex; flex-direction: column; }
+        .logo { font-size: 1.5rem; font-weight: bold; color: #22c55e; margin-bottom: 2rem; }
+        .nav-item { padding: 0.75rem 1rem; border-radius: 8px; color: #888; margin-bottom: 0.5rem; transition: all 0.3s; }
+        .nav-item:hover, .nav-item.active { background: #1a1a2e; color: #22c55e; }
+        .main-content { flex: 1; padding: 2rem; overflow-y: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .header h1 { font-size: 1.8rem; }
+        .user-info { display: flex; align-items: center; gap: 1rem; }
+        .avatar { width: 40px; height: 40px; background: #22c55e; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #0a0a0f; font-weight: bold; }
+        {% block styles %}{% endblock %}
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo">Dashboard</div>
+        <nav>
+            <a href="/" class="nav-item {% if request.path == '/' %}active{% endif %}">Overview</a>
+            <a href="/users" class="nav-item {% if request.path == '/users' %}active{% endif %}">Users</a>
+            <a href="/analytics" class="nav-item {% if request.path == '/analytics' %}active{% endif %}">Analytics</a>
+            <a href="/settings" class="nav-item {% if request.path == '/settings' %}active{% endif %}">Settings</a>
+        </nav>
+    </aside>
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

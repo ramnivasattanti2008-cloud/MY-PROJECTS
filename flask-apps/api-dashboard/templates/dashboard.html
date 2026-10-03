@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - API Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .logs-table { font-size: 13px; }
+    .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-top: 32px; }
+    .hourly-chart { height: 120px; display: flex; align-items: flex-end; gap: 4px; padding: 16px 0; }
+    .hour-bar { flex: 1; background: rgba(16, 185, 129, 0.6); border-radius: 4px 4px 0 0; min-height: 4px; transition: height 0.3s; }
+    .hour-bar:hover { background: #10b981; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">API Dashboard</h1>
+    <a href="{{ url_for('create_key') }}" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Create Key
+    </a>
+</div>
+
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-icon">&#128273;</div>
+        <div class="stat-value">{{ stats.total_keys }}</div>
+        <div class="stat-label">Active API Keys</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">&#128200;</div>
+        <div class="stat-value">{{ "{:,}".format(stats.total_requests) }}</div>
+        <div class="stat-label">Total Requests</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">&#128337;</div>
+        <div class="stat-value">{{ stats.avg_response|round|int }}ms</div>
+        <div class="stat-label">Avg Response Time</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">&#9888;</div>
+        <div class="stat-value" style="{% if stats.error_rate > 5 %}color: #ef4444;{% endif %}">{{ stats.error_rate }}%</div>
+        <div class="stat-label">Error Rate</div>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom: 32px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="font-size: 1.125rem;">Hourly Requests (Last 24h)</h2>
+        <a href="{{ url_for('logs') }}" style="color: #10b981; font-size: 14px;">View all logs</a>
+    </div>
+    <div class="hourly-chart">
+        {% for stat in hourly_stats %}
+        <div class="hour-bar" style="height: {% if hourly_stats and stat.avg_time > 0 %}{{ (stat.requests / (hourly_stats[0].requests if hourly_stats[0].requests > 0 else 1) * 100)|round }}%{% else %}10%{% endif %};" title="{{ stat.hour }}:00 - {{ stat.requests }} requests"></div>
+        {% endfor %}
+    </div>
+    <div style="display: flex; justify-content: space-between; font-size: 12px; color: #71717a;">
+        <span>00:00</span>
+        <span>12:00</span>
+        <span>23:00</span>
+    </div>
+</div>
+
+<div class="chart-grid">
+    <div class="card">
+        <h3 style="font-size: 1rem; margin-bottom: 20px;">Status Code Distribution</h3>
+        {% for status in status_counts %}
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span class="badge badge-{% if status.status_code < 300 %}green{% elif status.status_code < 400 %}blue{% elif status.status_code < 500 %}yellow{% else %}red{% endif %}">{{ status.status_code }}</span>
+            <div style="flex: 1; margin: 0 16px;">
+                <div class="chart-bar">
+                    <div class="chart-fill" style="width: {{ (status.count / status_counts[0].count * 100)|round }}%; background: {% if status.status_code < 300 %}#10b981{% elif status.status_code < 400 %}#3b82f6{% elif status.status_code < 500 %}#eab308{% else %}#ef4444{% endif %};"></div>
+                </div>
+            </div>
+            <span style="color: #71717a; font-size: 13px;">{{ status.count }}</span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="card">
+        <h3 style="font-size: 1rem; margin-bottom: 20px;">Recent Activity</h3>
+        {% if recent_logs %}
+        <table class="table logs-table">
+            <thead>
+                <tr>
+                    <th>Key</th>
+                    <th>Endpoint</th>
+                    <th>Status</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in recent_logs[:10] %}
+                <tr>
+                    <td style="color: #10b981;">{{ log.key_name[:15] }}</td>
+                    <td class="code">{{ log.endpoint[:25] }}</td>
+                    <td>
+                        <span class="badge badge-{% if log.status_code < 300 %}green{% elif log.status_code < 400 %}blue{% elif log.status_code < 500 %}yellow{% else %}red{% endif %}">
+                            {{ log.status_code }}
+                        </span>
+                    </td>
+                    <td style="color: #71717a;">{{ log.created_at[11:16] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color: #71717a; text-align: center; padding: 20px;">No recent activity</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card" style="margin-top: 32px;">
+    <h3 style="font-size: 1rem; margin-bottom: 20px;">API Keys</h3>
+    {% if keys %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Key ID</th>
+                <th>Usage</th>
+                <th>Status</th>
+                <th>Last Used</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for key in keys %}
+            <tr>
+                <td style="font-weight: 500;">{{ key.name }}</td>
+                <td class="code" style="color: #10b981;">{{ key.key_id }}</td>
+                <td>{{ "{:,}".format(key.usage_count) }}</td>
+                <td>
+                    <span class="badge badge-{{ 'green' if key.is_active else 'red' }}">
+                        {{ 'Active' if key.is_active else 'Inactive' }}
+                    </span>
+                </td>
+                <td style="color: #71717a;">{{ key.last_used[:10] if key.last_used else 'Never' }}</td>
+                <td>
+                    <form action="{{ url_for('toggle_key', key_id=key.key_id) }}" method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-secondary btn-xs">
+                            {{ 'Disable' if key.is_active else 'Enable' }}
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: #71717a; text-align: center; padding: 40px;">No API keys yet. <a href="{{ url_for('create_key') }}" style="color: #10b981;">Create one</a></p>
+    {% endif %}
+</div>
+{% endblock %}

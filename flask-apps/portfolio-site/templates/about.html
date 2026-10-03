@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}About - Developer Portfolio{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container">
+        <h1>About Me</h1>
+        <p>Get to know me better</p>
+    </div>
+</section>
+
+<section class="about-section">
+    <div class="container">
+        <div class="about-grid">
+            <div class="about-image">
+                <div class="avatar avatar-lg">
+                    <span class="avatar-text">JD</span>
+                </div>
+            </div>
+            <div class="about-content">
+                <h2>Hello!</h2>
+                <p>I'm a passionate full-stack developer with over 5 years of experience building web applications and digital products. I love turning complex problems into simple, beautiful solutions.</p>
+                <p>When I'm not coding, you'll find me exploring new technologies, contributing to open source, or enjoying a good cup of coffee.</p>
+
+                <div class="about-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Name:</span>
+                        <span class="detail-value">John Developer</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Email:</span>
+                        <span class="detail-value">john@example.com</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Location:</span>
+                        <span class="detail-value">San Francisco, CA</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Availability:</span>
+                        <span class="detail-value available">Open to work</span>
+                    </div>
+                </div>
+
+                <a href="/contact" class="btn btn-primary">Download Resume</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="skills-section">
+    <div class="container">
+        <h2 class="section-title">My Skills</h2>
+
+        <div class="skills-bars">
+            {% for skill in skills_levels %}
+            <div class="skill-bar">
+                <div class="skill-header">
+                    <span class="skill-name">{{ skill.name }}</span>
+                    <span class="skill-percentage">{{ skill.level }}%</span>
+                </div>
+                <div class="skill-track">
+                    <div class="skill-fill" style="width: {{ skill.level }}%"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="skills-categories">
+            {% for category, items in skills.items() %}
+            <div class="skill-category">
+                <h3>{{ category }}</h3>
+                <div class="skill-tags">
+                    {% for item in items %}
+                    <span class="skill-tag">{{ item }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="experience-section">
+    <div class="container">
+        <h2 class="section-title">Experience</h2>
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-date">2022 - Present</div>
+                <div class="timeline-content">
+                    <h3>Senior Developer</h3>
+                    <span class="company">Tech Corp</span>
+                    <p>Leading development of enterprise applications serving 100K+ users.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-date">2020 - 2022</div>
+                <div class="timeline-content">
+                    <h3>Full Stack Developer</h3>
+                    <span class="company">StartupXYZ</span>
+                    <p>Built and maintained multiple client projects using React and Node.js.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-date">2019 - 2020</div>
+                <div class="timeline-content">
+                    <h3>Junior Developer</h3>
+                    <span class="company">Digital Agency</span>
+                    <p>Developed responsive websites and e-commerce solutions.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

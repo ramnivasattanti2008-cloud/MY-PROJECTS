@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Optimizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --bg-primary: #0d0d0f;
+            --bg-secondary: #1a1a1f;
+            --bg-tertiary: #252530;
+            --accent: #6366f1;
+            --accent-hover: #818cf8;
+            --success: #22c55e;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #2d2d3a;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+        .drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 2rem;
+        }
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: var(--accent);
+            background: rgba(99, 102, 241, 0.05);
+        }
+        .drop-zone-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .drop-zone h2 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+        .drop-zone p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        #fileInput {
+            display: none;
+        }
+        .preview-container {
+            display: none;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .preview-container.active {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+        @media (max-width: 700px) {
+            .preview-container.active {
+                grid-template-columns: 1fr;
+            }
+        }
+        .preview-box {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+        .preview-box h3 {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .preview-box img {
+            width: 100%;
+            border-radius: 8px;
+            display: block;
+        }
+        .preview-info {
+            margin-top: 0.75rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        .preview-info span {
+            color: var(--text-primary);
+        }
+        .controls {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .slider-group {
+            margin-bottom: 1.5rem;
+        }
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+        .slider-header label {
+            font-weight: 500;
+        }
+        .slider-header .value {
+            color: var(--accent);
+            font-weight: 600;
+        }
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+        .buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 0.75rem 1.5rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        button:hover {
+            background: var(--accent-hover);
+        }
+        button.secondary {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+        }
+        button.secondary:hover {
+            background: var(--border);
+        }
+        button.success {
+            background: var(--success);
+        }
+        button.success:hover {
+            filter: brightness(1.1);
+        }
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--accent);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Image Optimizer</h1>
+        <p class="subtitle">Compress images before upload with quality control and preview</p>
+
+        <div class="drop-zone" id="dropZone">
+            <div class="drop-zone-icon">&#128247;</div>
+            <h2>Drop your image here</h2>
+            <p>or click to browse. Supports JPG, PNG, WebP</p>
+            <input type="file" id="fileInput" accept="image/*">
+        </div>
+
+        <div class="preview-container" id="previewContainer">
+            <div class="preview-box">
+                <h3>Original <span id="originalSize">0 KB</span></h3>
+                <img id="originalPreview" alt="Original">
+            </div>
+            <div class="preview-box">
+                <h3>Optimized <span id="optimizedSize">0 KB</span></h3>
+                <img id="optimizedPreview" alt="Optimized">
+            </div>
+        </div>
+
+        <div class="controls" id="controls" style="display: none;">
+            <div class="slider-group">
+                <div class="slider-header">
+                    <label>Quality</label>
+                    <span class="value" id="qualityValue">80%</span>
+                </div>
+                <input type="range" id="qualitySlider" min="10" max="100" value="80">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-header">
+                    <label>Max Width</label>
+                    <span class="value" id="widthValue">1920px</span>
+                </div>
+                <input type="range" id="widthSlider" min="400" max="4000" value="1920" step="100">
+            </div>
+
+            <div class="buttons">
+                <button onclick="optimizeImage()">Optimize</button>
+                <button class="success" onclick="downloadImage()">Download</button>
+                <button class="secondary" onclick="resetImage()">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const previewContainer = document.getElementById('previewContainer');
+        const controls = document.getElementById('controls');
+        const originalPreview = document.getElementById('originalPreview');
+        const optimizedPreview = document.getElementById('optimizedPreview');
+        const originalSize = document.getElementById('originalSize');
+        const optimizedSize = document.getElementById('optimizedSize');
+        const qualitySlider = document.getElementById('qualitySlider');
+        const qualityValue = document.getElementById('qualityValue');
+        const widthSlider = document.getElementById('widthSlider');
+        const widthValue = document.getElementById('widthValue');
+        const toast = document.getElementById('toast');
+
+        let currentFile = null;
+        let originalImageData = null;
+
+        // Drag and drop
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length) handleFile(files[0]);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) handleFile(e.target.files[0]);
+        });
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                showToast('Please select an image file');
+                return;
+            }
+            currentFile = file;
+            originalSize.textContent = formatSize(file.size);
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                originalImageData = e.target.result;
+                originalPreview.src = originalImageData;
+                previewContainer.classList.add('active');
+                controls.style.display = 'block';
+                optimizeImage();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        qualitySlider.addEventListener('input', () => {
+            qualityValue.textContent = qualitySlider.value + '%';
+        });
+
+        widthSlider.addEventListener('input', () => {
+            widthValue.textContent = widthSlider.value + 'px';
+        });
+
+        function optimizeImage() {
+            if (!originalImageData) return;
+
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                let width = img.width;
+                let height = img.height;
+                const maxWidth = parseInt(widthSlider.value);
+
+                if (width > maxWidth) {
+                    height = (height * maxWidth) / width;
+                    width = maxWidth;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+
+                const quality = parseInt(qualitySlider.value) / 100;
+                const outputType = currentFile.type === 'image/png' ? 'image/png' : 'image/jpeg';
+
+                optimizedPreview.src = canvas.toDataURL(outputType, quality);
+
+                // Calculate optimized size from data URL
+                const dataUrl = canvas.toDataURL(outputType, quality);
+                const base64 = dataUrl.split(',')[1];
+                const size = Math.ceil((base64.length * 3) / 4);
+                optimizedSize.textContent = formatSize(size);
+            };
+            img.src = originalImageData;
+        }
+
+        function downloadImage() {
+            if (!optimizedPreview.src) return;
+
+            const link = document.createElement('a');
+            const ext = currentFile.type === 'image/png' ? 'png' : 'jpg';
+            link.download = `optimized-${Date.now()}.${ext}`;
+            link.href = optimizedPreview.src;
+            link.click();
+            showToast('Image downloaded');
+        }
+
+        function resetImage() {
+            if (currentFile) handleFile(currentFile);
+        }
+
+        function formatSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+        }
+
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+    </script>
+</body>
+</html>

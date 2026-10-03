@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Recipe Manager - Home{% endblock %}
+
+{% block content %}
+<form method="get" class="search-bar">
+    <input type="text" name="search" placeholder="Search recipes..." value="{{ search_query or '' }}">
+    <select name="category">
+        <option value="">All Categories</option>
+        {% for cat in categories %}
+        <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn">Search</button>
+</form>
+
+<div class="filters">
+    <a href="{{ url_for('index') }}" class="filter-btn {% if not selected_category %}active{% endif %}">All</a>
+    {% for cat in categories %}
+    <a href="{{ url_for('index', category=cat) }}" class="filter-btn {% if selected_category == cat %}active{% endif %}">{{ cat }}</a>
+    {% endfor %}
+</div>
+
+{% if recipes %}
+<div class="recipe-grid">
+    {% for recipe in recipes %}
+    <div class="recipe-card">
+        <div class="content">
+            <span class="category">{{ recipe.category }}</span>
+            <h3>{{ recipe.name }}</h3>
+            <p>{{ recipe.description[:100] }}{% if recipe.description|length > 100 %}...{% endif %}</p>
+            <div class="meta">
+                <span>Prep: {{ recipe.prep_time }}min | Cook: {{ recipe.cook_time }}min</span>
+                <br>
+                <span>Serves: {{ recipe.servings }}</span>
+                <br>
+                {% if recipe.rating_count > 0 %}
+                <span class="rating">
+                    {% for i in range(5) %}
+                        {% if i < recipe.rating|int %}&#9733;{% else %}&#9734;{% endif %}
+                    {% endfor %}
+                    ({{ "%.1f"|format(recipe.rating) }})
+                </span>
+                {% endif %}
+            </div>
+            <a href="{{ url_for('recipe_detail', id=recipe.id) }}" class="btn" style="margin-top: 1rem; display: inline-block;">View Recipe</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card">
+    <p style="text-align: center; color: #666;">No recipes found. <a href="{{ url_for('add_recipe') }}">Add your first recipe!</a></p>
+</div>
+{% endif %}
+{% endblock %}

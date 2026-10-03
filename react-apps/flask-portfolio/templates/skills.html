@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Skills{% endblock %}
+{% block content %}
+<h1>Skills & Technologies</h1>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-top: 2rem;">
+    {% for category, items in skills.items() %}
+    <div style="background: #161b22; padding: 1.5rem; border-radius: 8px; border: 1px solid #30363d;">
+        <h3 style="color: #58a6ff; margin-bottom: 1rem; border-bottom: 2px solid #238636; padding-bottom: 0.5rem;">{{ category }}</h3>
+        <ul style="list-style: none;">
+            {% for skill in items %}
+            <li style="padding: 0.5rem 0; border-bottom: 1px solid #30363d22;">{{ skill }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

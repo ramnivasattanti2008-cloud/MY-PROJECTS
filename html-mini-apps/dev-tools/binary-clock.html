@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary Clock</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .mode-toggle {
+            margin-bottom: 30px;
+        }
+
+        .toggle-btn {
+            padding: 12px 25px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .clock-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            display: inline-block;
+        }
+
+        .binary-clock {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .time-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .time-label {
+            font-size: 0.75rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .binary-column {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .binary-digit {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .bit {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .bit.on {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.5);
+        }
+
+        .bit::after {
+            content: attr(data-value);
+            position: absolute;
+            bottom: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.65rem;
+            color: #555;
+        }
+
+        .separator {
+            font-size: 3rem;
+            color: #4facfe;
+            animation: blink 1s infinite;
+            margin: 0 5px;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        .decimal-time {
+            font-size: 4rem;
+            font-weight: 200;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 4px;
+            margin-bottom: 30px;
+            text-shadow: 0 0 30px rgba(79, 172, 254, 0.5);
+        }
+
+        .date-display {
+            color: #888;
+            font-size: 1rem;
+            margin-top: 20px;
+        }
+
+        .legend {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        .legend-dot.off {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .legend-dot.on {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        @media (max-width: 600px) {
+            .binary-clock {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            .separator {
+                font-size: 2rem;
+            }
+            .bit {
+                width: 22px;
+                height: 22px;
+            }
+            .decimal-time {
+                font-size: 2.5rem;
+            }
+            .clock-container {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Binary Clock</h1>
+
+        <div class="mode-toggle">
+            <button class="toggle-btn" id="toggleBtn" onclick="toggleMode()">Switch to Decimal</button>
+        </div>
+
+        <div class="clock-container">
+            <div class="binary-clock" id="binaryClock">
+                <!-- Hours -->
+                <div class="time-group">
+                    <div class="time-label">Hours</div>
+                    <div class="binary-column" id="hoursColumn"></div>
+                </div>
+
+                <span class="separator">:</span>
+
+                <!-- Minutes -->
+                <div class="time-group">
+                    <div class="time-label">Minutes</div>
+                    <div class="binary-column" id="minutesColumn"></div>
+                </div>
+
+                <span class="separator">:</span>
+
+                <!-- Seconds -->
+                <div class="time-group">
+                    <div class="time-label">Seconds</div>
+                    <div class="binary-column" id="secondsColumn"></div>
+                </div>
+            </div>
+
+            <div class="decimal-time" id="decimalTime">00:00:00</div>
+
+            <div class="date-display" id="dateDisplay"></div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-dot off"></div>
+                <span>0 (off)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot on"></div>
+                <span>1 (on)</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let showBinary = true;
+
+        // Create binary digit columns
+        function createBinaryColumn(containerId, bits) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            const digit = document.createElement('div');
+            digit.className = 'binary-digit';
+
+            for (let i = bits - 1; i >= 0; i--) {
+                const bit = document.createElement('div');
+                bit.className = 'bit';
+                bit.dataset.value = Math.pow(2, i);
+                bit.dataset.bitIndex = i;
+                digit.appendChild(bit);
+            }
+
+            container.appendChild(digit);
+        }
+
+        // Convert number to binary with padding
+        function toBinary(num, bits) {
+            return num.toString(2).padStart(bits, '0');
+        }
+
+        // Update the clock
+        function updateClock() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+
+            // Update decimal display
+            const decimalTime = document.getElementById('decimalTime');
+            decimalTime.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+            // Update date display
+            const dateDisplay = document.getElementById('dateDisplay');
+            dateDisplay.textContent = now.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            // Update binary displays
+            updateBinaryColumn('hoursColumn', hours, 6);
+            updateBinaryColumn('minutesColumn', minutes, 6);
+            updateBinaryColumn('secondsColumn', seconds, 6);
+        }
+
+        function updateBinaryColumn(containerId, value, bits) {
+            const container = document.getElementById(containerId);
+            const binary = toBinary(value, bits);
+            const bits_elements = container.querySelectorAll('.bit');
+
+            bits_elements.forEach((bit, index) => {
+                // Index from bottom (reversed)
+                const bitValue = binary[bits - 1 - index];
+                if (bitValue === '1') {
+                    bit.classList.add('on');
+                } else {
+                    bit.classList.remove('on');
+                }
+            });
+        }
+
+        function toggleMode() {
+            showBinary = !showBinary;
+            const binaryClock = document.getElementById('binaryClock');
+            const decimalTime = document.getElementById('decimalTime');
+            const toggleBtn = document.getElementById('toggleBtn');
+
+            if (showBinary) {
+                binaryClock.style.display = 'flex';
+                decimalTime.style.display = 'none';
+                toggleBtn.textContent = 'Switch to Decimal';
+            } else {
+                binaryClock.style.display = 'none';
+                decimalTime.style.display = 'block';
+                toggleBtn.textContent = 'Switch to Binary';
+            }
+        }
+
+        // Initialize
+        createBinaryColumn('hoursColumn', 6);
+        createBinaryColumn('minutesColumn', 6);
+        createBinaryColumn('secondsColumn', 6);
+
+        updateClock();
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>

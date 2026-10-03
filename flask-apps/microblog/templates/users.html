@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Discover Users - Microblog{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 40px 20px;">
+    <h1 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 24px;">Discover Users</h1>
+
+    <div class="card">
+        {% for user in users %}
+        <div class="user-card">
+            <div class="avatar avatar-sm" style="background: {{ user.avatar_color }};">{{ user.username[0]|upper }}</div>
+            <div class="user-info">
+                <a href="{{ url_for('profile', username=user.username) }}" class="user-name">{{ user.username }}</a>
+                <div class="user-stats">{{ user.followers }} followers &middot; {{ user.posts_count }} posts</div>
+            </div>
+            <form action="{{ url_for('follow', username=user.username) }}" method="POST">
+                <button type="submit" class="btn btn-outline btn-sm">Follow</button>
+            </form>
+        </div>
+        {% else %}
+        <p style="text-align: center; color: #71717a; padding: 40px;">No users found.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

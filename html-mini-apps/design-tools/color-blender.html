@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Color Blender</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0d0d12;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      background: #16161f;
+      border: 1px solid #2a2a3a;
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 560px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+    .subtitle {
+      color: #888;
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+    .color-pickers {
+      display: grid;
+      grid-template-columns: 1fr 80px 1fr;
+      gap: 20px;
+      align-items: end;
+      margin-bottom: 32px;
+    }
+    .color-input-group {
+      text-align: center;
+    }
+    .color-input-group label {
+      display: block;
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .color-preview {
+      width: 100%;
+      height: 100px;
+      border-radius: 12px;
+      border: 2px solid #333;
+      margin-bottom: 12px;
+      transition: background 0.3s;
+    }
+    .color-input-wrapper {
+      position: relative;
+    }
+    .color-input-wrapper input[type="color"] {
+      width: 100%;
+      height: 48px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: transparent;
+      padding: 0;
+    }
+    .color-input-wrapper input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+    .color-input-wrapper input[type="color"]::-webkit-color-swatch { border: none; border-radius: 8px; }
+    .color-hex-input {
+      width: 100%;
+      background: #1e1e2a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: #fff;
+      font-size: 14px;
+      font-family: monospace;
+      text-align: center;
+      outline: none;
+      margin-top: 10px;
+    }
+    .color-hex-input:focus { border-color: #6366f1; }
+    .blend-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      color: #6366f1;
+      padding-bottom: 45px;
+    }
+    .result-section {
+      background: #1a1a24;
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+    }
+    .result-label {
+      font-size: 13px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+    }
+    .result-preview {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      margin: 0 auto 20px;
+      border: 4px solid #333;
+      transition: background 0.3s;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+    .result-values {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .value-card {
+      background: #252530;
+      border-radius: 8px;
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .value-card:hover {
+      background: #2f2f40;
+      transform: translateY(-2px);
+    }
+    .value-card span {
+      display: block;
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+    .value-card strong {
+      font-size: 16px;
+      font-family: monospace;
+      color: #fff;
+    }
+    .copied-toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #22c55e;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      opacity: 0;
+      transition: all 0.3s;
+    }
+    .copied-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+    .ratio-control {
+      margin-bottom: 24px;
+    }
+    .ratio-control label {
+      display: block;
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .ratio-slider {
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      background: linear-gradient(to right, var(--color1), var(--color2));
+      -webkit-appearance: none;
+      outline: none;
+    }
+    .ratio-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #fff;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .ratio-display {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 14px;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Color Blender</h1>
+    <p class="subtitle">Blend two colors and copy the result</p>
+
+    <div class="color-pickers">
+      <div class="color-input-group">
+        <label>Color 1</label>
+        <div class="color-preview" id="preview1"></div>
+        <div class="color-input-wrapper">
+          <input type="color" id="color1" value="#6366f1">
+          <input type="text" class="color-hex-input" id="hex1" value="#6366f1" maxlength="7">
+        </div>
+      </div>
+
+      <div class="blend-icon">+</div>
+
+      <div class="color-input-group">
+        <label>Color 2</label>
+        <div class="color-preview" id="preview2"></div>
+        <div class="color-input-wrapper">
+          <input type="color" id="color2" value="#ec4899">
+          <input type="text" class="color-hex-input" id="hex2" value="#ec4899" maxlength="7">
+        </div>
+      </div>
+    </div>
+
+    <div class="ratio-control">
+      <label>Blend Ratio</label>
+      <input type="range" class="ratio-slider" id="ratio" min="0" max="100" value="50">
+      <div class="ratio-display"><span id="ratioText">50%</span> Color 1 &bull; <span id="ratioText2">50%</span> Color 2</div>
+    </div>
+
+    <div class="result-section">
+      <div class="result-label">Blended Result</div>
+      <div class="result-preview" id="resultPreview"></div>
+      <div class="result-values">
+        <div class="value-card" onclick="copyValue('hex')">
+          <span>HEX</span>
+          <strong id="resultHex">#8B5CF6</strong>
+        </div>
+        <div class="value-card" onclick="copyValue('rgb')">
+          <span>RGB</span>
+          <strong id="resultRgb">139, 92, 246</strong>
+        </div>
+        <div class="value-card" onclick="copyValue('hsl')">
+          <span>HSL</span>
+          <strong id="resultHsl">262, 90%, 66%</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="copied-toast" id="toast">Copied to clipboard!</div>
+
+  <script>
+    const color1Input = document.getElementById('color1');
+    const color2Input = document.getElementById('color2');
+    const hex1Input = document.getElementById('hex1');
+    const hex2Input = document.getElementById('hex2');
+    const ratioInput = document.getElementById('ratio');
+    const preview1 = document.getElementById('preview1');
+    const preview2 = document.getElementById('preview2');
+    const resultPreview = document.getElementById('resultPreview');
+
+    function hexToRgb(hex) {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : null;
+    }
+
+    function rgbToHex(r, g, b) {
+      return '#' + [r, g, b].map(x => {
+        const hex = Math.round(Math.max(0, Math.min(255, x))).toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+      }).join('');
+    }
+
+    function rgbToHsl(r, g, b) {
+      r /= 255; g /= 255; b /= 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      let h, s, l = (max + min) / 2;
+      if (max === min) {
+        h = s = 0;
+      } else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+          case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+          case g: h = ((b - r) / d + 2) / 6; break;
+          case b: h = ((r - g) / d + 4) / 6; break;
+        }
+      }
+      return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+    }
+
+    function blendColors() {
+      const hex1 = hex1Input.value;
+      const hex2 = hex2Input.value;
+      const ratio = parseInt(ratioInput.value) / 100;
+
+      const rgb1 = hexToRgb(hex1);
+      const rgb2 = hexToRgb(hex2);
+
+      if (!rgb1 || !rgb2) return;
+
+      const blended = {
+        r: rgb1.r * (1 - ratio) + rgb2.r * ratio,
+        g: rgb1.g * (1 - ratio) + rgb2.g * ratio,
+        b: rgb1.b * (1 - ratio) + rgb2.b * ratio
+      };
+
+      const hex = rgbToHex(blended.r, blended.g, blended.b);
+      const hsl = rgbToHsl(blended.r, blended.g, blended.b);
+
+      preview1.style.background = hex1;
+      preview2.style.background = hex2;
+      resultPreview.style.background = hex;
+
+      document.getElementById('resultHex').textContent = hex.toUpperCase();
+      document.getElementById('resultRgb').textContent = `${Math.round(blended.r)}, ${Math.round(blended.g)}, ${Math.round(blended.b)}`;
+      document.getElementById('resultHsl').textContent = `${hsl.h}, ${hsl.s}%, ${hsl.l}%`;
+
+      document.documentElement.style.setProperty('--color1', hex1);
+      document.documentElement.style.setProperty('--color2', hex2);
+    }
+
+    function copyValue(type) {
+      let value;
+      if (type === 'hex') value = document.getElementById('resultHex').textContent;
+      else if (type === 'rgb') value = `rgb(${document.getElementById('resultRgb').textContent})`;
+      else value = `hsl(${document.getElementById('resultHsl').textContent})`;
+
+      navigator.clipboard.writeText(value).then(() => {
+        const toast = document.getElementById('toast');
+        toast.textContent = `Copied: ${value}`;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+      });
+    }
+
+    function syncColorToHex(colorInput, hexInput) {
+      colorInput.addEventListener('input', () => {
+        hexInput.value = colorInput.value;
+        blendColors();
+      });
+    }
+
+    function syncHexToColor(hexInput, colorInput) {
+      hexInput.addEventListener('input', () => {
+        const val = hexInput.value;
+        if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+          colorInput.value = val;
+          blendColors();
+        }
+      });
+    }
+
+    syncColorToHex(color1Input, hex1Input);
+    syncColorToHex(color2Input, hex2Input);
+    syncHexToColor(hex1Input, color1Input);
+    syncHexToColor(hex2Input, color2Input);
+
+    ratioInput.addEventListener('input', () => {
+      document.getElementById('ratioText').textContent = ratioInput.value + '%';
+      document.getElementById('ratioText2').textContent = (100 - ratioInput.value) + '%';
+      blendColors();
+    });
+
+    blendColors();
+  </script>
+</body>
+</html>

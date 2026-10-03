@@ -1,0 +1,5 @@
+# leak-checker requirements
+# Uses Python standard library - no external dependencies needed!
+
+# Optional: for enhanced functionality
+# requests>=2.31.0  # Alternative HTTP library (already uses urllib from stdlib)

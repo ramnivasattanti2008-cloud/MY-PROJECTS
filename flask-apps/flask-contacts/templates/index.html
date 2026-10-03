@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Manager</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        h1 { color: #333; margin-bottom: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .btn { background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; border: none; cursor: pointer; display: inline-block; }
+        .btn:hover { background: #0056b3; }
+        .btn-danger { background: #dc3545; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-success { background: #28a745; }
+        .btn-success:hover { background: #218838; }
+        .btn-sm { padding: 5px 12px; font-size: 14px; }
+        .filters { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .filters form { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .filters input, .filters select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 5px; }
+        .filters input[type="text"] { flex: 1; min-width: 200px; }
+        .contact-card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .contact-card h3 { color: #333; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        .category-badge { background: #17a2b8; color: white; padding: 2px 10px; border-radius: 12px; font-size: 12px; }
+        .contact-info { margin-bottom: 10px; }
+        .contact-info p { margin: 5px 0; color: #666; }
+        .contact-info a { color: #007bff; text-decoration: none; }
+        .contact-info a:hover { text-decoration: underline; }
+        .actions { display: flex; gap: 10px; margin-top: 15px; }
+        .empty { text-align: center; padding: 40px; color: #666; }
+        .contact-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Contact Manager</h1>
+            <a href="{{ url_for('add') }}" class="btn">+ Add Contact</a>
+        </div>
+
+        <div class="filters">
+            <form method="get">
+                <input type="text" name="search" placeholder="Search contacts..." value="{{ search }}">
+                <select name="category">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat }}" {% if category_filter == cat %}selected{% endif %}>{{ cat }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn">Filter</button>
+                {% if search or category_filter %}
+                <a href="{{ url_for('index') }}" class="btn btn-sm" style="background:#6c757d;">Clear</a>
+                {% endif %}
+            </form>
+        </div>
+
+        {% if contacts %}
+        <div class="contact-grid">
+        {% for contact in contacts %}
+        <div class="contact-card">
+            <h3>
+                {{ contact.name }}
+                {% if contact.category %}
+                <span class="category-badge">{{ contact.category }}</span>
+                {% endif %}
+            </h3>
+            <div class="contact-info">
+                {% if contact.email %}
+                <p><strong>Email:</strong> <a href="mailto:{{ contact.email }}">{{ contact.email }}</a></p>
+                {% endif %}
+                {% if contact.phone %}
+                <p><strong>Phone:</strong> <a href="tel:{{ contact.phone }}">{{ contact.phone }}</a></p>
+                {% endif %}
+                {% if contact.address %}
+                <p><strong>Address:</strong> {{ contact.address }}</p>
+                {% endif %}
+            </div>
+            {% if contact.notes %}
+            <p style="font-size: 14px; color: #888; font-style: italic;">{{ contact.notes }}</p>
+            {% endif %}
+            <div class="actions">
+                <a href="{{ url_for('view', id=contact.id) }}" class="btn btn-sm">View</a>
+                <a href="{{ url_for('edit', id=contact.id) }}" class="btn btn-sm btn-success">Edit</a>
+                <a href="{{ url_for('delete', id=contact.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Delete this contact?')">Delete</a>
+            </div>
+        </div>
+        {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty">
+            <p>No contacts found. <a href="{{ url_for('add') }}">Add your first contact</a></p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

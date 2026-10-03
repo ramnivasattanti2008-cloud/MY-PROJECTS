@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Web Server</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+        .endpoint {
+            background: #f8f9fa;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            margin: 0.5rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        .method {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 0.5rem;
+            font-size: 0.8rem;
+        }
+        .get { background: #61affe; color: white; }
+        .post { background: #49cc90; color: white; }
+        .status {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+        .demo-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        @media (max-width: 600px) {
+            .demo-section { grid-template-columns: 1fr; }
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+            transition: background 0.2s;
+        }
+        button:hover { background: #5a6fd6; }
+        pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            max-height: 300px;
+        }
+        .footer {
+            text-align: center;
+            color: rgba(255,255,255,0.7);
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Python HTTP Web Server</h1>
+
+        <div class="card">
+            <h2>API Endpoints</h2>
+            <div class="endpoint">
+                <span class="method get">GET</span> /api/health <span class="status">200</span>
+            </div>
+            <div class="endpoint">
+                <span class="method get">GET</span> /api/users <span class="status">200</span>
+            </div>
+            <div class="endpoint">
+                <span class="method get">GET</span> /api/users/{id} <span class="status">200</span>
+            </div>
+            <div class="endpoint">
+                <span class="method post">POST</span> /api/users <span class="status">201</span>
+            </div>
+            <div class="endpoint">
+                <span class="method get">GET</span> /api/posts <span class="status">200</span>
+            </div>
+            <div class="endpoint">
+                <span class="method post">POST</span> /api/posts <span class="status">201</span>
+            </div>
+            <div class="endpoint">
+                <span class="method get">GET</span> /api/info <span class="status">200</span>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <div class="card">
+                <h2>Try It Out</h2>
+                <button onclick="fetchHealth()">Health Check</button>
+                <button onclick="fetchUsers()">Get Users</button>
+                <button onclick="fetchPosts()">Get Posts</button>
+                <button onclick="fetchInfo()">Server Info</button>
+                <button onclick="createUser()">Create User</button>
+            </div>
+
+            <div class="card">
+                <h2>API Response</h2>
+                <pre id="output">Click a button to see the response...</pre>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Interactive Demo</h2>
+            <p style="margin-bottom: 1rem;">
+                <label>User ID: <input type="number" id="userId" value="1" min="1" max="10" style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; width: 80px;"></label>
+                <button onclick="fetchUserById()">Get User by ID</button>
+            </p>
+            <p>
+                <label>Post ID: <input type="number" id="postId" value="1" min="1" max="10" style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; width: 80px;"></label>
+                <button onclick="fetchPostById()">Get Post by ID</button>
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>Built with Python's built-in <code>http.server</code> module</p>
+            <p>No external dependencies required</p>
+        </div>
+    </div>
+
+    <script>
+        const baseUrl = window.location.origin;
+
+        function display(data) {
+            document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+        }
+
+        async function fetchHealth() {
+            try {
+                const res = await fetch(`${baseUrl}/api/health`);
+                display(await res.json());
+            } catch (e) {
+                display({ error: e.message });
+            }
+        }
+
+        async function fetchUsers() {
+            try {
+                const res = await fetch(`${baseUrl}/api/users`);
+                display(await res.json());
+            } catch (e) {
+                display({ error: e.message });
+            }
+        }
+
+        async function fetchPosts() {
+            try {
+                const res = await fetch(`${baseUrl}/api/posts`);
+                display(await res.json());
+            } catch (e) {
+                display({ error: e.message });
+            }
+        }
+
+        async function fetchInfo() {
+            try {
+                const res = await fetch(`${baseUrl}/api/info`);
+                display(await res.json());
+            } catch (e) {
+                display({ error: e.message });
+            }
+        }
+
+        async function createUser() {
+            try {
+                const res = await fetch(`${baseUrl}/api/users`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: 'New User', email: 'newuser@example.com' })
+                });
+                display(await res.json());
+            } catch (e) {
+                display({ error: e.message });
+            }
+        }
+
+        async function fetchUserById() {
+            const id = document.getElementById('userId').value;
+            try {
+                const res = await fetch(`${baseUrl}/api/users/${id}`);
+                display(await res.json());
+            } catch (e) {
+                display({ error: e.message });
+            }
+        }
+
+        async function fetchPostById() {
+            const id = document.getElementById('postId').value;
+            try {
+                const res = await fetch(`${baseUrl}/api/posts/${id}`);
+                display(await res.json());
+            } catch (e) {
+                display({ error: e.message });
+            }
+        }
+    </script>
+</body>
+</html>

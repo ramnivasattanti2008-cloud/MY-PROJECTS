@@ -1,0 +1,4 @@
+# Regex Extractor - Dependencies
+# Install with: pip install -r requirements.txt
+
+# No external dependencies required - uses Python standard library

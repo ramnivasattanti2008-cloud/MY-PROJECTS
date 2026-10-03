@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NewsHub - Your News Aggregator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            border-radius: 0 0 20px 20px;
+        }
+        header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+        header p {
+            opacity: 0.9;
+        }
+        .search-box {
+            margin: 30px 0;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .search-box input {
+            padding: 12px 20px;
+            width: 400px;
+            max-width: 100%;
+            border: 2px solid #ddd;
+            border-radius: 30px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .search-box input:focus {
+            border-color: #2a5298;
+        }
+        .search-box button {
+            padding: 12px 30px;
+            background: #2a5298;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+        .search-box button:hover {
+            background: #1e3c72;
+        }
+        .categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        .category-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            background: white;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .category-btn:hover, .category-btn.active {
+            background: #2a5298;
+            color: white;
+        }
+        .bookmarks-bar {
+            background: #fff;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            gap: 15px;
+            overflow-x: auto;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .bookmarks-bar.visible {
+            display: flex;
+        }
+        .bookmarks-bar h3 {
+            white-space: nowrap;
+            color: #666;
+        }
+        .bookmark-chip {
+            padding: 8px 15px;
+            background: #e8f4fd;
+            border-radius: 20px;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .bookmark-chip button {
+            background: none;
+            border: none;
+            color: #ff4757;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+        }
+        .article-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .article-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .article-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: #ddd;
+        }
+        .article-content {
+            padding: 20px;
+        }
+        .article-source {
+            color: #2a5298;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .article-title {
+            font-size: 1.15rem;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+        .article-title a {
+            color: #333;
+            text-decoration: none;
+        }
+        .article-title a:hover {
+            color: #2a5298;
+        }
+        .article-desc {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .article-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        .article-date {
+            color: #999;
+            font-size: 0.85rem;
+        }
+        .article-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .article-actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: transform 0.2s;
+        }
+        .article-actions button:hover {
+            transform: scale(1.2);
+        }
+        .btn-bookmark {
+            color: #ffc107;
+        }
+        .btn-bookmark.saved {
+            color: #ff9800;
+        }
+        .btn-open {
+            color: #2a5298;
+        }
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #666;
+            grid-column: 1 / -1;
+        }
+        .error {
+            text-align: center;
+            padding: 40px;
+            background: #fff3f3;
+            border-radius: 12px;
+            color: #d32f2f;
+            grid-column: 1 / -1;
+        }
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            grid-column: 1 / -1;
+        }
+        @media (max-width: 600px) {
+            .articles-grid {
+                grid-template-columns: 1fr;
+            }
+            .search-box input {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>NewsHub</h1>
+            <p>Discover and save news articles from around the world</p>
+        </header>
+
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search for news..." onkeypress="handleKeyPress(event)">
+            <button onclick="performSearch()">Search</button>
+        </div>
+
+        <div class="categories">
+            <button class="category-btn active" data-category="">All</button>
+            <button class="category-btn" data-category="general">General</button>
+            <button class="category-btn" data-category="business">Business</button>
+            <button class="category-btn" data-category="technology">Technology</button>
+            <button class="category-btn" data-category="science">Science</button>
+            <button class="category-btn" data-category="health">Health</button>
+            <button class="category-btn" data-category="sports">Sports</button>
+            <button class="category-btn" data-category="entertainment">Entertainment</button>
+        </div>
+
+        <div class="bookmarks-bar" id="bookmarksBar">
+            <h3>Saved Articles:</h3>
+            <div id="bookmarkChips"></div>
+        </div>
+
+        <div id="articlesContainer" class="articles-grid">
+            <div class="loading">Loading latest news...</div>
+        </div>
+    </div>
+
+    <script>
+        let bookmarks = JSON.parse(localStorage.getItem('newsBookmarks') || '[]');
+        let currentMode = 'headlines';
+        let currentCategory = '';
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') performSearch();
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diff = now - date;
+            const hours = Math.floor(diff / 3600000);
+
+            if (hours < 1) return 'Just now';
+            if (hours < 24) return `${hours}h ago`;
+            if (hours < 48) return 'Yesterday';
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        function renderArticleCard(article, index) {
+            const isBookmarked = bookmarks.some(b => b.url === article.url);
+            const image = article.urlToImage || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200"%3E%3Crect fill="%23ddd" width="400" height="200"/%3E%3Ctext x="50%25" y="50%25" fill="%23999" text-anchor="middle" dy=".3em" font-size="14"%3ENo Image%3C/text%3E%3C/svg%3E';
+
+            return `
+                <div class="article-card">
+                    <img src="${image}" alt="" class="article-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 200%22%3E%3Crect fill=%22%23ddd%22 width=%22400%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 fill=%22%23999%22 text-anchor=%22middle%22 dy=%22.3em%22 font-size=%2214%22%3ENo Image%3C/text%3E%3C/svg%3E'">
+                    <div class="article-content">
+                        <div class="article-source">${article.source?.name || 'Unknown Source'}</div>
+                        <h3 class="article-title">
+                            <a href="${article.url}" target="_blank" rel="noopener">${article.title}</a>
+                        </h3>
+                        <p class="article-desc">${article.description || 'No description available.'}</p>
+                        <div class="article-footer">
+                            <span class="article-date">${formatDate(article.publishedAt)}</span>
+                            <div class="article-actions">
+                                <button class="btn-bookmark ${isBookmarked ? 'saved' : ''}" onclick="toggleBookmark(${index})">
+                                    ${isBookmarked ? '\u2605' : '\u2606'}
+                                </button>
+                                <button class="btn-open" onclick="window.open('${article.url}', '_blank')">\u2197;</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleBookmark(index) {
+            const container = document.getElementById('articlesContainer');
+            const cards = container.querySelectorAll('.article-card');
+            if (!cards[index]) return;
+
+            const article = window.currentArticles[index];
+            if (!article) return;
+
+            const existingIndex = bookmarks.findIndex(b => b.url === article.url);
+            if (existingIndex >= 0) {
+                bookmarks.splice(existingIndex, 1);
+            } else {
+                bookmarks.push({
+                    title: article.title,
+                    url: article.url
+                });
+            }
+
+            localStorage.setItem('newsBookmarks', JSON.stringify(bookmarks));
+            updateBookmarkBar();
+            updateBookmarkButtons();
+        }
+
+        function removeBookmark(url) {
+            bookmarks = bookmarks.filter(b => b.url !== url);
+            localStorage.setItem('newsBookmarks', JSON.stringify(bookmarks));
+            updateBookmarkBar();
+            updateBookmarkButtons();
+        }
+
+        function updateBookmarkBar() {
+            const bar = document.getElementById('bookmarksBar');
+            const chips = document.getElementById('bookmarkChips');
+
+            if (bookmarks.length === 0) {
+                bar.classList.remove('visible');
+                return;
+            }
+
+            bar.classList.add('visible');
+            chips.innerHTML = bookmarks.map(b => `
+                <div class="bookmark-chip">
+                    <span>${b.title.substring(0, 30)}${b.title.length > 30 ? '...' : ''}</span>
+                    <button onclick="removeBookmark('${b.url.replace(/'/g, "\\'")}')">&times;</button>
+                </div>
+            `).join('');
+        }
+
+        function updateBookmarkButtons() {
+            const buttons = document.querySelectorAll('.btn-bookmark');
+            const container = document.getElementById('articlesContainer');
+            const cards = container.querySelectorAll('.article-card');
+
+            window.currentArticles?.forEach((article, index) => {
+                const isBookmarked = bookmarks.some(b => b.url === article.url);
+                const btn = cards[index]?.querySelector('.btn-bookmark');
+                if (btn) {
+                    btn.classList.toggle('saved', isBookmarked);
+                    btn.textContent = isBookmarked ? '\u2605' : '\u2606';
+                }
+            });
+        }
+
+        async function loadHeadlines(category = '') {
+            const container = document.getElementById('articlesContainer');
+            currentMode = 'headlines';
+            currentCategory = category;
+            container.innerHTML = '<div class="loading">Loading latest news...</div>';
+
+            try {
+                const url = `/api/headlines${category ? '?category=' + category : ''}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.error) {
+                    container.innerHTML = `<div class="error">${data.error}<br><br>Get a free API key at <a href="https://newsapi.org/register" target="_blank">newsapi.org</a></div>`;
+                    return;
+                }
+
+                window.currentArticles = data.articles || [];
+
+                if (window.currentArticles.length === 0) {
+                    container.innerHTML = '<div class="no-results">No articles found.</div>';
+                    return;
+                }
+
+                container.innerHTML = window.currentArticles.map((_, i) => renderArticleCard(_, i)).join('');
+                updateBookmarkBar();
+            } catch (error) {
+                container.innerHTML = '<div class="error">Failed to load news. Please try again.</div>';
+            }
+        }
+
+        async function performSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+
+            const container = document.getElementById('articlesContainer');
+            currentMode = 'search';
+            container.innerHTML = '<div class="loading">Searching...</div>';
+
+            try {
+                const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    container.innerHTML = `<div class="error">${data.error}</div>`;
+                    return;
+                }
+
+                window.currentArticles = data.articles || [];
+
+                if (window.currentArticles.length === 0) {
+                    container.innerHTML = '<div class="no-results">No results found. Try different keywords.</div>';
+                    return;
+                }
+
+                container.innerHTML = window.currentArticles.map((_, i) => renderArticleCard(_, i)).join('');
+            } catch (error) {
+                container.innerHTML = '<div class="error">Search failed. Please try again.</div>';
+            }
+        }
+
+        // Category button handlers
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById('searchInput').value = '';
+                loadHeadlines(btn.dataset.category);
+            });
+        });
+
+        // Initial load
+        loadHeadlines();
+    </script>
+</body>
+</html>

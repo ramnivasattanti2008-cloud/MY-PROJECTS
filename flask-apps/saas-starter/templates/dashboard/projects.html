@@ -1,0 +1,53 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Projects{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="header-content">
+        <h1>Projects</h1>
+        <p>Manage your API projects</p>
+    </div>
+    <a href="#" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14"/>
+        </svg>
+        New Project
+    </a>
+</div>
+
+<div class="projects-grid">
+    {% for project in projects %}
+    <div class="project-card">
+        <div class="project-header">
+            <div class="project-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+                </svg>
+            </div>
+            <div class="project-status status-{{ project.status }}">{{ project.status }}</div>
+        </div>
+        <h3>{{ project.name }}</h3>
+        <div class="project-stats">
+            <div class="project-stat">
+                <span class="stat-value">{{ project.calls|default(0) }}</span>
+                <span class="stat-label">API Calls</span>
+            </div>
+        </div>
+        <div class="project-actions">
+            <a href="#" class="btn btn-sm btn-outline">Settings</a>
+            <a href="#" class="btn btn-sm btn-primary">View</a>
+        </div>
+    </div>
+    {% endfor %}
+
+    <div class="project-card add-new">
+        <div class="add-new-content">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12h14"/>
+            </svg>
+            <span>Create New Project</span>
+        </div>
+    </div>
+</div>
+{% endblock %}

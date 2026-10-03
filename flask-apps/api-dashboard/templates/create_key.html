@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Create API Key - API Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Create API Key</h1>
+</div>
+
+<div class="card" style="max-width: 600px;">
+    <form action="{{ url_for('create_key') }}" method="POST">
+        <div class="form-group">
+            <label class="label" for="name">Key Name</label>
+            <input type="text" id="name" name="name" class="input" placeholder="My API Key" required>
+        </div>
+
+        <div class="form-group">
+            <label class="label" for="description">Description (optional)</label>
+            <input type="text" id="description" name="description" class="input" placeholder="Brief description">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="form-group">
+                <label class="label" for="expires_days">Expiration</label>
+                <select id="expires_days" name="expires_days">
+                    <option value="7">7 days</option>
+                    <option value="30" selected>30 days</option>
+                    <option value="90">90 days</option>
+                    <option value="365">1 year</option>
+                    <option value="0">Never expires</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="label" for="rate_limit">Rate Limit</label>
+                <select id="rate_limit" name="rate_limit">
+                    <option value="10">10 req/min</option>
+                    <option value="100" selected>100 req/min</option>
+                    <option value="500">500 req/min</option>
+                    <option value="1000">1000 req/min</option>
+                </select>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 14px;">
+            Generate API Key
+        </button>
+    </form>
+</div>
+{% endblock %}

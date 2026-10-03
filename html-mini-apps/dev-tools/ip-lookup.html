@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IP Lookup Tool</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0d0d12;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      background: #16161f;
+      border: 1px solid #2a2a3a;
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+    .subtitle {
+      color: #888;
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+    .input-group {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    input {
+      flex: 1;
+      background: #1e1e2a;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 14px 18px;
+      color: #fff;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus { border-color: #6366f1; }
+    button {
+      background: #6366f1;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 24px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    button:hover { background: #5558e3; }
+    button:active { transform: scale(0.97); }
+    .result {
+      background: #1a1a24;
+      border-radius: 12px;
+      padding: 24px;
+      display: none;
+    }
+    .result.show { display: block; }
+    .result-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #252530;
+    }
+    .result-item:last-child { border-bottom: none; }
+    .result-label {
+      color: #888;
+      font-size: 14px;
+    }
+    .result-value {
+      color: #fff;
+      font-weight: 500;
+      text-align: right;
+      max-width: 60%;
+    }
+    .result-value.ip-address {
+      color: #6366f1;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .error {
+      background: #2a1a1a;
+      border: 1px solid #5a2a2a;
+      border-radius: 10px;
+      padding: 16px;
+      color: #f87171;
+      display: none;
+    }
+    .error.show { display: block; }
+    .loading {
+      text-align: center;
+      color: #888;
+      padding: 20px;
+      display: none;
+    }
+    .loading.show { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #333;
+      border-top-color: #6366f1;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>IP Lookup</h1>
+    <p class="subtitle">Discover IP address, location & ISP details</p>
+
+    <div class="input-group">
+      <input type="text" id="ipInput" placeholder="Enter IP or leave blank for yours">
+      <button id="lookupBtn" onclick="lookupIP()">Lookup</button>
+    </div>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <span>Fetching IP data...</span>
+    </div>
+
+    <div class="error" id="error"></div>
+
+    <div class="result" id="result">
+      <div class="result-item">
+        <span class="result-label">IP Address</span>
+        <span class="result-value ip-address" id="ip"></span>
+      </div>
+      <div class="result-item">
+        <span class="result-label">Country</span>
+        <span class="result-value" id="country"></span>
+      </div>
+      <div class="result-item">
+        <span class="result-label">Region</span>
+        <span class="result-value" id="region"></span>
+      </div>
+      <div class="result-item">
+        <span class="result-label">City</span>
+        <span class="result-value" id="city"></span>
+      </div>
+      <div class="result-item">
+        <span class="result-label">ISP</span>
+        <span class="result-value" id="isp"></span>
+      </div>
+      <div class="result-item">
+        <span class="result-label">Organization</span>
+        <span class="result-value" id="org"></span>
+      </div>
+      <div class="result-item">
+        <span class="result-label">Timezone</span>
+        <span class="result-value" id="timezone"></span>
+      </div>
+      <div class="result-item">
+        <span class="result-label">Coordinates</span>
+        <span class="result-value" id="coords"></span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function lookupIP() {
+      const input = document.getElementById('ipInput').value.trim();
+      const result = document.getElementById('result');
+      const error = document.getElementById('error');
+      const loading = document.getElementById('loading');
+
+      result.classList.remove('show');
+      error.classList.remove('show');
+      loading.classList.add('show');
+
+      try {
+        const url = input
+          ? `http://ip-api.com/json/${input}?fields=status,message,country,regionName,city,isp,org,timezone,lat,lon,query`
+          : 'http://ip-api.com/json/?fields=status,message,country,regionName,city,isp,org,timezone,lat,lon,query';
+
+        const res = await fetch(url);
+        const data = await res.json();
+
+        loading.classList.remove('show');
+
+        if (data.status === 'fail') {
+          error.textContent = data.message || 'Invalid IP address';
+          error.classList.add('show');
+          return;
+        }
+
+        document.getElementById('ip').textContent = data.query;
+        document.getElementById('country').textContent = data.country;
+        document.getElementById('region').textContent = data.regionName;
+        document.getElementById('city').textContent = data.city;
+        document.getElementById('isp').textContent = data.isp;
+        document.getElementById('org').textContent = data.org;
+        document.getElementById('timezone').textContent = data.timezone;
+        document.getElementById('coords').textContent = `${data.lat.toFixed(4)}, ${data.lon.toFixed(4)}`;
+
+        result.classList.add('show');
+      } catch (e) {
+        loading.classList.remove('show');
+        error.textContent = 'Network error. Please try again.';
+        error.classList.add('show');
+      }
+    }
+
+    document.getElementById('ipInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') lookupIP();
+    });
+
+    lookupIP();
+  </script>
+</body>
+</html>

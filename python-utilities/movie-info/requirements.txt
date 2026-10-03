@@ -1,0 +1,3 @@
+# No external dependencies - uses only Python standard library
+# colorama is optional but recommended for colored output
+colorama>=0.4.6

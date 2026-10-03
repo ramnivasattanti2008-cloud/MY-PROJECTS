@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Number Guess - Voice Powered</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3a 50%, #0d0d2b 100%);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+        .particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden; z-index: 0; }
+        .particle {
+            position: absolute;
+            width: 4px; height: 4px;
+            background: rgba(99, 102, 241, 0.6);
+            border-radius: 50%;
+            animation: float 15s infinite ease-in-out;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+        .container {
+            position: relative;
+            z-index: 10;
+            background: rgba(15, 15, 35, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 24px;
+            padding: 48px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 100px rgba(99, 102, 241, 0.1);
+            animation: fadeIn 0.8s ease-out;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem;
+            text-align: center;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle { text-align: center; color: #6b7280; font-size: 0.9rem; margin-bottom: 32px; }
+        .ai-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(192, 132, 252, 0.2));
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: #a5b4fc;
+            margin-bottom: 24px;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+        .ai-badge::before {
+            content: '';
+            width: 8px; height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } }
+        .display {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            margin-bottom: 24px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+        .mystery {
+            font-family: 'Orbitron', monospace;
+            font-size: 4rem;
+            font-weight: 700;
+            background: linear-gradient(180deg, #e2e8f0, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(148, 163, 184, 0.5);
+            transition: all 0.5s ease;
+        }
+        .mystery.revealed { animation: reveal 1s ease-out forwards; }
+        @keyframes reveal { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+        .hint {
+            margin-top: 16px;
+            font-size: 1.1rem;
+            color: #a5b4fc;
+            min-height: 28px;
+            transition: all 0.3s ease;
+        }
+        .hint.higher { color: #f472b6; }
+        .hint.lower { color: #38bdf8; }
+        .hint.correct { color: #4ade80; }
+        .input-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        input[type="number"] {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 12px;
+            padding: 16px 20px;
+            font-size: 1.2rem;
+            color: #e2e8f0;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        input[type="number"]:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+        }
+        input[type="number"]::placeholder { color: #4b5563; }
+        button {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border: none;
+            border-radius: 12px;
+            padding: 16px 28px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4); }
+        button:active { transform: translateY(0); }
+        .voice-btn {
+            width: 100%;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .voice-btn.listening { animation: voicePulse 1s infinite; }
+        @keyframes voicePulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            50% { box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); }
+        }
+        .voice-btn .mic { width: 20px; height: 20px; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 24px;
+        }
+        .stat {
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 12px;
+            padding: 16px 12px;
+            text-align: center;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+        .stat-value { font-family: 'Orbitron', monospace; font-size: 1.5rem; color: #a5b4fc; }
+        .stat-label { font-size: 0.75rem; color: #6b7280; margin-top: 4px; }
+        .range-display {
+            text-align: center;
+            margin-bottom: 16px;
+            color: #9ca3af;
+            font-size: 0.9rem;
+        }
+        .win-screen {
+            display: none;
+            text-align: center;
+            animation: winAnimation 1s ease-out;
+        }
+        @keyframes winAnimation {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .win-screen.active { display: block; }
+        .win-screen h2 { font-family: 'Orbitron', monospace; color: #4ade80; font-size: 1.5rem; margin-bottom: 8px; }
+        .win-screen p { color: #9ca3af; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    <div class="container">
+        <div class="ai-badge">AI VOICE POWERED</div>
+        <h1>NUMBER GUESS</h1>
+        <p class="subtitle">Think of a number 1-100. I'll find it!</p>
+        <div class="win-screen" id="winScreen">
+            <h2>FOUND IT!</h2>
+            <p id="winMessage"></p>
+            <button onclick="resetGame()" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); margin-top: 16px;">Play Again</button>
+        </div>
+        <div id="gameScreen">
+            <div class="display">
+                <div class="mystery" id="mysteryNum">?</div>
+                <div class="hint" id="hint">Start speaking or enter a number!</div>
+            </div>
+            <div class="range-display">Range: <span id="rangeDisplay">1 - 100</span></div>
+            <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">
+                <svg class="mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/>
+                </svg>
+                <span id="voiceText">Start Voice</span>
+            </button>
+            <div class="input-group">
+                <input type="number" id="guessInput" placeholder="Enter number..." min="1" max="100">
+                <button onclick="makeGuess()">Guess</button>
+            </div>
+            <div class="stats">
+                <div class="stat"><div class="stat-value" id="attempts">0</div><div class="stat-label">Attempts</div></div>
+                <div class="stat"><div class="stat-value" id="guesses">-</div><div class="stat-label">Last Guess</div></div>
+                <div class="stat"><div class="stat-value" id="best">-</div><div class="stat-label">Best Score</div></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        let secret = Math.floor(Math.random() * 100) + 1;
+        let low = 1, high = 100, attempts = 0, aiGuess;
+        let bestScore = localStorage.getItem('numberGuessBest') || null;
+        let recognition, isListening = false;
+
+        if (bestScore) document.getElementById('best').textContent = bestScore;
+
+        // AI Strategy: Binary Search
+        function aiGuessNumber() {
+            aiGuess = Math.floor((low + high) / 2);
+            document.getElementById('mysteryNum').textContent = aiGuess;
+            document.getElementById('guesses').textContent = aiGuess;
+        }
+
+        function updateHint(text, className) {
+            const hint = document.getElementById('hint');
+            hint.textContent = text;
+            hint.className = 'hint ' + className;
+        }
+
+        function makeGuess() {
+            const input = document.getElementById('guessInput');
+            if (!input.value) return;
+            const guess = parseInt(input.value);
+            processGuess(guess);
+            input.value = '';
+        }
+
+        function processGuess(guess) {
+            if (guess < low || guess > high) {
+                updateHint('Number out of range!', '');
+                return;
+            }
+            attempts++;
+            document.getElementById('attempts').textContent = attempts;
+            document.getElementById('mysteryNum').classList.add('revealed');
+            setTimeout(() => document.getElementById('mysteryNum').classList.remove('revealed'), 1000);
+
+            if (guess === secret) {
+                updateHint('🎉 Correct!', 'correct');
+                document.getElementById('mysteryNum').textContent = secret;
+                document.getElementById('mysteryNum').style.background = 'linear-gradient(180deg, #4ade80, #22c55e)';
+                document.getElementById('mysteryNum').style.webkitBackgroundClip = 'text';
+                if (!bestScore || attempts < bestScore) {
+                    bestScore = attempts;
+                    localStorage.setItem('numberGuessBest', bestScore);
+                    document.getElementById('best').textContent = bestScore;
+                }
+                document.getElementById('winMessage').textContent = `Found in ${attempts} ${attempts === 1 ? 'attempt' : 'attempts'}!`;
+                document.getElementById('gameScreen').querySelector('.display').style.display = 'none';
+                document.getElementById('gameScreen').querySelector('.range-display').style.display = 'none';
+                document.getElementById('winScreen').classList.add('active');
+            } else if (guess > secret) {
+                high = guess - 1;
+                document.getElementById('rangeDisplay').textContent = `${low} - ${high}`;
+                updateHint('Too high! Try lower 👇', 'higher');
+            } else {
+                low = guess + 1;
+                document.getElementById('rangeDisplay').textContent = `${low} - ${high}`;
+                updateHint('Too low! Try higher 👆', 'lower');
+            }
+        }
+
+        function resetGame() {
+            secret = Math.floor(Math.random() * 100) + 1;
+            low = 1; high = 100; attempts = 0;
+            document.getElementById('mysteryNum').textContent = '?';
+            document.getElementById('mysteryNum').style = '';
+            document.getElementById('attempts').textContent = '0';
+            document.getElementById('guesses').textContent = '-';
+            document.getElementById('rangeDisplay').textContent = '1 - 100';
+            document.getElementById('winScreen').classList.remove('active');
+            document.getElementById('gameScreen').querySelector('.display').style.display = 'block';
+            document.getElementById('gameScreen').querySelector('.range-display').style.display = 'block';
+            updateHint('Start speaking or enter a number!', '');
+        }
+
+        // Voice Recognition
+        function toggleVoice() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                updateHint('Voice not supported in this browser', '');
+                return;
+            }
+            if (isListening) {
+                recognition.stop();
+                return;
+            }
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+
+            recognition.onstart = () => {
+                isListening = true;
+                document.getElementById('voiceBtn').classList.add('listening');
+                document.getElementById('voiceText').textContent = 'Listening...';
+                updateHint('Listening for your number...', '');
+            };
+
+            recognition.onresult = (event) => {
+                const num = parseInt(event.results[0][0].transcript);
+                if (!isNaN(num)) {
+                    document.getElementById('guessInput').value = num;
+                    processGuess(num);
+                } else {
+                    updateHint('Could not understand. Please say a number.', '');
+                }
+            };
+
+            recognition.onend = () => {
+                isListening = false;
+                document.getElementById('voiceBtn').classList.remove('listening');
+                document.getElementById('voiceText').textContent = 'Start Voice';
+            };
+
+            recognition.onerror = () => {
+                isListening = false;
+                document.getElementById('voiceBtn').classList.remove('listening');
+                document.getElementById('voiceText').textContent = 'Start Voice';
+            };
+
+            recognition.start();
+        }
+
+        // Particles
+        for (let i = 0; i < 20; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.animationDelay = Math.random() * 15 + 's';
+            p.style.animationDuration = (10 + Math.random() * 10) + 's';
+            document.getElementById('particles').appendChild(p);
+        }
+
+        // Enter key
+        document.getElementById('guessInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') makeGuess();
+        });
+    </script>
+</body>
+</html>

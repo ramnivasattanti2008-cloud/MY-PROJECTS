@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .container { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #30363d;
+            margin-bottom: 40px;
+        }
+        h1 { color: #58a6ff; font-size: 2rem; }
+        .nav a {
+            color: #58a6ff;
+            text-decoration: none;
+            margin-left: 20px;
+        }
+        .card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        .form-group { margin-bottom: 20px; }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #8b949e;
+        }
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #c9d1d9;
+            font-size: 1rem;
+        }
+        input:focus {
+            outline: none;
+            border-color: #58a6ff;
+        }
+        .btn {
+            background: #238636;
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.2s;
+        }
+        .btn:hover { background: #2ea043; }
+        .result {
+            background: #0d1117;
+            border: 1px solid #238636;
+            padding: 16px;
+            border-radius: 6px;
+            margin-top: 20px;
+            display: none;
+        }
+        .result.show { display: block; }
+        .result a {
+            color: #58a6ff;
+            word-break: break-all;
+        }
+        .url-list { margin-top: 30px; }
+        .url-item {
+            background: #161b22;
+            border: 1px solid #30363d;
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .url-info .short {
+            color: #58a6ff;
+            font-weight: bold;
+        }
+        .url-info .original {
+            color: #8b949e;
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+        .url-stats { text-align: right; }
+        .url-stats .clicks { font-size: 1.5rem; color: #238636; }
+        .url-stats .label { color: #8b949e; font-size: 0.8rem; }
+        .error { color: #f85149; margin-top: 10px; display: none; }
+        .error.show { display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>URL Shortener</h1>
+            <nav class="nav">
+                <a href="/">Shorten</a>
+                <a href="/analytics">Analytics</a>
+            </nav>
+        </header>
+
+        <div class="card">
+            <h2 style="margin-bottom: 20px; color: #fff;">Create Short URL</h2>
+            <form id="shortenForm">
+                <div class="form-group">
+                    <label for="url">Original URL</label>
+                    <input type="text" id="url" placeholder="https://example.com/very/long/url" required>
+                </div>
+                <div class="form-group">
+                    <label for="customCode">Custom Code (optional)</label>
+                    <input type="text" id="customCode" placeholder="my-custom-code">
+                </div>
+                <button type="submit" class="btn">Shorten URL</button>
+                <div class="error" id="error"></div>
+            </form>
+            <div class="result" id="result">
+                <p style="color: #8b949e;">Short URL:</p>
+                <a href="#" id="shortUrl"></a>
+            </div>
+        </div>
+
+        <div class="url-list" id="urlList">
+            <h2 style="margin-bottom: 20px; color: #fff;">Recent URLs</h2>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('shortenForm');
+        const result = document.getElementById('result');
+        const shortUrl = document.getElementById('shortUrl');
+        const error = document.getElementById('error');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            error.classList.remove('show');
+            result.classList.remove('show');
+
+            const url = document.getElementById('url').value;
+            const customCode = document.getElementById('customCode').value;
+
+            try {
+                const res = await fetch('/shorten', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url, custom_code: customCode })
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    error.textContent = data.error;
+                    error.classList.add('show');
+                    return;
+                }
+
+                shortUrl.href = data.short_url;
+                shortUrl.textContent = data.short_url;
+                result.classList.add('show');
+                loadUrls();
+            } catch (err) {
+                error.textContent = 'Failed to shorten URL';
+                error.classList.add('show');
+            }
+        });
+
+        async function loadUrls() {
+            try {
+                const res = await fetch('/api/urls');
+                const urls = await res.json();
+                const list = document.getElementById('urlList');
+                list.innerHTML = '<h2 style="margin-bottom: 20px; color: #fff;">Recent URLs</h2>';
+
+                urls.slice(0, 10).forEach(url => {
+                    list.innerHTML += `
+                        <div class="url-item">
+                            <div class="url-info">
+                                <div class="short">${window.location.origin}/${url.short_code}</div>
+                                <div class="original">${url.original_url.substring(0, 60)}${url.original_url.length > 60 ? '...' : ''}</div>
+                            </div>
+                            <div class="url-stats">
+                                <div class="clicks">${url.click_count}</div>
+                                <div class="label">clicks</div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (err) {
+                console.error('Failed to load URLs');
+            }
+        }
+
+        loadUrls();
+    </script>
+</body>
+</html>

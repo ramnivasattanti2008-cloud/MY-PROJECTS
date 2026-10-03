@@ -1,0 +1,3 @@
+# sql-query-runner requirements
+pandas>=2.0.0
+duckdb>=1.0.0

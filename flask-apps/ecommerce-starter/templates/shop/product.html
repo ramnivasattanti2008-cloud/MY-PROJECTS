@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<section class="product-detail">
+    <div class="container">
+        <div class="product-layout">
+            <div class="product-gallery">
+                <div class="main-image">
+                    <div class="product-placeholder large">
+                        {% if product.sale_price %}<span class="sale-badge">Sale</span>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-info-full">
+                <nav class="breadcrumb">
+                    <a href="{{ url_for('index') }}">Home</a>
+                    <span>/</span>
+                    <a href="{{ url_for('shop') }}">Shop</a>
+                    <span>/</span>
+                    <span>{{ product.name }}</span>
+                </nav>
+
+                <span class="product-category-full">{{ product.category.name if product.category else 'General' }}</span>
+                <h1>{{ product.name }}</h1>
+
+                <div class="product-price-full">
+                    {% if product.sale_price %}
+                    <span class="price-sale">${{ "%.2f"|format(product.sale_price) }}</span>
+                    <span class="price-original">${{ "%.2f"|format(product.price) }}</span>
+                    <span class="discount">{{ ((1 - product.sale_price / product.price) * 100)|round|int }}% OFF</span>
+                    {% else %}
+                    <span class="price">${{ "%.2f"|format(product.price) }}</span>
+                    {% endif %}
+                </div>
+
+                <p class="product-description">{{ product.description }}</p>
+
+                <div class="stock-status">
+                    {% if product.in_stock %}
+                    <span class="in-stock">In Stock ({{ product.stock }} available)</span>
+                    {% else %}
+                    <span class="out-of-stock">Out of Stock</span>
+                    {% endif %}
+                </div>
+
+                <div class="add-to-cart-section">
+                    <div class="quantity-selector">
+                        <button class="qty-btn" id="qty-minus">-</button>
+                        <input type="number" id="quantity" value="1" min="1" max="{{ product.stock }}">
+                        <button class="qty-btn" id="qty-plus">+</button>
+                    </div>
+                    <button class="btn btn-primary btn-lg add-to-cart-full" data-id="{{ product.id }}">Add to Cart</button>
+                </div>
+
+                <div class="product-meta">
+                    <p>SKU: {{ product.sku or 'N/A' }}</p>
+                </div>
+            </div>
+        </div>
+
+        {% if related %}
+        <section class="related-products">
+            <h2>Related Products</h2>
+            <div class="products-grid">
+                {% for item in related %}
+                <article class="product-card">
+                    <a href="{{ url_for('product', slug=item.slug) }}" class="product-image">
+                        <div class="product-placeholder">
+                            {% if item.sale_price %}<span class="sale-badge">Sale</span>{% endif %}
+                        </div>
+                    </a>
+                    <div class="product-info">
+                        <h3><a href="{{ url_for('product', slug=item.slug) }}">{{ item.name }}</a></h3>
+                        <div class="product-price">
+                            {% if item.sale_price %}
+                            <span class="price-sale">${{ "%.2f"|format(item.sale_price) }}</span>
+                            {% else %}
+                            <span class="price">${{ "%.2f"|format(item.price) }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

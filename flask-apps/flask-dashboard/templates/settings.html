@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Settings - Dashboard{% endblock %}
+{% block content %}
+<div class="header">
+    <h1>Settings</h1>
+</div>
+
+<div style="max-width: 600px;">
+    <div style="background: #12121a; padding: 1.5rem; border-radius: 12px; border: 1px solid #1a1a2e; margin-bottom: 1.5rem;">
+        <h3 style="margin-bottom: 1.5rem;">Profile Settings</h3>
+        <div style="margin-bottom: 1rem;">
+            <label style="display: block; margin-bottom: 0.5rem; color: #888;">Full Name</label>
+            <input type="text" value="Admin User" style="width: 100%; padding: 0.8rem; background: #0a0a0f; border: 1px solid #2a2a4e; border-radius: 8px; color: #e0e0e0;">
+        </div>
+        <div style="margin-bottom: 1rem;">
+            <label style="display: block; margin-bottom: 0.5rem; color: #888;">Email</label>
+            <input type="email" value="admin@example.com" style="width: 100%; padding: 0.8rem; background: #0a0a0f; border: 1px solid #2a2a4e; border-radius: 8px; color: #e0e0e0;">
+        </div>
+        <button style="background: #22c55e; color: #0a0a0f; padding: 0.7rem 1.5rem; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">Save Changes</button>
+    </div>
+
+    <div style="background: #12121a; padding: 1.5rem; border-radius: 12px; border: 1px solid #1a1a2e;">
+        <h3 style="margin-bottom: 1.5rem;">Notification Preferences</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <span>Email notifications</span>
+            <input type="checkbox" checked style="width: 20px; height: 20px; accent-color: #22c55e;">
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <span>Push notifications</span>
+            <input type="checkbox" style="width: 20px; height: 20px; accent-color: #22c55e;">
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Weekly reports</span>
+            <input type="checkbox" checked style="width: 20px; height: 20px; accent-color: #22c55e;">
+        </div>
+    </div>
+</div>
+{% endblock %}

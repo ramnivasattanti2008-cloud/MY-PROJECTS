@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Trending - Pastebin Clone{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 40px 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+        <div>
+            <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 8px;">Trending Pastes</h1>
+            <p style="color: #71717a;">Most viewed public pastes</p>
+        </div>
+        <a href="/" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            New Paste
+        </a>
+    </div>
+
+    {% if pastes %}
+    <div class="paste-list">
+        {% for paste in pastes %}
+        <a href="/p/{{ paste.paste_id }}" class="paste-item" style="text-decoration: none;">
+            <div style="flex: 1;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 4px;">
+                    <span class="paste-title">{{ paste.title or 'Untitled' }}</span>
+                    <span class="badge badge-purple">{{ paste.language }}</span>
+                </div>
+                <div class="paste-meta">
+                    {{ paste.created_at[:10] }} &middot;
+                    <span style="color: #a78bfa;">{{ paste.view_count }} views</span>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2">
+                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                    <polyline points="17 6 23 6 23 12"/>
+                </svg>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card" style="text-align: center; padding: 60px;">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#52525b" stroke-width="2" style="margin: 0 auto 16px;">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M16 16s-1.5-2-4-2-4 2-4 2"/>
+            <line x1="9" y1="9" x2="9.01" y2="9"/>
+            <line x1="15" y1="9" x2="15.01" y2="9"/>
+        </svg>
+        <h3 style="color: #71717a; margin-bottom: 8px;">No trending pastes yet</h3>
+        <p style="color: #52525b;">Be the first to create a public paste!</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

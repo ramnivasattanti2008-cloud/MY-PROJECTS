@@ -1,0 +1,6 @@
+# cert-checker requirements
+# Uses Python standard library - no external dependencies needed!
+
+# Optional: for enhanced certificate chain validation
+# cryptography>=41.0.0   # For more detailed certificate analysis
+# certifi>=2023.0.0     # For trusted CA certificates

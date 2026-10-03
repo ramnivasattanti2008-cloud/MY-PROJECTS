@@ -1,0 +1,142 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="header-content">
+        <h1>Settings</h1>
+        <p>Manage your account settings</p>
+    </div>
+</div>
+
+<div class="settings-grid">
+    <div class="settings-nav">
+        <button class="settings-tab active" data-tab="profile">Profile</button>
+        <button class="settings-tab" data-tab="security">Security</button>
+        <button class="settings-tab" data-tab="notifications">Notifications</button>
+        <button class="settings-tab" data-tab="api">API</button>
+    </div>
+
+    <div class="settings-content">
+        <div class="settings-panel active" id="profile-panel">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Profile Information</h3>
+                </div>
+                <form method="POST" class="settings-form">
+                    {{ profile_form.hidden_tag() }}
+                    <div class="form-group">
+                        {{ profile_form.name.label(class="form-label") }}
+                        {{ profile_form.name(class="form-control") }}
+                    </div>
+                    <div class="form-group">
+                        {{ profile_form.email.label(class="form-label") }}
+                        {{ profile_form.email(class="form-control") }}
+                    </div>
+                    <div class="form-group">
+                        {{ profile_form.company.label(class="form-label") }}
+                        {{ profile_form.company(class="form-control") }}
+                    </div>
+                    {{ profile_form.submit(class="btn btn-primary") }}
+                </form>
+            </div>
+        </div>
+
+        <div class="settings-panel" id="security-panel">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Change Password</h3>
+                </div>
+                <form method="POST" class="settings-form">
+                    {{ password_form.hidden_tag() }}
+                    <div class="form-group">
+                        {{ password_form.current_password.label(class="form-label") }}
+                        {{ password_form.current_password(class="form-control") }}
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            {{ password_form.new_password.label(class="form-label") }}
+                            {{ password_form.new_password(class="form-control") }}
+                        </div>
+                        <div class="form-group">
+                            {{ password_form.confirm_password.label(class="form-label") }}
+                            {{ password_form.confirm_password(class="form-control") }}
+                        </div>
+                    </div>
+                    {{ password_form.submit(class="btn btn-primary") }}
+                </form>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>Two-Factor Authentication</h3>
+                </div>
+                <p class="card-description">Add an extra layer of security to your account</p>
+                <button class="btn btn-outline">Enable 2FA</button>
+            </div>
+        </div>
+
+        <div class="settings-panel" id="notifications-panel">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Email Notifications</h3>
+                </div>
+                <div class="toggle-list">
+                    <div class="toggle-item">
+                        <div class="toggle-info">
+                            <span class="toggle-title">Usage alerts</span>
+                            <span class="toggle-description">Get notified when approaching usage limits</span>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-item">
+                        <div class="toggle-info">
+                            <span class="toggle-title">Security alerts</span>
+                            <span class="toggle-description">Important security notifications</span>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-item">
+                        <div class="toggle-info">
+                            <span class="toggle-title">Product updates</span>
+                            <span class="toggle-description">New features and improvements</span>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-panel" id="api-panel">
+            <div class="card">
+                <div class="card-header">
+                    <h3>API Settings</h3>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Default Rate Limit</label>
+                    <select class="form-control">
+                        <option>100 requests/minute</option>
+                        <option selected>500 requests/minute</option>
+                        <option>1000 requests/minute</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Timeout (seconds)</label>
+                    <input type="number" class="form-control" value="30">
+                </div>
+                <button class="btn btn-primary">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

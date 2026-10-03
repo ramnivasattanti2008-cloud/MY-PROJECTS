@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Recipe{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Add New Recipe</h2>
+    <form method="post">
+        <div class="form-group">
+            <label for="name">Recipe Name *</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+
+        <div class="form-group">
+            <label for="category">Category *</label>
+            <select id="category" name="category" required>
+                <option value="Breakfast">Breakfast</option>
+                <option value="Lunch">Lunch</option>
+                <option value="Dinner">Dinner</option>
+                <option value="Dessert">Dessert</option>
+                <option value="Snack">Snack</option>
+                <option value="Beverage">Beverage</option>
+                <option value="Appetizer">Appetizer</option>
+                <option value="Salad">Salad</option>
+                <option value="Soup">Soup</option>
+                <option value="Italian">Italian</option>
+                <option value="Asian">Asian</option>
+                <option value="Mexican">Mexican</option>
+                <option value="Indian">Indian</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" placeholder="Brief description of the recipe"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="ingredients">Ingredients * (one per line)</label>
+            <textarea id="ingredients" name="ingredients" required placeholder="1 cup flour&#10;2 eggs&#10;1/2 cup sugar"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="instructions">Instructions * (one step per line)</label>
+            <textarea id="instructions" name="instructions" required placeholder="1. Preheat oven to 350F&#10;2. Mix dry ingredients&#10;3. Add wet ingredients"></textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+            <div class="form-group">
+                <label for="prep_time">Prep Time (min)</label>
+                <input type="number" id="prep_time" name="prep_time" value="0" min="0">
+            </div>
+            <div class="form-group">
+                <label for="cook_time">Cook Time (min)</label>
+                <input type="number" id="cook_time" name="cook_time" value="0" min="0">
+            </div>
+            <div class="form-group">
+                <label for="servings">Servings</label>
+                <input type="number" id="servings" name="servings" value="4" min="1">
+            </div>
+        </div>
+
+        <button type="submit" class="btn">Add Recipe</button>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

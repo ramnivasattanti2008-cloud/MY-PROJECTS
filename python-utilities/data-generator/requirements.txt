@@ -1,0 +1,2 @@
+# data-generator requirements
+# No external dependencies - uses Python standard library only

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History - {{ page.title }} - Flask Wiki</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #0d1117; color: #c9d1d9; min-height: 100vh; }
+        header { background: #161b22; border-bottom: 1px solid #30363d; padding: 1rem 0; }
+        .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+        nav { max-width: 900px; margin: 0 auto; padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
+        nav h1 { color: #58a6ff; font-size: 1.5rem; }
+        nav a { color: #c9d1d9; text-decoration: none; padding: 0.5rem 1rem; border-radius: 6px; }
+        nav a:hover { background: #21262d; }
+        .btn { background: #21262d; color: #c9d1d9; border: 1px solid #30363d; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; text-decoration: none; }
+        .btn:hover { background: #30363d; }
+        .btn-primary { background: #238636; border-color: #238636; }
+        .btn-primary:hover { background: #2ea043; }
+        h2 { color: #f0f6fc; margin-bottom: 1.5rem; }
+        .breadcrumb { color: #8b949e; margin-bottom: 1rem; }
+        .breadcrumb a { color: #58a6ff; }
+        .history-list { background: #161b22; border: 1px solid #30363d; border-radius: 12px; overflow: hidden; }
+        .history-item { padding: 1rem 1.5rem; border-bottom: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center; }
+        .history-item:last-child { border-bottom: none; }
+        .history-info { flex: 1; }
+        .history-date { color: #f0f6fc; font-weight: 600; }
+        .history-meta { color: #8b949e; font-size: 0.85rem; margin-top: 0.25rem; }
+        .history-message { color: #8b949e; font-style: italic; margin-top: 0.25rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <h1>Flask Wiki</h1>
+            <a href="/page/{{ page.slug }}">&larr; Back to Page</a>
+        </nav>
+    </header>
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="/">Home</a> / <a href="/page/{{ page.slug }}">{{ page.title }}</a> / History
+        </div>
+        <h2>Revision History</h2>
+        {% if history %}
+        <div class="history-list">
+            {% for rev in history %}
+            <div class="history-item">
+                <div class="history-info">
+                    <div class="history-date">{{ rev.edited_at }}</div>
+                    <div class="history-meta">By {{ rev.edited_by }}</div>
+                    {% if rev.edit_message %}
+                    <div class="history-message">{{ rev.edit_message }}</div>
+                    {% endif %}
+                </div>
+                <a href="/history/{{ page.slug }}/{{ rev.id }}" class="btn">View</a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p>No revision history available.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

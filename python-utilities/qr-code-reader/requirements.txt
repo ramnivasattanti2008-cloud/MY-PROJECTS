@@ -1,0 +1,17 @@
+# QR Code Reader/Generator - Requirements
+# Install with: pip install -r requirements.txt
+
+# Core QR code generation library
+qrcode[pil]>=7.4.2
+
+# Image processing library
+pillow>=10.0.0
+
+# Optional: For reading QR codes from images (recommended)
+pyzbar>=0.1.9
+
+# Optional: For reading QR codes from webcam
+opencv-python>=4.8.0
+
+# Note: On Windows, pyzbar may require Visual C++ Redistributable
+# If you get DLL errors, try: pip install pyzbar --no-binary :all:

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}URL Created - URL Shortener{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 80px 20px;">
+    <div style="max-width: 600px; margin: 0 auto; text-align: center;">
+        <div style="width: 80px; height: 80px; background: rgba(34, 197, 94, 0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+        </div>
+
+        <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 8px;">URL Created!</h1>
+        <p style="color: #71717a; margin-bottom: 32px;">Your short URL is ready to use</p>
+
+        <div class="card" style="margin-bottom: 32px;">
+            <p style="color: #a1a1aa; margin-bottom: 8px; font-size: 14px;">Your Short URL</p>
+            <div style="display: flex; align-items: center; gap: 12px; background: #0a0a0f; padding: 16px; border-radius: 8px;">
+                <input type="text" id="shortUrl" value="{{ short_url }}" readonly style="flex: 1; background: transparent; border: none; color: #22d3ee; font-size: 1.25rem; font-weight: 600;">
+                <button onclick="copyToClipboard()" class="btn btn-secondary" style="flex-shrink: 0;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                    Copy
+                </button>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 16px; justify-content: center;">
+            <a href="/" class="btn btn-secondary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Create Another
+            </a>
+            <a href="/analytics/{{ short_code }}" class="btn btn-primary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 20V10M12 20V4M6 20v-6"/>
+                </svg>
+                View Analytics
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyToClipboard() {
+    const copyText = document.getElementById("shortUrl");
+    copyText.select();
+    document.execCommand("copy");
+    alert("Copied to clipboard!");
+}
+</script>
+{% endblock %}

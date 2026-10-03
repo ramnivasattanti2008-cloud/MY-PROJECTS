@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Winner Selector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0d0d14;
+            --bg-secondary: #151521;
+            --bg-card: #1a1a2e;
+            --accent: #ec4899;
+            --accent-glow: rgba(236, 72, 153, 0.4);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(236, 72, 153, 0.1);
+        }
+
+        .input-section {
+            margin-bottom: 20px;
+        }
+
+        label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 16px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        textarea::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--accent), #db2777);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 28px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--accent-glow);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            box-shadow: none;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #059669);
+        }
+
+        .participants-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .participant-tag {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: popIn 0.3s ease-out;
+        }
+
+        @keyframes popIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .participant-tag.eliminated {
+            opacity: 0.4;
+            text-decoration: line-through;
+        }
+
+        .remove-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1.25rem;
+            line-height: 1;
+            padding: 0;
+            transition: color 0.2s;
+        }
+
+        .remove-btn:hover {
+            color: var(--danger);
+        }
+
+        .winner-display {
+            text-align: center;
+            padding: 40px 20px;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .winner-name {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: winnerPulse 0.5s ease-out;
+        }
+
+        @keyframes winnerPulse {
+            0% {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .winner-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .wheel-container {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .wheel {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: conic-gradient(
+                var(--accent) 0deg 45deg,
+                #8b5cf6 45deg 90deg,
+                #3b82f6 90deg 135deg,
+                #06b6d4 135deg 180deg,
+                #10b981 180deg 225deg,
+                #f59e0b 225deg 270deg,
+                #ef4444 270deg 315deg,
+                #ec4899 315deg 360deg
+            );
+            position: relative;
+            box-shadow: 0 0 30px rgba(236, 72, 153, 0.3);
+            transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+        }
+
+        .wheel.spinning {
+            transform: rotate(0deg);
+        }
+
+        .wheel-pointer {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 25px solid white;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            z-index: 10;
+        }
+
+        .wheel-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background: var(--bg-card);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--accent);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .history {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .history-winner {
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .history-time {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .clear-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .clear-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .mode-toggle {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+
+        .mode-btn.active {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(236, 72, 153, 0.1);
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 1.75rem; }
+            .winner-name { font-size: 2rem; }
+            .wheel { width: 250px; height: 250px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Random Winner Selector</h1>
+            <p class="subtitle">Pick random names with style</p>
+        </header>
+
+        <div class="card">
+            <div class="mode-toggle">
+                <button class="mode-btn active" data-mode="instant">Instant Pick</button>
+                <button class="mode-btn" data-mode="wheel">Spin Wheel</button>
+            </div>
+
+            <div class="input-section">
+                <label for="namesInput">Enter Names (one per line)</label>
+                <textarea id="namesInput" placeholder="Alice&#10;Bob&#10;Charlie&#10;Diana&#10;Eve"></textarea>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-success" id="pickBtn">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    Pick Winner
+                </button>
+                <button class="btn btn-secondary" id="addBtn">Add to List</button>
+                <button class="btn btn-danger" id="resetBtn">Reset</button>
+            </div>
+        </div>
+
+        <div class="card" id="participantsCard">
+            <h3 style="font-size: 1.125rem; margin-bottom: 8px;">Participants</h3>
+            <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 12px;">Click the X to eliminate a participant</p>
+            <div class="participants-grid" id="participantsGrid">
+                <span style="color: var(--text-secondary);">No participants yet</span>
+            </div>
+        </div>
+
+        <div class="card" id="wheelCard" style="display: none;">
+            <div class="wheel-container">
+                <div class="wheel-pointer"></div>
+                <div class="wheel" id="wheel">
+                    <div class="wheel-center">SPIN</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="winner-display" id="winnerDisplay">
+                <div class="winner-label">Winner</div>
+                <div class="winner-name" id="winnerName">-</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="font-size: 1.125rem;">Selection History</h3>
+                <button class="clear-btn" id="clearHistory">Clear History</button>
+            </div>
+            <div class="history" id="history"></div>
+        </div>
+    </div>
+
+    <script>
+        const namesInput = document.getElementById('namesInput');
+        const addBtn = document.getElementById('addBtn');
+        const pickBtn = document.getElementById('pickBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const participantsGrid = document.getElementById('participantsGrid');
+        const winnerName = document.getElementById('winnerName');
+        const historyDiv = document.getElementById('history');
+        const clearHistoryBtn = document.getElementById('clearHistory');
+        const wheelCard = document.getElementById('wheelCard');
+        const wheel = document.getElementById('wheel');
+        const modeBtns = document.querySelectorAll('.mode-btn');
+
+        let participants = [];
+        let eliminated = new Set();
+        let history = [];
+        let currentMode = 'instant';
+        let isSpinning = false;
+
+        function updateParticipantsDisplay() {
+            if (participants.length === 0) {
+                participantsGrid.innerHTML = '<span style="color: var(--text-secondary);">No participants yet</span>';
+                return;
+            }
+
+            participantsGrid.innerHTML = participants.map((name, i) => `
+                <div class="participant-tag ${eliminated.has(i) ? 'eliminated' : ''}" data-index="${i}">
+                    <span>${name}</span>
+                    <button class="remove-btn" onclick="eliminateParticipant(${i})">&times;</button>
+                </div>
+            `).join('');
+        }
+
+        function eliminateParticipant(index) {
+            if (eliminated.has(index)) {
+                eliminated.delete(index);
+            } else {
+                eliminated.add(index);
+            }
+            updateParticipantsDisplay();
+        }
+
+        function addParticipants() {
+            const text = namesInput.value.trim();
+            if (!text) return;
+
+            const names = text.split('\n')
+                .map(n => n.trim())
+                .filter(n => n.length > 0);
+
+            names.forEach(name => {
+                if (!participants.includes(name)) {
+                    participants.push(name);
+                }
+            });
+
+            eliminated.clear();
+            namesInput.value = '';
+            updateParticipantsDisplay();
+        }
+
+        function getActiveParticipants() {
+            return participants.filter((_, i) => !eliminated.has(i));
+        }
+
+        function pickInstant() {
+            const active = getActiveParticipants();
+            if (active.length === 0) {
+                winnerName.textContent = 'No participants!';
+                return;
+            }
+
+            const winner = active[Math.floor(Math.random() * active.length)];
+            winnerName.textContent = winner;
+            winnerName.style.animation = 'none';
+            winnerName.offsetHeight;
+            winnerName.style.animation = 'winnerPulse 0.5s ease-out';
+
+            addToHistory(winner);
+        }
+
+        function spinWheel() {
+            const active = getActiveParticipants();
+            if (active.length < 2) {
+                winnerName.textContent = active.length === 1 ? active[0] : 'No participants!';
+                return;
+            }
+
+            if (isSpinning) return;
+            isSpinning = true;
+
+            const colors = [
+                '#ec4899', '#8b5cf6', '#3b82f6', '#06b6d4',
+                '#10b981', '#f59e0b', '#ef4444', '#f97316'
+            ];
+
+            const numSegments = active.length;
+            const segmentAngle = 360 / numSegments;
+
+            wheel.style.background = `conic-gradient(${active.map((name, i) =>
+                `${colors[i % colors.length]} ${i * segmentAngle}deg ${(i + 1) * segmentAngle}deg`
+            ).join(', ')})`;
+
+            wheel.innerHTML = '<div class="wheel-center">...</div>';
+
+            const winnerIndex = Math.floor(Math.random() * numSegments);
+            const winnerAngle = 360 - (winnerIndex * segmentAngle + segmentAngle / 2);
+            const rotations = 5 + Math.random() * 3;
+            const finalAngle = rotations * 360 + winnerAngle;
+
+            wheel.style.transform = `rotate(${finalAngle}deg)`;
+
+            setTimeout(() => {
+                const winner = active[winnerIndex];
+                winnerName.textContent = winner;
+                winnerName.style.animation = 'none';
+                winnerName.offsetHeight;
+                winnerName.style.animation = 'winnerPulse 0.5s ease-out';
+
+                wheel.innerHTML = '<div class="wheel-center">SPIN</div>';
+                isSpinning = false;
+
+                addToHistory(winner);
+            }, 4000);
+        }
+
+        function addToHistory(winner) {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            history.unshift({ winner, time: timeStr });
+            if (history.length > 50) history.pop();
+
+            historyDiv.innerHTML = history.map(h => `
+                <div class="history-item">
+                    <div class="history-winner">${h.winner}</div>
+                    <div class="history-time">${h.time}</div>
+                </div>
+            `).join('');
+        }
+
+        function pick() {
+            if (currentMode === 'instant') {
+                pickInstant();
+            } else {
+                spinWheel();
+            }
+        }
+
+        function reset() {
+            participants = [];
+            eliminated.clear();
+            history = [];
+            winnerName.textContent = '-';
+            historyDiv.innerHTML = '';
+            namesInput.value = '';
+            updateParticipantsDisplay();
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            modeBtns.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.mode === mode);
+            });
+            wheelCard.style.display = mode === 'wheel' ? 'block' : 'none';
+            wheel.style.transform = 'rotate(0deg)';
+        }
+
+        addBtn.addEventListener('click', addParticipants);
+        pickBtn.addEventListener('click', pick);
+        resetBtn.addEventListener('click', reset);
+        clearHistoryBtn.addEventListener('click', reset);
+
+        modeBtns.forEach(btn => {
+            btn.addEventListener('click', () => setMode(btn.dataset.mode));
+        });
+
+        namesInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                addParticipants();
+            }
+        });
+
+        updateParticipantsDisplay();
+    </script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lorem Ipsum Generator</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0d1117; color: #c9d1d9; min-height: 100vh; padding: 24px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { color: #58a6ff; margin-bottom: 20px; font-size: 1.8rem; }
+        .controls { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        .input-group { display: flex; gap: 8px; align-items: center; }
+        label { color: #8b949e; font-size: 14px; }
+        input[type="number"] { width: 80px; padding: 10px 12px; border: 1px solid #30363d; border-radius: 6px; background: #0d1117; color: #c9d1d9; font-size: 14px; }
+        input:focus { outline: none; border-color: #58a6ff; }
+        select { padding: 10px 12px; border: 1px solid #30363d; border-radius: 6px; background: #161b22; color: #c9d1d9; font-size: 14px; cursor: pointer; }
+        select:hover { border-color: #58a6ff; }
+        button { padding: 10px 16px; border: 1px solid #30363d; border-radius: 6px; background: #238636; color: #fff; cursor: pointer; font-size: 14px; }
+        button:hover { background: #2ea043; }
+        button.copy-btn { background: #1f6feb; border-color: #1f6feb; }
+        button.copy-btn:hover { background: #388bfd; }
+        .output { position: relative; }
+        pre { background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 20px; font-size: 14px; line-height: 1.8; white-space: pre-wrap; word-wrap: break-word; max-height: 500px; overflow-y: auto; }
+        .copy-feedback { position: absolute; top: 8px; right: 8px; background: #238636; color: white; padding: 6px 12px; border-radius: 4px; font-size: 12px; opacity: 0; transition: opacity 0.3s; }
+        .copy-feedback.show { opacity: 1; }
+        .label { color: #8b949e; font-size: 13px; margin-bottom: 8px; }
+        .stats { margin-top: 12px; color: #8b949e; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Lorem Ipsum Generator</h1>
+        <div class="controls">
+            <div class="input-group">
+                <label>Count:</label>
+                <input type="number" id="count" value="3" min="1" max="100">
+            </div>
+            <div class="input-group">
+                <label>Type:</label>
+                <select id="type">
+                    <option value="paragraphs">Paragraphs</option>
+                    <option value="sentences">Sentences</option>
+                    <option value="words">Words</option>
+                </select>
+            </div>
+            <button onclick="generate()">Generate</button>
+            <button class="copy-btn" onclick="copyOutput()">Copy to Clipboard</button>
+        </div>
+        <div class="label">Output:</div>
+        <div class="output">
+            <pre id="output"></pre>
+            <div class="copy-feedback" id="feedback">Copied!</div>
+        </div>
+        <div class="stats" id="stats"></div>
+    </div>
+    <script>
+        const loremWords = [
+            'lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit',
+            'sed', 'do', 'eiusmod', 'tempor', 'incididunt', 'ut', 'labore', 'et', 'dolore',
+            'magna', 'aliqua', 'enim', 'ad', 'minim', 'veniam', 'quis', 'nostrud',
+            'exercitation', 'ullamco', 'laboris', 'nisi', 'aliquip', 'ex', 'ea', 'commodo',
+            'consequat', 'duis', 'aute', 'irure', 'in', 'reprehenderit', 'voluptate',
+            'velit', 'esse', 'cillum', 'fugiat', 'nulla', 'pariatur', 'excepteur', 'sint',
+            'occaecat', 'cupidatat', 'non', 'proident', 'sunt', 'culpa', 'qui', 'officia',
+            'deserunt', 'mollit', 'anim', 'id', 'est', 'laborum', 'neque', 'porro',
+            'quisquam', 'nihil', 'impedit', 'quo', 'minus', 'quod', 'maxime', 'placeat',
+            'facere', 'possimus', 'omnis', 'voluptas', 'assumenda', 'repellendus',
+            'temporibus', 'autem', 'quibusdam', 'officiis', 'debitis', 'rerum',
+            'necessitatibus', 'saepe', 'eveniet', 'voluptates', 'repellat', 'accusamus',
+            'ipsam', 'iusto', 'odio', 'dignissimos', 'ducimus', 'blanditiis', 'praesentium',
+            'voluptatum', 'deleniti', 'atque', 'corrupti', 'quos', 'dolores', 'quas',
+            'molestias', 'excepturi', 'obcaecati', 'cupiditate', 'provident', 'similique',
+            'mollitia', 'animi', 'perspiciatis', 'unde', 'omnis', 'iste', 'natus', 'error',
+            'voluptatem', 'accusantium', 'doloremque', 'laudantium', 'totam', 'rem',
+            'aperiam', 'eaque', 'ipsa', 'quae', 'ab', 'illo', 'inventore', 'veritatis',
+            'quasi', 'architecto', 'beatae', 'vitae', 'dicta', 'explicabo', 'asperiores',
+            'repudiandae', 'recusandae', 'maiores', 'alias', 'perferendis', 'doloribus',
+            'aspernatur', 'velit', 'fugit', 'harum', 'quidem', 'rerum', 'facilis',
+            'expedita', 'distinctio', 'libero', 'tempore', 'cum', 'soluta', 'nobis',
+            'est', 'eligendi', 'optio', 'cumque', 'nihil', 'impedit', 'quo', 'porro'
+        ];
+
+        const output = document.getElementById('output');
+        const feedback = document.getElementById('feedback');
+        const stats = document.getElementById('stats');
+        const countInput = document.getElementById('count');
+        const typeInput = document.getElementById('type');
+
+        function getRandomWord() {
+            return loremWords[Math.floor(Math.random() * loremWords.length)];
+        }
+
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        function generateWords(n) {
+            const words = [];
+            for (let i = 0; i < n; i++) {
+                words.push(getRandomWord());
+            }
+            let text = words.join(' ');
+            text = capitalize(text) + '.';
+            return text;
+        }
+
+        function generateSentence() {
+            const wordCount = Math.floor(Math.random() * 12) + 8;
+            return capitalize(generateWords(wordCount));
+        }
+
+        function generateParagraph() {
+            const sentenceCount = Math.floor(Math.random() * 4) + 4;
+            const sentences = [];
+            for (let i = 0; i < sentenceCount; i++) {
+                sentences.push(generateSentence());
+            }
+            return sentences.join(' ');
+        }
+
+        function generate() {
+            const count = parseInt(countInput.value) || 3;
+            const type = typeInput.value;
+            const clampedCount = Math.max(1, Math.min(100, count));
+
+            let result;
+            if (type === 'words') {
+                result = generateWords(clampedCount);
+                stats.textContent = `Words: ${clampedCount}`;
+            } else if (type === 'sentences') {
+                const sentences = [];
+                for (let i = 0; i < clampedCount; i++) {
+                    sentences.push(generateSentence());
+                }
+                result = sentences.join(' ');
+                stats.textContent = `Sentences: ${clampedCount}, Approx words: ${clampedCount * 10}`;
+            } else {
+                const paragraphs = [];
+                for (let i = 0; i < clampedCount; i++) {
+                    paragraphs.push(generateParagraph());
+                }
+                result = paragraphs.join('\n\n');
+                stats.textContent = `Paragraphs: ${clampedCount}, Approx words: ${clampedCount * 40}`;
+            }
+
+            output.textContent = result;
+        }
+
+        function copyOutput() {
+            const text = output.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                feedback.classList.add('show');
+                setTimeout(() => feedback.classList.remove('show'), 1500);
+            });
+        }
+
+        generate();
+    </script>
+</body>
+</html>

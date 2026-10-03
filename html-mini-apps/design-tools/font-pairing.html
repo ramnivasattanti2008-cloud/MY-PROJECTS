@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Font Pairing</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0d0d0d; color: #e0e0e0; min-height: 100vh; padding: 40px 20px; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { font-size: 2rem; margin-bottom: 8px; color: #fff; }
+.subtitle { color: #888; margin-bottom: 32px; }
+.categories { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
+.cat-btn { padding: 8px 16px; background: #1a1a1a; border: 1px solid #333; border-radius: 6px; color: #888; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+.cat-btn:hover, .cat-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+.card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.2s; }
+.card:hover { border-color: #3b82f6; transform: translateY(-2px); }
+.card-preview { padding: 24px; min-height: 160px; display: flex; flex-direction: column; }
+.card-preview .heading { font-size: 1.8rem; margin-bottom: 8px; color: #fff; }
+.card-preview .subheading { font-size: 1rem; color: #888; margin-bottom: 16px; }
+.card-preview .body { font-size: 0.9rem; line-height: 1.6; color: #aaa; }
+.card-info { padding: 14px 18px; background: #151515; display: flex; justify-content: space-between; align-items: center; }
+.card-info span { font-size: 0.8rem; color: #888; }
+.copy-btn { padding: 6px 12px; font-size: 0.75rem; background: #252525; color: #aaa; border: 1px solid #333; border-radius: 4px; cursor: pointer; }
+.copy-btn:hover { background: #333; }
+.modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 100; align-items: center; justify-content: center; }
+.modal.show { display: flex; }
+.modal-content { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 30px; max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto; }
+.modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; }
+.modal-title { font-size: 1.3rem; font-weight: 600; color: #fff; }
+.close-btn { background: none; border: none; color: #888; font-size: 1.5rem; cursor: pointer; padding: 0 8px; }
+.close-btn:hover { color: #fff; }
+.modal-preview { padding: 30px; background: #111; border-radius: 8px; margin-bottom: 20px; }
+.modal-preview .heading { font-size: 2.5rem; margin-bottom: 12px; color: #fff; }
+.modal-preview .subheading { font-size: 1.2rem; color: #888; margin-bottom: 20px; }
+.modal-preview .body { font-size: 1rem; line-height: 1.7; color: #bbb; }
+.modal-preview .small { font-size: 0.85rem; color: #888; margin-top: 20px; }
+.modal-code { background: #111; border: 1px solid #333; border-radius: 8px; padding: 16px; }
+.modal-code pre { font-family: 'Consolas', monospace; font-size: 0.85rem; color: #10b981; white-space: pre-wrap; word-break: break-all; }
+.modal-code .comment { color: #666; }
+.modal-code .property { color: #60a5fa; }
+.modal-code .value { color: #fbbf24; }
+.modal-actions { margin-top: 16px; display: flex; gap: 10px; }
+.btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.95rem; font-weight: 500; }
+.btn-primary { background: #3b82f6; color: #fff; }
+.btn-primary:hover { background: #2563eb; }
+.btn-secondary { background: #252525; color: #ccc; border: 1px solid #333; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Font Pairing Guide</h1>
+<p class="subtitle">Beautiful typography combinations with copy-ready CSS</p>
+
+<div class="categories">
+<button class="cat-btn active" data-cat="all">All</button>
+<button class="cat-btn" data-cat="modern">Modern</button>
+<button class="cat-btn" data-cat="classic">Classic</button>
+<button class="cat-btn" data-cat="editorial">Editorial</button>
+<button class="cat-btn" data-cat="tech">Tech</button>
+</div>
+
+<div class="grid" id="pairingGrid"></div>
+</div>
+
+<div class="modal" id="modal">
+<div class="modal-content">
+<div class="modal-header">
+<div class="modal-title" id="modalTitle">Font Pairing</div>
+<button class="close-btn" onclick="closeModal()">&times;</button>
+</div>
+<div class="modal-preview" id="modalPreview"></div>
+<div class="modal-code" id="modalCode"></div>
+<div class="modal-actions">
+<button class="btn btn-primary" onclick="copyCSS()">Copy CSS</button>
+<button class="btn btn-secondary" onclick="copyImport()">Copy @import</button>
+</div>
+</div>
+</div>
+
+<script>
+const pairings = [
+    { name: 'Inter + Merriweather', heading: 'Inter', body: 'Merriweather', cat: 'modern', import: '@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Merriweather:wght@400;700&display=swap");', css: `font-family: "Inter", sans-serif;\n/* Heading */\nh1, h2, h3 { font-family: "Merriweather", serif; }` },
+    { name: 'Poppins + Source Serif', heading: 'Poppins', body: 'Source Serif', cat: 'modern', import: '@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Source+Serif+4:wght@400;600&display=swap");', css: `font-family: "Poppins", sans-serif;\n/* Heading */\nh1, h2, h3 { font-family: "Source Serif 4", serif; }` },
+    { name: 'Space Grotesk + Fraunces', heading: 'Space Grotesk', body: 'Fraunces', cat: 'tech', import: '@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Fraunces:wght@400;700&display=swap");', css: `font-family: "Space Grotesk", sans-serif;\n/* Heading */\nh1, h2, h3 { font-family: "Fraunces", serif; }` },
+    { name: 'Playfair + Source Sans', heading: 'Playfair Display', body: 'Source Sans 3', cat: 'classic', import: '@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Source+Sans+3:wght@400;600&display=swap");', css: `font-family: "Source Sans 3", sans-serif;\n/* Heading */\nh1, h2, h3 { font-family: "Playfair Display", serif; }` },
+    { name: 'Libre Baskerville + Montserrat', heading: 'Libre Baskerville', body: 'Montserrat', cat: 'classic', import: '@import url("https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Montserrat:wght@400;500;600&display=swap");', css: `font-family: "Montserrat", sans-serif;\n/* Heading */\nh1, h2, h3 { font-family: "Libre Baskerville", serif; }` },
+    { name: 'Outfit + Crimson Pro', heading: 'Outfit', body: 'Crimson Pro', cat: 'editorial', import: '@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Crimson+Pro:wght@400;600&display=swap");', css: `font-family: "Crimson Pro", serif;\n/* Heading */\nh1, h2, h3 { font-family: "Outfit", sans-serif; }` },
+    { name: 'DM Sans + DM Serif', heading: 'DM Sans', body: 'DM Serif Display', cat: 'modern', import: '@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=DM+Serif+Display&display=swap");', css: `font-family: "DM Sans", sans-serif;\n/* Heading */\nh1, h2, h3 { font-family: "DM Serif Display", serif; }` },
+    { name: 'IBM Plex Sans + IBM Plex Serif', heading: 'IBM Plex Sans', body: 'IBM Plex Serif', cat: 'tech', import: '@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Serif:wght@400;700&display=swap");', css: `font-family: "IBM Plex Sans", sans-serif;\n/* Heading */\nh1, h2, h3 { font-family: "IBM Plex Serif", serif; }` },
+    { name: 'Cormorant + Proza Libre', heading: 'Cormorant', body: 'Proza Libre', cat: 'editorial', import: '@import url("https://fonts.googleapis.com/css2?family=Cormorant:wght@400;600;700&family=Proza+Libre:wght@400;600&display=swap");', css: `font-family: "Proza Libre", sans-serif;\n/* Heading */\nh1, h2, h3 { font-family: "Cormorant", serif; }` },
+    { name: 'Archivo + Lora', heading: 'Archivo', body: 'Lora', cat: 'classic', import: '@import url("https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Lora:wght@400;600&display=swap");', css: `font-family: "Lora", serif;\n/* Heading */\nh1, h2, h3 { font-family: "Archivo", sans-serif; }` },
+    { name: 'Manrope + Bitter', heading: 'Manrope', body: 'Bitter', cat: 'modern', import: '@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Bitter:wght@400;600&display=swap");', css: `font-family: "Manrope", sans-serif;\n/* Heading */\nh1, h2, h3 { font-family: "Bitter", serif; }` },
+    { name: 'Syne + JetBrains Mono', heading: 'Syne', body: 'JetBrains Mono', cat: 'tech', import: '@import url("https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap");', css: `font-family: "Syne", sans-serif;\n/* Heading */\nh1, h2, h3 { font-family: "JetBrains Mono", monospace; }` },
+];
+
+let currentCSS = '';
+let currentImport = '';
+
+function renderPairings(cat = 'all') {
+    const grid = document.getElementById('pairingGrid');
+    const filtered = cat === 'all' ? pairings : pairings.filter(p => p.cat === cat);
+    grid.innerHTML = filtered.map(p => `
+        <div class="card" onclick="openModal('${p.name}')">
+            <div class="card-preview" style="font-family: '${p.heading}', sans-serif">
+                <div class="heading" style="font-family: '${p.heading}', sans-serif">${p.heading}</div>
+                <div class="subheading" style="font-family: '${p.body}', serif">${p.body}</div>
+                <div class="body" style="font-family: '${p.body}', serif">The quick brown fox jumps over the lazy dog. Typography creates visual harmony.</div>
+            </div>
+            <div class="card-info">
+                <span>${p.name}</span>
+                <button class="copy-btn" onclick="event.stopPropagation();quickCopy('${p.name}')">Copy</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function openModal(name) {
+    const p = pairings.find(x => x.name === name);
+    if (!p) return;
+    currentCSS = p.css;
+    currentImport = p.import;
+    document.getElementById('modalTitle').textContent = p.name;
+    document.getElementById('modalPreview').innerHTML = `
+        <style>${p.import.replace('@import', '')}</style>
+        <div class="heading" style="font-family: '${p.heading}', sans-serif">${p.heading}</div>
+        <div class="subheading" style="font-family: '${p.body}', serif">${p.body}</div>
+        <div class="body" style="font-family: '${p.body}', serif">Typography is the craft of endowing human language with a durable visual form. Good typography establishes a visual hierarchy.</div>
+        <div class="small" style="font-family: '${p.body}', serif">Fine print and captions use the body font for consistency and readability across the design system.</div>
+    `;
+    document.getElementById('modalCode').innerHTML = `<pre><span class="comment">/* Google Fonts Import */</span>\n<span class="property">${p.import}</span>\n\n<span class="comment">/* CSS Usage */</span>\n<span class="property">body</span> {\n  <span class="value">font-family</span>: <span class="property">"${p.body}"</span>, serif;\n}\n\n<span class="comment">/* Headings */</span>\n<span class="property">h1, h2, h3</span> {\n  <span class="value">font-family</span>: <span class="property">"${p.heading}"</span>, sans-serif;\n}</pre>`;
+    document.getElementById('modal').classList.add('show');
+}
+
+function closeModal() {
+    document.getElementById('modal').classList.remove('show');
+}
+
+function copyCSS() {
+    navigator.clipboard.writeText(currentCSS);
+    const btn = document.querySelector('.btn-primary');
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = orig, 1500);
+}
+
+function copyImport() {
+    navigator.clipboard.writeText(currentImport);
+    const btn = document.querySelector('.btn-secondary');
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy @import', 1500);
+}
+
+function quickCopy(name) {
+    const p = pairings.find(x => x.name === name);
+    if (p) navigator.clipboard.writeText(p.css);
+}
+
+document.querySelectorAll('.cat-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderPairings(btn.dataset.cat);
+    });
+});
+
+document.getElementById('modal').addEventListener('click', e => {
+    if (e.target.id === 'modal') closeModal();
+});
+
+renderPairings();
+</script>
+</body>
+</html>

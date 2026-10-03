@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}#{{ tag.name }}{% endblock %}
+
+{% block content %}
+<section class="archive-header">
+    <div class="container">
+        <span class="archive-label">Tag</span>
+        <h1>#{{ tag.name }}</h1>
+        <p>Articles tagged with {{ tag.name }}</p>
+    </div>
+</section>
+
+<section class="posts-section">
+    <div class="container">
+        {% if posts.items %}
+        <div class="posts-grid">
+            {% for post in posts.items %}
+            <article class="post-card">
+                <div class="post-image">
+                    {% if post.featured_image %}
+                    <img src="{{ post.featured_image }}" alt="{{ post.title }}">
+                    {% else %}
+                    <div class="placeholder"></div>
+                    {% endif %}
+                </div>
+                <div class="post-content">
+                    <div class="post-header">
+                        <span class="post-category">{{ post.category.name if post.category else 'Uncategorized' }}</span>
+                        <span class="post-date">{{ post.created_at.strftime('%b %d, %Y') }}</span>
+                    </div>
+                    <h3><a href="{{ url_for('post', slug=post.slug) }}">{{ post.title }}</a></h3>
+                    <p>{{ post.summary or post.content[:200] }}</p>
+                    <div class="post-footer">
+                        <div class="post-author">
+                            <div class="author-avatar">{{ post.author.username[:1] }}</div>
+                            <span>{{ post.author.username }}</span>
+                        </div>
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+
+        {% if posts.pages > 1 %}
+        <div class="pagination">
+            {% if posts.has_prev %}
+            <a href="{{ url_for('tag', slug=tag.slug, page=posts.prev_num) }}" class="btn btn-outline">&laquo; Previous</a>
+            {% endif %}
+            {% for p in posts.iter_pages() %}
+                {% if p %}
+                <a href="{{ url_for('tag', slug=tag.slug, page=p) }}" class="btn {% if p == posts.page %}btn-primary{% else %}btn-outline{% endif %}">{{ p }}</a>
+                {% endif %}
+            {% endfor %}
+            {% if posts.has_next %}
+            <a href="{{ url_for('tag', slug=tag.slug, page=posts.next_num) }}" class="btn btn-outline">Next &raquo;</a>
+            {% endif %}
+        </div>
+        {% endif %}
+        {% else %}
+        <p class="no-results">No posts found with this tag.</p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

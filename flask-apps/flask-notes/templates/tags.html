@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Manage Tags{% endblock %}
+{% block content %}
+<div class="breadcrumb">
+    <a href="/">&#8592; Back to Notes</a>
+</div>
+
+<div class="card">
+    <h2>Create Tag</h2>
+    <form method="POST" style="display: flex; gap: 1rem;">
+        <input type="text" name="name" placeholder="Tag name" required>
+        <button type="submit" class="btn btn-primary">Add Tag</button>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Tags</h2>
+    {% if tags %}
+    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+        {% for tag in tags %}
+        <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; background: #1a1b26; border-radius: 6px;">
+            <span class="tag">#{{ tag.name }}</span>
+            <span style="color: #565f89; font-size: 0.75rem;">({{ tag.note_count }})</span>
+            <a href="/delete_tag/{{ tag.id }}" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="return confirm('Delete this tag?')">&#10005;</a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="color: #565f89; text-align: center; padding: 2rem;">No tags yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

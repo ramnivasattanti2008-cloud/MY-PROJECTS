@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --bg-primary: #0d0d0f;
+            --bg-secondary: #1a1a1f;
+            --bg-tertiary: #252530;
+            --accent: #6366f1;
+            --accent-hover: #818cf8;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #2d2d3a;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+        .shape-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .shape-tab {
+            padding: 0.6rem 1.25rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        .shape-tab:hover {
+            background: var(--bg-tertiary);
+        }
+        .shape-tab.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        @media (max-width: 800px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        .preview-section {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .preview-header h3 {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        .preview-box {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 300px;
+        }
+        .preview-box svg {
+            max-width: 100%;
+            max-height: 280px;
+        }
+        .controls-section {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+        .controls-section h3 {
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 1.25rem;
+        }
+        .control-group {
+            margin-bottom: 1.25rem;
+        }
+        .control-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        .control-row {
+            display: flex;
+            gap: 1rem;
+        }
+        .control-row .control-group {
+            flex: 1;
+        }
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        input[type="color"] {
+            width: 100%;
+            height: 40px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .code-section {
+            margin-top: 2rem;
+        }
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .code-header h3 {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        pre {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1rem;
+            overflow-x: auto;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            border: 1px solid var(--border);
+        }
+        code {
+            font-family: 'Consolas', 'Monaco', monospace;
+            color: var(--text-secondary);
+        }
+        .buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 0.6rem 1.25rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: var(--accent-hover);
+        }
+        button.secondary {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+        }
+        button.secondary:hover {
+            background: var(--border);
+        }
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--accent);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        .path-input {
+            display: none;
+        }
+        .path-input.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SVG Generator</h1>
+        <p class="subtitle">Generate SVG shapes and copy the code</p>
+
+        <div class="shape-tabs">
+            <button class="shape-tab active" data-shape="circle">Circle</button>
+            <button class="shape-tab" data-shape="rect">Rectangle</button>
+            <button class="shape-tab" data-shape="polygon">Polygon</button>
+            <button class="shape-tab" data-shape="path">Path</button>
+        </div>
+
+        <div class="main-content">
+            <div class="preview-section">
+                <div class="preview-header">
+                    <h3>Preview</h3>
+                    <span id="shapeLabel">300x300</span>
+                </div>
+                <div class="preview-box" id="previewBox"></div>
+            </div>
+
+            <div class="controls-section">
+                <h3>Properties</h3>
+
+                <div id="circleControls">
+                    <div class="control-group">
+                        <label>Center X</label>
+                        <input type="number" id="cx" value="150">
+                    </div>
+                    <div class="control-row">
+                        <div class="control-group">
+                            <label>Center Y</label>
+                            <input type="number" id="cy" value="150">
+                        </div>
+                        <div class="control-group">
+                            <label>Radius</label>
+                            <input type="number" id="r" value="100">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="rectControls" style="display: none;">
+                    <div class="control-row">
+                        <div class="control-group">
+                            <label>X</label>
+                            <input type="number" id="x" value="50">
+                        </div>
+                        <div class="control-group">
+                            <label>Y</label>
+                            <input type="number" id="y" value="50">
+                        </div>
+                    </div>
+                    <div class="control-row">
+                        <div class="control-group">
+                            <label>Width</label>
+                            <input type="number" id="width" value="200">
+                        </div>
+                        <div class="control-group">
+                            <label>Height</label>
+                            <input type="number" id="height" value="150">
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>Border Radius</label>
+                        <input type="number" id="rx" value="0">
+                    </div>
+                </div>
+
+                <div id="polygonControls" style="display: none;">
+                    <div class="control-group">
+                        <label>Points</label>
+                        <input type="text" id="points" value="150,30 230,130 200,220 100,220 70,130">
+                    </div>
+                </div>
+
+                <div id="pathControls" class="path-input">
+                    <div class="control-group">
+                        <label>Path Data (d attribute)</label>
+                        <input type="text" id="pathD" value="M 50 150 Q 150 50 250 150 T 450 150">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Fill Color</label>
+                    <input type="color" id="fill" value="#6366f1">
+                </div>
+                <div class="control-row">
+                    <div class="control-group">
+                        <label>Stroke Color</label>
+                        <input type="color" id="stroke" value="#ffffff">
+                    </div>
+                    <div class="control-group">
+                        <label>Stroke Width</label>
+                        <input type="number" id="strokeWidth" value="2" min="0">
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <button onclick="copySVG()">Copy SVG</button>
+                    <button class="secondary" onclick="resetShape()">Reset</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="code-section">
+            <div class="code-header">
+                <h3>SVG Code</h3>
+                <button class="secondary" onclick="copySVG()">Copy</button>
+            </div>
+            <pre><code id="svgCode"></code></pre>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let currentShape = 'circle';
+        const previewBox = document.getElementById('previewBox');
+        const svgCode = document.getElementById('svgCode');
+        const shapeLabel = document.getElementById('shapeLabel');
+        const toast = document.getElementById('toast');
+
+        // Tab switching
+        document.querySelectorAll('.shape-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.shape-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                currentShape = this.dataset.shape;
+                showShapeControls();
+                updateSVG();
+            });
+        });
+
+        function showShapeControls() {
+            document.getElementById('circleControls').style.display = currentShape === 'circle' ? 'block' : 'none';
+            document.getElementById('rectControls').style.display = currentShape === 'rect' ? 'block' : 'none';
+            document.getElementById('polygonControls').style.display = currentShape === 'polygon' ? 'block' : 'none';
+            document.getElementById('pathControls').classList.toggle('active', currentShape === 'path');
+        }
+
+        function getValues() {
+            return {
+                cx: document.getElementById('cx').value,
+                cy: document.getElementById('cy').value,
+                r: document.getElementById('r').value,
+                x: document.getElementById('x').value,
+                y: document.getElementById('y').value,
+                width: document.getElementById('width').value,
+                height: document.getElementById('height').value,
+                rx: document.getElementById('rx').value,
+                points: document.getElementById('points').value,
+                pathD: document.getElementById('pathD').value,
+                fill: document.getElementById('fill').value,
+                stroke: document.getElementById('stroke').value,
+                strokeWidth: document.getElementById('strokeWidth').value
+            };
+        }
+
+        function generateSVG() {
+            const v = getValues();
+            const fill = v.fill;
+            const stroke = v.stroke;
+            const sw = v.strokeWidth;
+
+            let shape = '';
+            switch (currentShape) {
+                case 'circle':
+                    shape = `<circle cx="${v.cx}" cy="${v.cy}" r="${v.r}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
+                    shapeLabel.textContent = '300x300';
+                    break;
+                case 'rect':
+                    shape = `<rect x="${v.x}" y="${v.y}" width="${v.width}" height="${v.height}" rx="${v.rx}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
+                    shapeLabel.textContent = '300x250';
+                    break;
+                case 'polygon':
+                    shape = `<polygon points="${v.points}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
+                    shapeLabel.textContent = '300x250';
+                    break;
+                case 'path':
+                    shape = `<path d="${v.pathD}" fill="none" stroke="${fill}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"/>`;
+                    shapeLabel.textContent = '500x200';
+                    break;
+            }
+
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${shapeLabel.textContent.split('x')[0]} ${shapeLabel.textContent.split('x')[1]}">\n  ${shape}\n</svg>`;
+            return svg;
+        }
+
+        function updateSVG() {
+            const svg = generateSVG();
+            previewBox.innerHTML = svg;
+            svgCode.textContent = svg;
+        }
+
+        function copySVG() {
+            const svg = generateSVG();
+            navigator.clipboard.writeText(svg);
+            showToast('SVG copied to clipboard');
+        }
+
+        function resetShape() {
+            if (currentShape === 'circle') {
+                document.getElementById('cx').value = 150;
+                document.getElementById('cy').value = 150;
+                document.getElementById('r').value = 100;
+            } else if (currentShape === 'rect') {
+                document.getElementById('x').value = 50;
+                document.getElementById('y').value = 50;
+                document.getElementById('width').value = 200;
+                document.getElementById('height').value = 150;
+                document.getElementById('rx').value = 0;
+            } else if (currentShape === 'polygon') {
+                document.getElementById('points').value = '150,30 230,130 200,220 100,220 70,130';
+            } else if (currentShape === 'path') {
+                document.getElementById('pathD').value = 'M 50 150 Q 150 50 250 150 T 450 150';
+            }
+            document.getElementById('fill').value = '#6366f1';
+            document.getElementById('stroke').value = '#ffffff';
+            document.getElementById('strokeWidth').value = 2;
+            updateSVG();
+        }
+
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // Listen for input changes
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', updateSVG);
+        });
+
+        // Initialize
+        updateSVG();
+    </script>
+</body>
+</html>

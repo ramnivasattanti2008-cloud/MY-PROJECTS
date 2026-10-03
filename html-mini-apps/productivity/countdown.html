@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Countdown Timer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .timer-ring-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 0 auto 30px;
+        }
+
+        .timer-ring {
+            transform: rotate(-90deg);
+        }
+
+        .timer-ring-bg {
+            fill: none;
+            stroke: #333;
+            stroke-width: 8;
+        }
+
+        .timer-ring-progress {
+            fill: none;
+            stroke: url(#gradient);
+            stroke-width: 8;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.1s linear;
+        }
+
+        .timer-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .timer-display .time {
+            font-size: 3.5rem;
+            font-weight: 200;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 2px;
+        }
+
+        .timer-display .label {
+            font-size: 0.9rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 5px;
+        }
+
+        .presets {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        .preset-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .preset-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .preset-btn.active {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-color: transparent;
+        }
+
+        .custom-input {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .custom-input input {
+            width: 80px;
+            padding: 12px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1.2rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .custom-input input:focus {
+            border-color: #f5576c;
+        }
+
+        .custom-input input::placeholder {
+            color: #555;
+        }
+
+        .custom-input span {
+            display: flex;
+            align-items: center;
+            color: #888;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 15px 40px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-reset {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 20px 40px;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        @media (max-width: 500px) {
+            .timer-ring-container {
+                width: 250px;
+                height: 250px;
+            }
+            .timer-display .time {
+                font-size: 2.5rem;
+            }
+            button {
+                padding: 12px 25px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="notification" id="notification">Time's Up!</div>
+
+    <div class="container">
+        <h1>Countdown Timer</h1>
+
+        <div class="timer-ring-container">
+            <svg class="timer-ring" width="100%" height="100%" viewBox="0 0 300 300">
+                <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#f093fb"/>
+                        <stop offset="100%" stop-color="#f5576c"/>
+                    </linearGradient>
+                </defs>
+                <circle class="timer-ring-bg" cx="150" cy="150" r="140"/>
+                <circle class="timer-ring-progress" id="progressRing" cx="150" cy="150" r="140"
+                    stroke-dasharray="879.65" stroke-dashoffset="0"/>
+            </svg>
+            <div class="timer-display">
+                <div class="time" id="timeDisplay">05:00</div>
+                <div class="label" id="statusLabel">Ready</div>
+            </div>
+        </div>
+
+        <div class="presets">
+            <button class="preset-btn" onclick="setPreset(1)">1 min</button>
+            <button class="preset-btn" onclick="setPreset(3)">3 min</button>
+            <button class="preset-btn active" onclick="setPreset(5)">5 min</button>
+            <button class="preset-btn" onclick="setPreset(10)">10 min</button>
+            <button class="preset-btn" onclick="setPreset(15)">15 min</button>
+            <button class="preset-btn" onclick="setPreset(30)">30 min</button>
+        </div>
+
+        <div class="custom-input">
+            <input type="number" id="customMin" min="0" max="99" placeholder="MM" value="05">
+            <span>:</span>
+            <input type="number" id="customSec" min="0" max="59" placeholder="SS" value="00">
+            <button class="btn-start" style="padding: 10px 20px; font-size: 0.85rem;" onclick="setCustomTime()">Set</button>
+        </div>
+
+        <div class="controls">
+            <button class="btn-start" id="startBtn" onclick="toggleTimer()">Start</button>
+            <button class="btn-reset" id="resetBtn" onclick="resetTimer()">Reset</button>
+        </div>
+    </div>
+
+    <script>
+        const CIRCUMFERENCE = 2 * Math.PI * 140;
+        let totalSeconds = 300;
+        let remainingSeconds = 300;
+        let timerInterval;
+        let isRunning = false;
+
+        const timeDisplay = document.getElementById('timeDisplay');
+        const statusLabel = document.getElementById('statusLabel');
+        const progressRing = document.getElementById('progressRing');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const notification = document.getElementById('notification');
+
+        progressRing.style.strokeDasharray = CIRCUMFERENCE;
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function updateDisplay() {
+            timeDisplay.textContent = formatTime(remainingSeconds);
+            const progress = (totalSeconds - remainingSeconds) / totalSeconds;
+            progressRing.style.strokeDashoffset = CIRCUMFERENCE * progress;
+        }
+
+        function playNotificationSound() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 1);
+
+            // Second beep
+            setTimeout(() => {
+                const osc2 = audioContext.createOscillator();
+                const gain2 = audioContext.createGain();
+                osc2.connect(gain2);
+                gain2.connect(audioContext.destination);
+                osc2.frequency.value = 1000;
+                osc2.type = 'sine';
+                gain2.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                osc2.start(audioContext.currentTime);
+                osc2.stop(audioContext.currentTime + 0.5);
+            }, 300);
+        }
+
+        function showNotification() {
+            notification.classList.add('show');
+            setTimeout(() => notification.classList.remove('show'), 3000);
+        }
+
+        function toggleTimer() {
+            if (!isRunning) {
+                isRunning = true;
+                statusLabel.textContent = 'Running';
+                startBtn.textContent = 'Pause';
+
+                timerInterval = setInterval(() => {
+                    remainingSeconds--;
+                    updateDisplay();
+
+                    if (remainingSeconds <= 0) {
+                        clearInterval(timerInterval);
+                        isRunning = false;
+                        statusLabel.textContent = 'Complete!';
+                        startBtn.textContent = 'Start';
+                        playNotificationSound();
+                        showNotification();
+                    }
+                }, 1000);
+            } else {
+                clearInterval(timerInterval);
+                isRunning = false;
+                statusLabel.textContent = 'Paused';
+                startBtn.textContent = 'Start';
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            remainingSeconds = totalSeconds;
+            statusLabel.textContent = 'Ready';
+            startBtn.textContent = 'Start';
+            updateDisplay();
+        }
+
+        function setPreset(minutes) {
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('customMin').value = String(minutes).padStart(2, '0');
+            document.getElementById('customSec').value = '00';
+            totalSeconds = minutes * 60;
+            remainingSeconds = totalSeconds;
+            resetTimer();
+        }
+
+        function setCustomTime() {
+            const mins = parseInt(document.getElementById('customMin').value) || 0;
+            const secs = parseInt(document.getElementById('customSec').value) || 0;
+            totalSeconds = mins * 60 + secs;
+            remainingSeconds = totalSeconds;
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+            resetTimer();
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                toggleTimer();
+            } else if (e.code === 'KeyR') {
+                resetTimer();
+            }
+        });
+
+        updateDisplay();
+    </script>
+</body>
+</html>

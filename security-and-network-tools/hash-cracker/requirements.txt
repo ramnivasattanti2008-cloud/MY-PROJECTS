@@ -1,0 +1,6 @@
+# hash-cracker requirements
+# This project uses only Python standard library - no external dependencies!
+# hashlib is built into Python
+
+# Optional: for enhanced output
+# colorama>=0.4.6  # Cross-platform colored terminal output

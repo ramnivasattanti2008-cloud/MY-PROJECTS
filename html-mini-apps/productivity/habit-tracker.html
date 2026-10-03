@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, #a855f7, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 2rem;
+        }
+
+        .add-habit {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .add-habit input {
+            flex: 1;
+            min-width: 200px;
+            padding: 1rem 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .add-habit input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .add-habit input:focus {
+            outline: none;
+            border-color: #a855f7;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .color-picker label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .color-option {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        .color-option.selected {
+            border-color: #fff;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .add-btn {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);
+        }
+
+        .weekly-calendar {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+
+        .week-header {
+            display: grid;
+            grid-template-columns: 200px repeat(7, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .week-header .day-label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-align: center;
+        }
+
+        .week-header .day-label.today {
+            color: #a855f7;
+            font-weight: 600;
+        }
+
+        .week-header .date-num {
+            font-size: 1.2rem;
+            display: block;
+        }
+
+        .habit-row {
+            display: grid;
+            grid-template-columns: 200px repeat(7, 1fr);
+            gap: 0.5rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            align-items: center;
+        }
+
+        .habit-name {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding-right: 1rem;
+        }
+
+        .habit-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .habit-text {
+            font-size: 0.95rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .habit-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-left: auto;
+        }
+
+        .habit-actions button {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.25rem;
+            transition: color 0.3s ease;
+        }
+
+        .habit-actions button:hover {
+            color: #ff4757;
+        }
+
+        .day-cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 40px;
+        }
+
+        .day-checkbox {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+        }
+
+        .day-checkbox:hover {
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: scale(1.1);
+        }
+
+        .day-checkbox.completed {
+            border-color: transparent;
+            color: #fff;
+            animation: checkPop 0.3s ease;
+        }
+
+        @keyframes checkPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #a855f7, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .streak-list {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .streak-list h3 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .streak-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .streak-item:last-child {
+            border-bottom: none;
+        }
+
+        .streak-habit {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .streak-flame {
+            font-size: 1.2rem;
+        }
+
+        .streak-count {
+            font-weight: 600;
+            color: #f97316;
+        }
+
+        .streak-best {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .week-header,
+            .habit-row {
+                grid-template-columns: 120px repeat(7, 1fr);
+            }
+
+            .habit-name {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.25rem;
+            }
+
+            .habit-text {
+                font-size: 0.8rem;
+            }
+
+            .day-checkbox {
+                width: 28px;
+                height: 28px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .week-header,
+            .habit-row {
+                grid-template-columns: 100px repeat(7, 1fr);
+            }
+
+            .add-habit {
+                flex-direction: column;
+            }
+
+            .add-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Habit Tracker</h1>
+            <p class="subtitle">Build better habits, one day at a time</p>
+        </header>
+
+        <div class="add-habit">
+            <input type="text" id="habitInput" placeholder="Enter a new habit..." onkeypress="handleKeyPress(event)">
+            <div class="color-picker">
+                <label>Color:</label>
+                <div class="color-option selected" style="background: #a855f7" data-color="#a855f7" onclick="selectColor(this)"></div>
+                <div class="color-option" style="background: #ec4899" data-color="#ec4899" onclick="selectColor(this)"></div>
+                <div class="color-option" style="background: #f97316" data-color="#f97316" onclick="selectColor(this)"></div>
+                <div class="color-option" style="background: #22c55e" data-color="#22c55e" onclick="selectColor(this)"></div>
+                <div class="color-option" style="background: #06b6d4" data-color="#06b6d4" onclick="selectColor(this)"></div>
+                <div class="color-option" style="background: #eab308" data-color="#eab308" onclick="selectColor(this)"></div>
+            </div>
+            <button class="add-btn" onclick="addHabit()">Add Habit</button>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-value" id="totalHabits">0</div>
+                <div class="stat-label">Active Habits</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🔥</div>
+                <div class="stat-value" id="longestStreak">0</div>
+                <div class="stat-label">Longest Streak</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-value" id="todayProgress">0/0</div>
+                <div class="stat-label">Today</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-value" id="weeklyRate">0%</div>
+                <div class="stat-label">This Week</div>
+            </div>
+        </div>
+
+        <div class="weekly-calendar" id="calendar">
+            <div class="week-header" id="weekHeader"></div>
+            <div id="habitRows"></div>
+        </div>
+
+        <div class="streak-list" id="streakList">
+            <h3>Current Streaks</h3>
+            <div id="streakItems"></div>
+        </div>
+    </div>
+
+    <script>
+        let habits = [];
+        let completions = {};
+        let selectedColor = '#a855f7';
+        let weekStart = getWeekStart(new Date());
+
+        function getWeekStart(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            return new Date(d.setDate(diff));
+        }
+
+        function formatDateKey(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        function selectColor(el) {
+            document.querySelectorAll('.color-option').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedColor = el.dataset.color;
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') addHabit();
+        }
+
+        function addHabit() {
+            const input = document.getElementById('habitInput');
+            const text = input.value.trim();
+
+            if (!text) return;
+
+            const habit = {
+                id: Date.now(),
+                text,
+                color: selectedColor,
+                created: new Date().toISOString()
+            };
+
+            habits.push(habit);
+            input.value = '';
+            saveData();
+            renderCalendar();
+            updateStats();
+        }
+
+        function deleteHabit(id) {
+            habits = habits.filter(h => h.id !== id);
+            saveData();
+            renderCalendar();
+            updateStats();
+        }
+
+        function toggleCompletion(habitId, dateStr) {
+            if (!completions[dateStr]) completions[dateStr] = new Set();
+
+            if (completions[dateStr].has(habitId)) {
+                completions[dateStr].delete(habitId);
+            } else {
+                completions[dateStr].add(habitId);
+            }
+
+            saveData();
+            renderCalendar();
+            updateStats();
+        }
+
+        function renderWeekHeader() {
+            const header = document.getElementById('weekHeader');
+            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            const today = formatDateKey(new Date());
+
+            let html = '<div></div>';
+
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(weekStart);
+                date.setDate(date.getDate() + i);
+                const dateStr = formatDateKey(date);
+                const isToday = dateStr === today;
+
+                html += `
+                    <div class="day-label ${isToday ? 'today' : ''}">
+                        <span class="date-num">${date.getDate()}</span>
+                        ${days[i]}
+                    </div>
+                `;
+            }
+
+            header.innerHTML = html;
+        }
+
+        function renderCalendar() {
+            const container = document.getElementById('habitRows');
+
+            if (habits.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🌱</div>
+                        <p>No habits yet. Add your first habit above!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            const today = formatDateKey(new Date());
+
+            habits.forEach(habit => {
+                html += `
+                    <div class="habit-row">
+                        <div class="habit-name">
+                            <div class="habit-color" style="background: ${habit.color}"></div>
+                            <span class="habit-text">${habit.text}</span>
+                            <div class="habit-actions">
+                                <button onclick="deleteHabit(${habit.id})">🗑️</button>
+                            </div>
+                        </div>
+                `;
+
+                for (let i = 0; i < 7; i++) {
+                    const date = new Date(weekStart);
+                    date.setDate(date.getDate() + i);
+                    const dateStr = formatDateKey(date);
+                    const completed = completions[dateStr]?.has(habit.id);
+                    const isToday = dateStr === today;
+
+                    html += `
+                        <div class="day-cell">
+                            <div class="day-checkbox ${completed ? 'completed' : ''}"
+                                 style="${completed ? `background: ${habit.color}` : ''}"
+                                 onclick="toggleCompletion(${habit.id}, '${dateStr}')">
+                                ${completed ? '✓' : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                html += '</div>';
+            });
+
+            container.innerHTML = html;
+        }
+
+        function calculateStreak(habitId) {
+            let streak = 0;
+            let date = new Date();
+
+            // Check if today is completed
+            const todayKey = formatDateKey(date);
+            if (!completions[todayKey]?.has(habitId)) {
+                // Check yesterday
+                date.setDate(date.getDate() - 1);
+            }
+
+            while (true) {
+                const dateKey = formatDateKey(date);
+                if (completions[dateKey]?.has(habitId)) {
+                    streak++;
+                    date.setDate(date.getDate() - 1);
+                } else {
+                    break;
+                }
+            }
+
+            return streak;
+        }
+
+        function updateStats() {
+            document.getElementById('totalHabits').textContent = habits.length;
+
+            // Longest streak
+            let longestStreak = 0;
+            habits.forEach(h => {
+                const streak = calculateStreak(h.id);
+                if (streak > longestStreak) longestStreak = streak;
+            });
+            document.getElementById('longestStreak').textContent = longestStreak;
+
+            // Today's progress
+            const todayKey = formatDateKey(new Date());
+            const todayCompleted = completions[todayKey]?.size || 0;
+            document.getElementById('todayProgress').textContent = `${todayCompleted}/${habits.length}`;
+
+            // Weekly rate
+            let totalPossible = 0;
+            let totalCompleted = 0;
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(weekStart);
+                date.setDate(date.getDate() + i);
+                const dateKey = formatDateKey(date);
+                totalPossible += habits.length;
+                totalCompleted += completions[dateKey]?.size || 0;
+            }
+            const weeklyRate = totalPossible > 0 ? Math.round((totalCompleted / totalPossible) * 100) : 0;
+            document.getElementById('weeklyRate').textContent = `${weeklyRate}%`;
+
+            // Streak list
+            renderStreakList();
+        }
+
+        function renderStreakList() {
+            const container = document.getElementById('streakItems');
+
+            if (habits.length === 0) {
+                container.innerHTML = '<p style="color: rgba(255,255,255,0.4); text-align: center;">Add habits to see streaks</p>';
+                return;
+            }
+
+            const sortedHabits = [...habits].map(h => ({
+                ...h,
+                streak: calculateStreak(h.id)
+            })).sort((a, b) => b.streak - a.streak);
+
+            container.innerHTML = sortedHabits.map(h => `
+                <div class="streak-item">
+                    <div class="streak-habit">
+                        <div class="habit-color" style="background: ${h.color}"></div>
+                        <span>${h.text}</span>
+                    </div>
+                    <div>
+                        <span class="streak-count">🔥 ${h.streak}</span>
+                        <span class="streak-best"> day${h.streak !== 1 ? 's' : ''}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function saveData() {
+            localStorage.setItem('habits', JSON.stringify(habits));
+            localStorage.setItem('completions', JSON.stringify(
+                Object.fromEntries(
+                    Object.entries(completions).map(([k, v]) => [k, [...v]])
+                )
+            ));
+        }
+
+        function loadData() {
+            habits = JSON.parse(localStorage.getItem('habits') || '[]');
+            const completionsRaw = JSON.parse(localStorage.getItem('completions') || '{}');
+            completions = Object.fromEntries(
+                Object.entries(completionsRaw).map(([k, v]) => [k, new Set(v)])
+            );
+        }
+
+        // Initialize
+        loadData();
+        renderWeekHeader();
+        renderCalendar();
+        updateStats();
+    </script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Posts{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1>All Posts</h1>
+    <a href="{{ url_for('new_post') }}" class="btn btn-primary">New Post</a>
+</div>
+
+<div class="card">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Author</th>
+                <th>Status</th>
+                <th>Views</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for post in posts.items %}
+            <tr>
+                <td><a href="{{ url_for('edit_post', id=post.id) }}">{{ post.title }}</a></td>
+                <td>{{ post.category.name if post.category else '-' }}</td>
+                <td>{{ post.author.username }}</td>
+                <td>
+                    <span class="badge {% if post.is_published %}published{% else %}draft{% endif %}">
+                        {{ 'Published' if post.is_published else 'Draft' }}
+                    </span>
+                </td>
+                <td>{{ post.view_count }}</td>
+                <td>{{ post.created_at.strftime('%b %d, %Y') }}</td>
+                <td>
+                    <a href="{{ url_for('edit_post', id=post.id) }}" class="btn btn-sm btn-outline">Edit</a>
+                    <a href="{{ url_for('post', slug=post.slug) }}" target="_blank" class="btn btn-sm btn-ghost">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if posts.pages > 1 %}
+<div class="pagination admin-pagination">
+    {% if posts.has_prev %}
+    <a href="{{ url_for('admin_posts', page=posts.prev_num) }}" class="btn btn-outline">&laquo; Previous</a>
+    {% endif %}
+    {% for p in posts.iter_pages() %}
+        {% if p %}
+        <a href="{{ url_for('admin_posts', page=p) }}" class="btn {% if p == posts.page %}btn-primary{% else %}btn-outline{% endif %}">{{ p }}</a>
+        {% endif %}
+    {% endfor %}
+    {% if posts.has_next %}
+    <a href="{{ url_for('admin_posts', page=posts.next_num) }}" class="btn btn-outline">Next &raquo;</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

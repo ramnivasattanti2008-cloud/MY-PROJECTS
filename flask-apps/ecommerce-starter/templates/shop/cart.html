@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Shopping Cart{% endblock %}
+
+{% block content %}
+<section class="cart-page">
+    <div class="container">
+        <h1>Shopping Cart</h1>
+
+        {% if cart_items %}
+        <div class="cart-layout">
+            <div class="cart-items">
+                {% for item in cart_items %}
+                <div class="cart-item" data-id="{{ item.product_id }}">
+                    <div class="item-image">
+                        <div class="product-placeholder sm"></div>
+                    </div>
+                    <div class="item-details">
+                        <h3>{{ item.name }}</h3>
+                        <p class="item-price">${{ "%.2f"|format(item.price) }}</p>
+                    </div>
+                    <div class="item-quantity">
+                        <button class="qty-btn update-qty" data-action="minus" data-id="{{ item.product_id }}">-</button>
+                        <span class="qty-value">{{ item.quantity }}</span>
+                        <button class="qty-btn update-qty" data-action="plus" data-id="{{ item.product_id }}">+</button>
+                    </div>
+                    <div class="item-total">
+                        ${{ "%.2f"|format(item.price * item.quantity) }}
+                    </div>
+                    <button class="remove-item" data-id="{{ item.product_id }}">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                        </svg>
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="cart-summary">
+                <h2>Order Summary</h2>
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="subtotal">${{ "%.2f"|format(subtotal) }}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Shipping</span>
+                    <span id="shipping">{% if shipping == 0 %}FREE{% else %}${{ "%.2f"|format(shipping) }}{% endif %}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Tax (8%)</span>
+                    <span id="tax">${{ "%.2f"|format(tax) }}</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <span id="total">${{ "%.2f"|format(total) }}</span>
+                </div>
+                <a href="{{ url_for('checkout') }}" class="btn btn-primary btn-block">Proceed to Checkout</a>
+                <p class="free-shipping-note">Free shipping on orders over $50</p>
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-cart">
+            <div class="empty-icon">🛒</div>
+            <h2>Your cart is empty</h2>
+            <p>Looks like you haven't added any items to your cart yet.</p>
+            <a href="{{ url_for('shop') }}" class="btn btn-primary">Continue Shopping</a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,3 @@
+# Python Web Server
+# No external dependencies required!
+# Uses only built-in modules: http.server, json, os, datetime

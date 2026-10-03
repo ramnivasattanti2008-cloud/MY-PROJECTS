@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ 'Shop' if not category else category.name }}{% endblock %}
+
+{% block content %}
+<section class="shop-header">
+    <div class="container">
+        <h1>{{ category.name if category else 'All Products' }}</h1>
+        <p>{{ category.description if category else 'Browse our complete collection' }}</p>
+    </div>
+</section>
+
+<section class="shop-content">
+    <div class="container">
+        <div class="shop-layout">
+            <aside class="shop-sidebar">
+                <div class="filter-section">
+                    <h4>Categories</h4>
+                    <ul class="filter-list">
+                        <li><a href="{{ url_for('shop') }}" {% if not category %}class="active"{% endif %}>All Products</a></li>
+                        {% for cat in categories %}
+                        <li><a href="{{ url_for('category', slug=cat.slug) }}" {% if category and category.id == cat.id %}class="active"{% endif %}>{{ cat.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <form class="search-filter" method="GET" action="{{ url_for('shop') }}">
+                    <input type="text" name="q" value="{{ search or '' }}" placeholder="Search products..." class="form-control">
+                    <button type="submit" class="btn btn-outline btn-sm">Search</button>
+                </form>
+            </aside>
+
+            <div class="shop-main">
+                {% if products.items %}
+                <div class="products-grid">
+                    {% for product in products.items %}
+                    <article class="product-card">
+                        <a href="{{ url_for('product', slug=product.slug) }}" class="product-image">
+                            <div class="product-placeholder">
+                                {% if product.sale_price %}<span class="sale-badge">Sale</span>{% endif %}
+                            </div>
+                        </a>
+                        <div class="product-info">
+                            <span class="product-category">{{ product.category.name if product.category else 'General' }}</span>
+                            <h3><a href="{{ url_for('product', slug=product.slug) }}">{{ product.name }}</a></h3>
+                            <div class="product-price">
+                                {% if product.sale_price %}
+                                <span class="price-sale">${{ "%.2f"|format(product.sale_price) }}</span>
+                                <span class="price-original">${{ "%.2f"|format(product.price) }}</span>
+                                {% else %}
+                                <span class="price">${{ "%.2f"|format(product.price) }}</span>
+                                {% endif %}
+                            </div>
+                            <button class="btn btn-primary btn-sm add-to-cart" data-id="{{ product.id }}">Add to Cart</button>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+
+                {% if products.pages > 1 %}
+                <div class="pagination">
+                    {% if products.has_prev %}
+                    <a href="{{ url_for('shop', page=products.prev_num, category=request.args.get('category'), q=search) }}" class="btn btn-outline">&laquo; Previous</a>
+                    {% endif %}
+                    {% for p in products.iter_pages() %}
+                        {% if p %}
+                        <a href="{{ url_for('shop', page=p, category=request.args.get('category'), q=search) }}" class="btn {% if p == products.page %}btn-primary{% else %}btn-outline{% endif %}">{{ p }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    {% if products.has_next %}
+                    <a href="{{ url_for('shop', page=products.next_num, category=request.args.get('category'), q=search) }}" class="btn btn-outline">Next &raquo;</a>
+                    {% endif %}
+                </div>
+                {% endif %}
+                {% else %}
+                <div class="empty-state">
+                    <p>No products found.</p>
+                    <a href="{{ url_for('shop') }}" class="btn btn-primary">Browse All Products</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

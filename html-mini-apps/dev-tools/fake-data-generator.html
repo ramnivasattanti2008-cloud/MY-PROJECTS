@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake Data Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            background: #0a0a0f;
+            font-family: 'DM Sans', sans-serif;
+            color: #e2e8f0;
+            padding: 40px 20px;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 48px; animation: fadeIn 0.8s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #f97316, #fb923c, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle { color: #6b7280; margin-top: 8px; }
+        .controls {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.8s ease 0.2s backwards;
+        }
+        .count-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(30, 30, 50, 0.8);
+            padding: 12px 20px;
+            border-radius: 14px;
+            border: 1px solid rgba(249, 115, 22, 0.2);
+        }
+        .count-group label { color: #9ca3af; font-size: 0.9rem; }
+        .count-group input {
+            width: 60px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #fb923c;
+            font-family: 'DM Mono', monospace;
+            font-size: 1rem;
+            text-align: center;
+        }
+        .data-types {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .type-btn {
+            background: rgba(30, 30, 50, 0.8);
+            border: 1px solid rgba(249, 115, 22, 0.2);
+            border-radius: 10px;
+            padding: 10px 18px;
+            color: #9ca3af;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem;
+        }
+        .type-btn:hover { border-color: rgba(249, 115, 22, 0.5); color: #fb923c; }
+        .type-btn.active { background: rgba(249, 115, 22, 0.15); border-color: #f97316; color: #fb923c; }
+        button.generate {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            border: none;
+            border-radius: 14px;
+            padding: 14px 32px;
+            color: white;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        button.generate:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(249, 115, 22, 0.3); }
+        .export-btns { display: flex; gap: 12px; margin-bottom: 24px; justify-content: flex-end; }
+        .export-btn {
+            background: rgba(30, 30, 50, 0.8);
+            border: 1px solid rgba(249, 115, 22, 0.2);
+            border-radius: 10px;
+            padding: 10px 18px;
+            color: #fb923c;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+        .export-btn:hover { border-color: #f97316; transform: translateY(-2px); }
+        .data-display {
+            background: rgba(15, 15, 25, 0.9);
+            border: 1px solid rgba(249, 115, 22, 0.15);
+            border-radius: 20px;
+            overflow: hidden;
+            animation: fadeIn 0.5s ease;
+        }
+        .data-item {
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            transition: background 0.2s ease;
+            animation: slideIn 0.3s ease backwards;
+        }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        .data-item:hover { background: rgba(249, 115, 22, 0.05); }
+        .data-item:last-child { border-bottom: none; }
+        .field { display: flex; flex-direction: column; gap: 4px; }
+        .field-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #6b7280; }
+        .field-value {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.9rem;
+            color: #e2e8f0;
+            word-break: break-all;
+        }
+        .field-value.clickable { cursor: pointer; }
+        .field-value.clickable:hover { color: #fb923c; }
+        .avatar {
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f97316, #fbbf24);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: white;
+            flex-shrink: 0;
+        }
+        .user-card { display: flex; gap: 16px; align-items: center; }
+        .user-info { display: flex; flex-direction: column; }
+        .user-name { font-weight: 600; color: #e2e8f0; }
+        .user-email { color: #6b7280; font-size: 0.85rem; }
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(249, 115, 22, 0.15);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            backdrop-filter: blur(10px);
+            padding: 14px 28px;
+            border-radius: 12px;
+            color: #fb923c;
+            font-weight: 500;
+            z-index: 1000;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+        .empty-state svg { width: 64px; height: 64px; margin-bottom: 16px; opacity: 0.5; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Fake Data Generator</h1>
+            <p class="subtitle">Generate realistic test data instantly</p>
+        </header>
+        <div class="controls">
+            <div class="count-group">
+                <label>Count:</label>
+                <input type="number" id="count" value="5" min="1" max="50">
+            </div>
+            <div class="data-types">
+                <button class="type-btn active" data-type="user">User</button>
+                <button class="type-btn" data-type="company">Company</button>
+                <button class="type-btn" data-type="address">Address</button>
+                <button class="type-btn" data-type="product">Product</button>
+            </div>
+            <button class="generate" onclick="generateData()">Generate</button>
+        </div>
+        <div class="export-btns">
+            <button class="export-btn" onclick="copyJSON()">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy JSON
+            </button>
+            <button class="export-btn" onclick="downloadCSV()">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                Download CSV
+            </button>
+        </div>
+        <div class="data-display" id="dataDisplay">
+            <div class="empty-state">
+                <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                <p>Click "Generate" to create fake data</p>
+            </div>
+        </div>
+    </div>
+    <div class="toast" id="toast">Copied!</div>
+    <script>
+        let generatedData = [];
+        let currentType = 'user';
+
+        // Data pools
+        const firstNames = ['James', 'Emma', 'Liam', 'Olivia', 'Noah', 'Ava', 'William', 'Sophia', 'Benjamin', 'Isabella', 'Lucas', 'Mia', 'Henry', 'Charlotte', 'Alexander', 'Amelia', 'Mason', 'Harper', 'Ethan', 'Evelyn'];
+        const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Anderson', 'Taylor', 'Thomas', 'Moore', 'Jackson', 'Martin', 'Lee', 'Thompson', 'White', 'Harris'];
+        const domains = ['gmail.com', 'yahoo.com', 'outlook.com', 'proton.me', 'icloud.com'];
+        const streets = ['Oak', 'Maple', 'Cedar', 'Pine', 'Elm', 'Main', 'Park', 'Lake', 'Hill', 'River', 'Forest', 'Spring', 'Valley', 'Sunset', 'Highland'];
+        const cities = ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix', 'San Antonio', 'San Diego', 'Dallas', 'Austin', 'Jacksonville', 'Seattle', 'Denver', 'Boston', 'Portland', 'Atlanta'];
+        const states = ['NY', 'CA', 'IL', 'TX', 'AZ', 'TX', 'CA', 'TX', 'TX', 'FL', 'WA', 'CO', 'MA', 'OR', 'GA'];
+        const companies = ['TechCorp', 'DataSync', 'CloudNine', 'ByteWorks', 'CodeLab', 'NetForce', 'CyberEdge', 'InfoStream', 'DigitalHub', 'SmartSolutions', 'NextGen', 'PrimeTech', 'AlphaSoft', 'BetaWorks', 'GammaLogic'];
+        const products = ['Laptop Pro', 'Wireless Mouse', 'USB-C Hub', 'Mechanical Keyboard', 'Monitor Stand', 'Webcam HD', 'Headphones', 'SSD Drive', 'RAM Module', 'Graphics Card', 'Power Bank', 'Cable Kit', 'Desk Mat', 'LED Light', 'Phone Stand'];
+
+        function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+        function pick(arr) { return arr[rnd(0, arr.length - 1)]; }
+
+        function generateUser() {
+            const first = pick(firstNames);
+            const last = pick(lastNames);
+            const domain = pick(domains);
+            return {
+                firstName: first,
+                lastName: last,
+                fullName: `${first} ${last}`,
+                email: `${first.toLowerCase()}.${last.toLowerCase()}${rnd(1, 99)}@${domain}`,
+                phone: `+1 (${rnd(200, 999)}) ${rnd(200, 999)}-${rnd(1000, 9999)}`,
+                age: rnd(18, 75),
+                username: `${first.toLowerCase()}${last.toLowerCase()}${rnd(1, 99)}`,
+                password: `Pass${rnd(1000, 9999)}!`
+            };
+        }
+
+        function generateCompany() {
+            const name = pick(companies);
+            return {
+                name: `${name} ${pick(['Inc', 'LLC', 'Corp', 'Ltd', 'Solutions'])}`,
+                industry: pick(['Technology', 'Healthcare', 'Finance', 'Retail', 'Manufacturing', 'Education', 'Media']),
+                employees: rnd(10, 10000),
+                revenue: `$${(rnd(1, 500) * 1000000).toLocaleString()}`,
+                founded: rnd(1990, 2023),
+                website: `https://www.${name.toLowerCase()}.com`,
+                phone: `+1 (${rnd(200, 999)}) ${rnd(200, 999)}-${rnd(1000, 9999)}`
+            };
+        }
+
+        function generateAddress() {
+            return {
+                street: `${rnd(100, 9999)} ${pick(streets)} ${pick(['St', 'Ave', 'Blvd', 'Dr', 'Ln', 'Rd'])}`,
+                city: pick(cities),
+                state: pick(states),
+                zip: `${rnd(10000, 99999)}`,
+                country: 'United States',
+                coordinates: `${rnd(25, 48)}.${rnd(0, 999)}, ${rnd(-125, -65)}.${rnd(0, 999)}`
+            };
+        }
+
+        function generateProduct() {
+            return {
+                name: `${pick(products)} ${rnd(100, 9999)}`,
+                category: pick(['Electronics', 'Office', 'Accessories', 'Storage', 'Audio', 'Peripherals']),
+                price: `$${(rnd(9, 999))}.${rnd(0, 99)}`,
+                sku: `SKU-${rnd(100000, 999999)}`,
+                inStock: rnd(0, 500),
+                rating: (rnd(30, 50) / 10).toFixed(1),
+                weight: `${rnd(1, 5000)}g`
+            };
+        }
+
+        function generateData() {
+            const count = parseInt(document.getElementById('count').value) || 5;
+            const type = currentType;
+            generatedData = [];
+            for (let i = 0; i < count; i++) {
+                switch (type) {
+                    case 'user': generatedData.push(generateUser()); break;
+                    case 'company': generatedData.push(generateCompany()); break;
+                    case 'address': generatedData.push(generateAddress()); break;
+                    case 'product': generatedData.push(generateProduct()); break;
+                }
+            }
+            renderData();
+        }
+
+        function renderData() {
+            const container = document.getElementById('dataDisplay');
+            if (generatedData.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>Click "Generate" to create fake data</p></div>';
+                return;
+            }
+            container.innerHTML = generatedData.map((item, i) => {
+                const entries = Object.entries(item);
+                if (currentType === 'user') {
+                    return `<div class="data-item" style="animation-delay:${i * 0.05}s">
+                        <div class="user-card">
+                            <div class="avatar">${item.firstName[0]}${item.lastName[0]}</div>
+                            <div class="user-info">
+                                <span class="user-name">${item.fullName}</span>
+                                <span class="user-email">${item.email}</span>
+                            </div>
+                        </div>
+                        ${entries.filter(([k]) => k !== 'firstName' && k !== 'lastName' && k !== 'fullName').map(([key, val]) => `
+                            <div class="field">
+                                <span class="field-label">${key}</span>
+                                <span class="field-value clickable" onclick="copy('${val}')">${val}</span>
+                            </div>
+                        `).join('')}
+                    </div>`;
+                }
+                return `<div class="data-item" style="animation-delay:${i * 0.05}s">
+                    ${entries.map(([key, val]) => `
+                        <div class="field">
+                            <span class="field-label">${key}</span>
+                            <span class="field-value clickable" onclick="copy('${val}')">${val}</span>
+                        </div>
+                    `).join('')}
+                </div>`;
+            }).join('');
+        }
+
+        function copy(text) {
+            navigator.clipboard.writeText(text);
+            showToast('Copied!');
+        }
+
+        function copyJSON() {
+            if (!generatedData.length) return;
+            navigator.clipboard.writeText(JSON.stringify(generatedData, null, 2));
+            showToast('JSON copied!');
+        }
+
+        function downloadCSV() {
+            if (!generatedData.length) return;
+            const headers = Object.keys(generatedData[0]);
+            const rows = generatedData.map(item => headers.map(h => `"${item[h]}"`).join(','));
+            const csv = [headers.join(','), ...rows].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'data.csv'; a.click();
+            URL.revokeObjectURL(url);
+            showToast('CSV downloaded!');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // Type selection
+        document.querySelectorAll('.type-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentType = btn.dataset.type;
+            });
+        });
+
+        generateData();
+    </script>
+</body>
+</html>

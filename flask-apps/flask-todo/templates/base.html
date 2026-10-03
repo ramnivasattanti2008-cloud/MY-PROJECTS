@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Todo App{% endblock %}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+        .container { max-width: 800px; margin: 0 auto; padding: 2rem; }
+        h1 { font-size: 2rem; margin-bottom: 1.5rem; color: #f8fafc; }
+        h2 { font-size: 1.25rem; margin-bottom: 1rem; color: #94a3b8; }
+        .card { background: #1e293b; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 8px; border: none; cursor: pointer; font-size: 0.875rem; font-weight: 500; text-decoration: none; transition: all 0.2s; }
+        .btn-primary { background: #6366f1; color: #fff; }
+        .btn-primary:hover { background: #4f46e5; }
+        .btn-success { background: #22c55e; color: #fff; }
+        .btn-success:hover { background: #16a34a; }
+        .btn-danger { background: #ef4444; color: #fff; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-ghost { background: transparent; color: #94a3b8; }
+        .btn-ghost:hover { background: #334155; color: #e2e8f0; }
+        input, select, textarea { width: 100%; padding: 0.75rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #f8fafc; font-size: 1rem; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #6366f1; }
+        .form-row { display: flex; gap: 1rem; margin-bottom: 1rem; }
+        .form-row input { flex: 1; }
+        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
+        .stat { background: #1e293b; padding: 1.5rem; border-radius: 12px; text-align: center; }
+        .stat-value { font-size: 2rem; font-weight: 700; }
+        .stat-label { color: #64748b; font-size: 0.875rem; }
+        .task-list { list-style: none; }
+        .task { display: flex; align-items: center; gap: 1rem; padding: 1rem; background: #0f172a; border-radius: 8px; margin-bottom: 0.75rem; }
+        .task.completed { opacity: 0.6; }
+        .task.completed .task-title { text-decoration: line-through; }
+        .task-checkbox { width: 20px; height: 20px; cursor: pointer; }
+        .task-title { flex: 1; }
+        .task-category { padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; }
+        .nav { display: flex; gap: 1rem; margin-bottom: 2rem; }
+        .category-badge { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0.75rem; border-radius: 6px; font-size: 0.875rem; }
+        .empty { text-align: center; padding: 3rem; color: #64748b; }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="container">
+        <h1>&#9745; Todo App</h1>
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

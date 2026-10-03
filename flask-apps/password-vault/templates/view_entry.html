@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ entry.title }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2>{{ entry.title }}</h2>
+            <div>
+                <a href="{{ url_for('edit_entry', id=entry.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+                <form method="post" action="{{ url_for('delete_entry', id=entry.id) }}" style="display: inline;">
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this entry?')">Delete</button>
+                </form>
+            </div>
+        </div>
+
+        {% if entry.username %}
+        <div style="margin-bottom: 1rem;">
+            <label style="color: #8b949e; font-size: 0.9rem;">Username</label>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span>{{ entry.username }}</span>
+                <button class="copy-btn" onclick="copyToClipboard('{{ entry.username }}')">Copy</button>
+            </div>
+        </div>
+        {% endif %}
+
+        <div style="margin-bottom: 1rem;">
+            <label style="color: #8b949e; font-size: 0.9rem;">Password</label>
+            <div class="password-field">
+                <code id="password">{{ decrypted_password }}</code>
+                <button class="copy-btn" onclick="copyToClipboard('{{ decrypted_password }}')">Copy</button>
+            </div>
+        </div>
+
+        {% if entry.url %}
+        <div style="margin-bottom: 1rem;">
+            <label style="color: #8b949e; font-size: 0.9rem;">Website</label>
+            <div>
+                <a href="{{ entry.url }}" target="_blank" style="color: #58a6ff;">{{ entry.url }}</a>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if entry.tags %}
+        <div style="margin-bottom: 1rem;">
+            <label style="color: #8b949e; font-size: 0.9rem;">Tags</label>
+            <div class="tags">
+                {% for tag in entry.tags.split(',') %}
+                <a href="{{ url_for('index', tag=tag.strip()) }}" class="tag">{{ tag.strip() }}</a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if entry.notes %}
+        <div style="margin-bottom: 1rem;">
+            <label style="color: #8b949e; font-size: 0.9rem;">Notes</label>
+            <div style="white-space: pre-wrap;">{{ entry.notes }}</div>
+        </div>
+        {% endif %}
+
+        <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #30363d; color: #8b949e; font-size: 0.85rem;">
+            Created: {{ entry.created_at.strftime('%Y-%m-%d %H:%M') }}
+            {% if entry.updated_at != entry.created_at %}
+            | Updated: {{ entry.updated_at.strftime('%Y-%m-%d %H:%M') }}
+            {% endif %}
+        </div>
+    </div>
+
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Back to Vault</a>
+</div>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Question {{ current }} of {{ total }} - Quiz App{% endblock %}
+
+{% block extra_css %}
+<style>
+    .question-counter {
+        display: inline-block;
+        background: linear-gradient(135deg, #f97316, #ea580c);
+        color: white;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 24px;
+    }
+    .question-text {
+        font-size: 1.5rem;
+        font-weight: 600;
+        line-height: 1.5;
+        margin-bottom: 32px;
+    }
+    .category-badge {
+        display: inline-block;
+        background: rgba(249, 115, 22, 0.15);
+        color: #f97316;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        margin-left: 12px;
+    }
+    .difficulty-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        margin-left: 8px;
+    }
+    .difficulty-easy { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+    .difficulty-medium { background: rgba(234, 179, 8, 0.15); color: #eab308; }
+    .difficulty-hard { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+    .timer {
+        text-align: right;
+        color: #71717a;
+        font-size: 14px;
+        margin-bottom: 16px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 40px 20px;">
+    <div class="progress-bar">
+        <div class="progress-fill" style="width: {{ (current / total * 100)|round }}%;"></div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+        <span class="question-counter">{{ current }} / {{ total }}</span>
+        <span class="category-badge">{{ question.category|upper }}</span>
+        <span class="difficulty-badge difficulty-{{ question.difficulty }}">{{ question.difficulty|upper }}</span>
+    </div>
+
+    <div class="card">
+        <p class="question-text">{{ question.question }}</p>
+
+        <form action="/quiz/answer" method="POST" id="quiz-form">
+            <button type="submit" name="answer" value="A" class="option-btn" onclick="selectOption(this)">
+                <span class="option-letter">A</span>{{ question.option_a }}
+            </button>
+            <button type="submit" name="answer" value="B" class="option-btn" onclick="selectOption(this)">
+                <span class="option-letter">B</span>{{ question.option_b }}
+            </button>
+            <button type="submit" name="answer" value="C" class="option-btn" onclick="selectOption(this)">
+                <span class="option-letter">C</span>{{ question.option_c }}
+            </button>
+            <button type="submit" name="answer" value="D" class="option-btn" onclick="selectOption(this)">
+                <span class="option-letter">D</span>{{ question.option_d }}
+            </button>
+        </form>
+    </div>
+
+    <div style="text-align: center; margin-top: 24px;">
+        <a href="/" onclick="return confirm('Are you sure you want to quit? Your progress will be lost.')" class="btn btn-secondary">
+            Quit Quiz
+        </a>
+    </div>
+</div>
+
+<script>
+function selectOption(btn) {
+    document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="header-content">
+        <h1>Dashboard</h1>
+        <p>Welcome back, {{ current_user.name }}</p>
+    </div>
+    <a href="#" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14"/>
+        </svg>
+        New Project
+    </a>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
+        </div>
+        <div class="stat-info">
+            <span class="stat-value">{{ stats.api_calls|default(0) }}</span>
+            <span class="stat-label">API Calls Today</span>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+            </svg>
+        </div>
+        <div class="stat-info">
+            <span class="stat-value">{{ stats.active_projects|default(0) }}</span>
+            <span class="stat-label">Active Projects</span>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+            </svg>
+        </div>
+        <div class="stat-info">
+            <span class="stat-value">{{ stats.storage_used|default('0 GB') }}</span>
+            <span class="stat-label">Storage Used</span>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 20V10M18 20V4M6 20v-4"/>
+            </svg>
+        </div>
+        <div class="stat-info">
+            <span class="stat-value">{{ stats.quota_used|default(0) }}%</span>
+            <span class="stat-label">Quota Used</span>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="card activity-card">
+        <div class="card-header">
+            <h3>Recent Activity</h3>
+            <a href="#" class="view-all">View All</a>
+        </div>
+        <div class="activity-list">
+            {% for item in activity %}
+            <div class="activity-item">
+                <div class="activity-icon activity-{{ item.type }}">
+                    {% if item.type == 'api' %}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
+                    {% else %}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+                    </svg>
+                    {% endif %}
+                </div>
+                <div class="activity-content">
+                    <span class="activity-message">{{ item.message }}</span>
+                    <span class="activity-time">{{ item.time }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card quick-start">
+        <div class="card-header">
+            <h3>Quick Start</h3>
+        </div>
+        <div class="quick-start-content">
+            <div class="code-snippet">
+                <div class="code-header">
+                    <span>Python</span>
+                </div>
+                <pre><code>pip install saasapp-sdk
+
+import saasapp
+client = saasapp.Client('YOUR_API_KEY')
+
+result = client.analyze(data)
+print(result)</code></pre>
+            </div>
+            <a href="/documentation" class="btn btn-outline">View Full Docs</a>
+        </div>
+    </div>
+</div>
+
+<div class="card usage-card">
+    <div class="card-header">
+        <h3>API Usage This Month</h3>
+    </div>
+    <div class="usage-chart">
+        <div class="chart-bars">
+            <div class="chart-bar" style="height: 45%"><span>Mon</span></div>
+            <div class="chart-bar" style="height: 60%"><span>Tue</span></div>
+            <div class="chart-bar" style="height: 35%"><span>Wed</span></div>
+            <div class="chart-bar" style="height: 80%"><span>Thu</span></div>
+            <div class="chart-bar" style="height: 55%"><span>Fri</span></div>
+            <div class="chart-bar" style="height: 40%"><span>Sat</span></div>
+            <div class="chart-bar" style="height: 70%"><span>Sun</span></div>
+        </div>
+    </div>
+</div>
+{% endblock %}

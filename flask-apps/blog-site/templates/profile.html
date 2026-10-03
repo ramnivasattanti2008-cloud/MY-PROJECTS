@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - Flask Blog{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1 style="margin-bottom: 1rem;">{{ user.username }}'s Profile</h1>
+    <p><strong>Email:</strong> {{ user.email }}</p>
+    <p><strong>Member since:</strong> {{ user.created_at.strftime('%B %d, %Y') }}</p>
+
+    <div class="profile-stats">
+        <div class="stat">
+            <div class="number">{{ posts|length }}</div>
+            <div class="label">Posts</div>
+        </div>
+        <div class="stat">
+            <div class="number">{{ total_comments }}</div>
+            <div class="label">Comments</div>
+        </div>
+    </div>
+</div>
+
+<h2 style="margin: 1.5rem 0;">My Posts</h2>
+
+{% if posts %}
+    {% for post in posts %}
+    <div class="card">
+        <h3><a href="{{ url_for('view_post', slug=post.slug) }}">{{ post.title }}</a></h3>
+        <div class="meta">
+            {{ post.created_at.strftime('%B %d, %Y') }}
+            | {{ post.comment_count }} comment{{ post.comment_count|default(0) != 1 and 's' or '' }}
+        </div>
+        <a href="{{ url_for('edit_post', slug=post.slug) }}" class="btn btn-secondary">Edit</a>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="card">
+        <p style="text-align: center; color: #7f8c8d;">
+            You haven't written any posts yet. <a href="{{ url_for('create_post') }}">Create one!</a>
+        </p>
+    </div>
+{% endif %}
+{% endblock %}

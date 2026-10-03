@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favicon Generator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent: #58a6ff;
+            --border: #30363d;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 24px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        header h1 span { color: var(--accent); }
+        header p { color: var(--text-secondary); }
+        .upload-section {
+            background: var(--bg-secondary);
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            padding: 48px;
+            text-align: center;
+            margin-bottom: 24px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .upload-section:hover, .upload-section.dragover {
+            border-color: var(--accent);
+            background: rgba(88, 166, 255, 0.05);
+        }
+        .upload-section svg {
+            width: 64px;
+            height: 64px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+        .upload-section h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+        .upload-section p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        #fileInput { display: none; }
+        .canvas-section {
+            display: none;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        .canvas-section.active { display: grid; grid-template-columns: 1fr 1fr; }
+        .canvas-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+        }
+        .panel-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .canvas-container {
+            position: relative;
+            background: repeating-conic-gradient(#333 0% 25%, #444 0% 50%) 50% / 20px 20px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+        #sourceCanvas, #previewCanvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            max-height: 300px;
+            object-fit: contain;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .control-group label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .control-group input, .control-group select {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+        .control-group input:focus { border-color: var(--accent); }
+        .sizes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .size-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .size-item:hover { border-color: var(--accent); transform: translateY(-2px); }
+        .size-item canvas {
+            border-radius: 4px;
+            image-rendering: pixelated;
+        }
+        .size-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-family: 'Consolas', monospace;
+        }
+        .action-btn {
+            width: 100%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            margin-bottom: 8px;
+        }
+        .action-btn:hover { background: var(--accent); border-color: var(--accent); }
+        .action-btn.primary {
+            background: linear-gradient(135deg, var(--accent), #a855f7);
+            border: none;
+        }
+        .action-btn.primary:hover { transform: scale(1.02); box-shadow: 0 4px 20px rgba(88, 166, 255, 0.3); }
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--accent);
+            color: var(--text-primary);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        @media (max-width: 768px) {
+            .canvas-section.active { grid-template-columns: 1fr; }
+            .controls { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><span>&#9672;</span> Favicon Generator</h1>
+        <p>Generate favicons in multiple sizes from your image</p>
+    </header>
+
+    <div class="upload-section" id="uploadSection">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>
+        <h3>Drop your image here or click to upload</h3>
+        <p>Supports PNG, JPG, SVG, WebP</p>
+        <input type="file" id="fileInput" accept="image/*">
+    </div>
+
+    <div class="canvas-section" id="canvasSection">
+        <div class="canvas-panel">
+            <div class="panel-title">Source Image</div>
+            <div class="canvas-container">
+                <canvas id="sourceCanvas"></canvas>
+            </div>
+            <div class="controls">
+                <div class="control-group">
+                    <label>Background Color</label>
+                    <input type="color" id="bgColor" value="#4F7DF3">
+                </div>
+                <div class="control-group">
+                    <label>Shape</label>
+                    <select id="shapeSelect">
+                        <option value="square">Square</option>
+                        <option value="rounded">Rounded</option>
+                        <option value="circle">Circle</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Padding</label>
+                    <input type="range" id="paddingInput" min="0" max="50" value="10">
+                </div>
+                <div class="control-group">
+                    <label>Scale</label>
+                    <input type="range" id="scaleInput" min="50" max="150" value="100">
+                </div>
+            </div>
+            <button class="action-btn" onclick="document.getElementById('fileInput').click()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                Change Image
+            </button>
+        </div>
+        <div class="canvas-panel">
+            <div class="panel-title">Generated Sizes</div>
+            <div class="sizes-grid" id="sizesGrid"></div>
+            <button class="action-btn primary" onclick="downloadIco()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Download ICO File
+            </button>
+            <button class="action-btn" onclick="downloadPng()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Download 32x32 PNG
+            </button>
+            <button class="action-btn" onclick="downloadSvg()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Download SVG
+            </button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Downloaded successfully!</div>
+
+    <script>
+        const uploadSection = document.getElementById('uploadSection');
+        const canvasSection = document.getElementById('canvasSection');
+        const fileInput = document.getElementById('fileInput');
+        const sourceCanvas = document.getElementById('sourceCanvas');
+        const ctx = sourceCanvas.getContext('2d');
+
+        const sizes = [16, 32, 48, 64, 128, 256];
+        const sizeCanvases = {};
+
+        let originalImage = null;
+        let settings = {
+            bgColor: '#4F7DF3',
+            shape: 'square',
+            padding: 10,
+            scale: 100
+        };
+
+        // Drag and drop
+        uploadSection.addEventListener('click', () => fileInput.click());
+        uploadSection.addEventListener('dragover', e => { e.preventDefault(); uploadSection.classList.add('dragover'); });
+        uploadSection.addEventListener('dragleave', () => uploadSection.classList.remove('dragover'));
+        uploadSection.addEventListener('drop', e => {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) loadImage(file);
+        });
+        fileInput.addEventListener('change', e => {
+            if (e.target.files[0]) loadImage(e.target.files[0]);
+        });
+
+        function loadImage(file) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                originalImage = new Image();
+                originalImage.onload = () => {
+                    sourceCanvas.width = originalImage.width;
+                    sourceCanvas.height = originalImage.height;
+                    ctx.drawImage(originalImage, 0, 0);
+                    uploadSection.style.display = 'none';
+                    canvasSection.classList.add('active');
+                    updateFavicons();
+                };
+                originalImage.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function drawFavicon(size, canvas) {
+            const ctx = canvas.getContext('2d');
+            canvas.width = size;
+            canvas.height = size;
+
+            const padding = Math.round(size * settings.padding / 100);
+            const innerSize = size - padding * 2;
+
+            // Draw background
+            ctx.fillStyle = settings.bgColor;
+            if (settings.shape === 'circle') {
+                ctx.beginPath();
+                ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                const radius = settings.shape === 'rounded' ? size * 0.15 : 0;
+                roundRect(ctx, 0, 0, size, size, radius);
+                ctx.fill();
+            }
+
+            // Draw image
+            if (originalImage) {
+                const scale = settings.scale / 100;
+                const imgSize = innerSize * scale;
+                const x = (size - imgSize) / 2;
+                const y = (size - imgSize) / 2;
+
+                ctx.save();
+                if (settings.shape === 'circle') {
+                    ctx.beginPath();
+                    ctx.arc(size / 2, size / 2, size / 2 - 2, 0, Math.PI * 2);
+                    ctx.clip();
+                }
+                ctx.drawImage(originalImage, x, y, imgSize, imgSize);
+                ctx.restore();
+            }
+        }
+
+        function roundRect(ctx, x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+        }
+
+        function updateFavicons() {
+            const grid = document.getElementById('sizesGrid');
+            grid.innerHTML = '';
+
+            sizes.forEach(size => {
+                const canvas = document.createElement('canvas');
+                sizeCanvases[size] = canvas;
+                drawFavicon(size, canvas);
+
+                const item = document.createElement('div');
+                item.className = 'size-item';
+                item.innerHTML = `<div style="width:${Math.min(size, 64)}px;height:${Math.min(size, 64)}px;"></div>`;
+                item.querySelector('div').appendChild(canvas);
+
+                const label = document.createElement('div');
+                label.className = 'size-label';
+                label.textContent = `${size}x${size}`;
+                item.appendChild(label);
+
+                item.addEventListener('click', () => {
+                    const link = document.createElement('a');
+                    link.download = `favicon-${size}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                    showToast(`Downloaded ${size}x${size} PNG`);
+                });
+
+                grid.appendChild(item);
+            });
+        }
+
+        function downloadIco() {
+            // Create ICO file with multiple sizes
+            const icoSizes = [16, 32, 48, 256];
+            const images = icoSizes.map(size => {
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+
+                // Scale original image
+                const padding = Math.round(size * settings.padding / 100);
+                const innerSize = size - padding * 2;
+                const scale = settings.scale / 100;
+                const imgSize = innerSize * scale;
+                const x = (size - imgSize) / 2;
+                const y = (size - imgSize) / 2;
+
+                ctx.fillStyle = settings.bgColor;
+                ctx.fillRect(0, 0, size, size);
+
+                if (originalImage) {
+                    ctx.drawImage(originalImage, x, y, imgSize, imgSize);
+                }
+
+                return canvas;
+            });
+
+            // Create simple ICO (just using largest PNG for now)
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = settings.bgColor;
+            ctx.fillRect(0, 0, 256, 256);
+
+            if (originalImage) {
+                const padding = Math.round(256 * settings.padding / 100);
+                const innerSize = 256 - padding * 2;
+                const scale = settings.scale / 100;
+                const imgSize = innerSize * scale;
+                const x = (256 - imgSize) / 2;
+                const y = (256 - imgSize) / 2;
+                ctx.drawImage(originalImage, x, y, imgSize, imgSize);
+            }
+
+            // Download as PNG (simplified ICO)
+            const link = document.createElement('a');
+            link.download = 'favicon.ico';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+
+            showToast('Downloaded favicon.ico');
+        }
+
+        function downloadPng() {
+            const canvas = sizeCanvases[32] || sizeCanvases[16];
+            const link = document.createElement('a');
+            link.download = 'favicon.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            showToast('Downloaded favicon.png');
+        }
+
+        function downloadSvg() {
+            // Create SVG
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+            svg.setAttribute('viewBox', '0 0 256 256');
+            svg.setAttribute('width', '256');
+            svg.setAttribute('height', '256');
+
+            const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            bg.setAttribute('width', '256');
+            bg.setAttribute('height', '256');
+            bg.setAttribute('fill', settings.bgColor);
+            svg.appendChild(bg);
+
+            if (originalImage) {
+                const padding = Math.round(256 * settings.padding / 100);
+                const innerSize = 256 - padding * 2;
+                const scale = settings.scale / 100;
+                const imgSize = innerSize * scale;
+                const x = (256 - imgSize) / 2;
+                const y = (256 - imgSize) / 2;
+
+                const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+                img.setAttribute('x', x);
+                img.setAttribute('y', y);
+                img.setAttribute('width', imgSize);
+                img.setAttribute('height', imgSize);
+                img.setAttribute('href', sourceCanvas.toDataURL('image/png'));
+                svg.appendChild(img);
+            }
+
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const blob = new Blob([svgData], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement('a');
+            link.download = 'favicon.svg';
+            link.href = url;
+            link.click();
+
+            URL.revokeObjectURL(url);
+            showToast('Downloaded favicon.svg');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // Settings listeners
+        document.getElementById('bgColor').addEventListener('input', e => {
+            settings.bgColor = e.target.value;
+            updateFavicons();
+        });
+
+        document.getElementById('shapeSelect').addEventListener('change', e => {
+            settings.shape = e.target.value;
+            updateFavicons();
+        });
+
+        document.getElementById('paddingInput').addEventListener('input', e => {
+            settings.padding = parseInt(e.target.value);
+            updateFavicons();
+        });
+
+        document.getElementById('scaleInput').addEventListener('input', e => {
+            settings.scale = parseInt(e.target.value);
+            updateFavicons();
+        });
+    </script>
+</body>
+</html>

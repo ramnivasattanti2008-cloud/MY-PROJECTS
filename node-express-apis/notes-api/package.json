@@ -1,0 +1,12 @@
+{
+  "name": "notes-api",
+  "version": "1.0.0",
+  "description": "Express REST API for notes with CRUD, search, and categories",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": ["notes", "api", "express", "rest"],
+  "license": "MIT"
+}

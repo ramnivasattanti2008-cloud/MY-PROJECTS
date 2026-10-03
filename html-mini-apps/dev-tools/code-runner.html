@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Runner</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border: #30363d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent: #58a6ff;
+            --success: #3fb950;
+            --error: #f85149;
+            --warning: #d29922;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+        h1 { font-size: 1.5rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .lang-tabs { display: flex; gap: 4px; background: var(--bg-secondary); padding: 4px; border-radius: 8px; }
+        .lang-tab { padding: 8px 16px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; border-radius: 6px; font-size: 0.9rem; transition: all 0.2s; }
+        .lang-tab.active { background: var(--bg-tertiary); color: var(--text-primary); }
+        .lang-tab:hover:not(.active) { color: var(--text-primary); }
+        .editor-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: calc(100vh - 200px); min-height: 500px; }
+        .panel { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+        .panel-header { padding: 12px 16px; background: var(--bg-tertiary); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .panel-title { font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .run-btn { padding: 8px 20px; background: var(--accent); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+        .run-btn:hover { filter: brightness(1.1); }
+        .run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .editor-wrapper { flex: 1; position: relative; }
+        textarea { width: 100%; height: 100%; background: var(--bg-primary); color: var(--text-primary); border: none; padding: 16px; font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; font-size: 14px; line-height: 1.6; resize: none; outline: none; tab-size: 4; }
+        .output-panel { flex: 1; overflow: auto; }
+        .output-content { padding: 16px; font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
+        .output-success { color: var(--success); }
+        .output-error { color: var(--error); }
+        .output-info { color: var(--text-secondary); }
+        .output-empty { color: var(--text-secondary); font-style: italic; }
+        .controls { display: flex; gap: 8px; }
+        .control-btn { padding: 6px 12px; background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-secondary); border-radius: 4px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+        .control-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .sandbox-frame { display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner { width: 16px; height: 16px; border: 2px solid transparent; border-top-color: currentColor; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @media (max-width: 900px) { .editor-container { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Code Runner</h1>
+            <div class="lang-tabs">
+                <button class="lang-tab active" data-lang="javascript">JavaScript</button>
+                <button class="lang-tab" data-lang="python">Python</button>
+            </div>
+        </header>
+        <div class="editor-container">
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="panel-title">Source Code</span>
+                    <div class="controls">
+                        <button class="control-btn" id="clearBtn">Clear</button>
+                        <button class="run-btn" id="runBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> Run</button>
+                    </div>
+                </div>
+                <div class="editor-wrapper">
+                    <textarea id="codeEditor" spellcheck="false" placeholder="Enter your code here..."></textarea>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="panel-header">
+                    <span class="panel-title">Output</span>
+                    <button class="control-btn" id="clearOutputBtn">Clear</button>
+                </div>
+                <div class="output-panel">
+                    <div class="output-content" id="outputContent"><span class="output-empty">Run your code to see output here...</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <iframe id="sandboxFrame" class="sandbox-frame" sandbox="allow-scripts"></iframe>
+
+    <script>
+        const editor = document.getElementById('codeEditor');
+        const outputContent = document.getElementById('outputContent');
+        const runBtn = document.getElementById('runBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const clearOutputBtn = document.getElementById('clearOutputBtn');
+        const langTabs = document.querySelectorAll('.lang-tab');
+        const sandboxFrame = document.getElementById('sandboxFrame');
+
+        const defaultCode = {
+            javascript: `// JavaScript Code Runner
+function fibonacci(n) {
+    if (n <= 1) return n;
+    return fibonacci(n - 1) + fibonacci(n - 2);
+}
+
+// Calculate first 10 Fibonacci numbers
+console.log("Fibonacci Sequence:");
+for (let i = 0; i < 10; i++) {
+    console.log(\`F(\${i}) = \${fibonacci(i)}\`);
+}
+
+// Array operations
+const numbers = [64, 34, 25, 12, 22, 11, 90];
+console.log("\\nOriginal array:", numbers);
+
+const sorted = [...numbers].sort((a, b) => a - b);
+console.log("Sorted array:", sorted);
+
+const sum = numbers.reduce((a, b) => a + b, 0);
+console.log("Sum:", sum);
+console.log("Average:", (sum / numbers.length).toFixed(2));`,
+            python: `# Python Code Runner
+def fibonacci(n):
+    if n <= 1:
+        return n
+    return fibonacci(n - 1) + fibonacci(n - 2)
+
+# Calculate first 10 Fibonacci numbers
+print("Fibonacci Sequence:")
+for i in range(10):
+    print(f"F({i}) = {fibonacci(i)}")
+
+# List operations
+numbers = [64, 34, 25, 12, 22, 11, 90]
+print(f"\\nOriginal array: {numbers}")
+
+sorted_nums = sorted(numbers)
+print(f"Sorted array: {sorted_nums}")
+
+total = sum(numbers)
+print(f"Sum: {total}")
+print(f"Average: {total / len(numbers):.2f}")`
+        };
+
+        let currentLang = 'javascript';
+        editor.value = defaultCode.javascript;
+
+        langTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                langTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentLang = tab.dataset.lang;
+                editor.value = defaultCode[currentLang] || '';
+            });
+        });
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatOutput(text) {
+            if (!text) return '<span class="output-empty">No output</span>';
+            const lines = text.split('\n');
+            return lines.map(line => {
+                if (line.startsWith('Error:') || line.includes('Error') || line.includes('Traceback')) {
+                    return `<span class="output-error">${escapeHtml(line)}</span>`;
+                }
+                return escapeHtml(line);
+            }).join('\n');
+        }
+
+        function runJavaScript(code) {
+            return new Promise((resolve) => {
+                const logs = [];
+                const customConsole = {
+                    log: (...args) => logs.push(args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' ')),
+                    error: (...args) => logs.push('Error: ' + args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' ')),
+                    warn: (...args) => logs.push('Warning: ' + args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' ')),
+                    info: (...args) => logs.push('Info: ' + args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' ')),
+                    table: (data) => logs.push(JSON.stringify(data, null, 2)),
+                    clear: () => { logs.length = 0; }
+                };
+
+                try {
+                    const func = new Function('console', code);
+                    func(customConsole);
+                    resolve({ success: true, output: logs.join('\n') });
+                } catch (err) {
+                    resolve({ success: false, output: err.message });
+                }
+            });
+        }
+
+        function runPython(code) {
+            return new Promise((resolve) => {
+                // Python-like simulation for basic operations
+                let output = [];
+                const pyCode = code;
+
+                // Basic Python simulation
+                try {
+                    // Replace print statements
+                    const printRegex = /print\s*\((.*)\)/g;
+                    let match;
+                    let simulated = pyCode;
+
+                    // Simple print simulation
+                    const lines = pyCode.split('\n');
+                    lines.forEach(line => {
+                        const printMatch = line.match(/print\s*\((.*)\)/);
+                        if (printMatch) {
+                            let content = printMatch[1];
+                            // Handle f-strings
+                            if (content.startsWith('f"') || content.startsWith("f'")) {
+                                const template = content.slice(2, -1);
+                                output.push(template.replace(/\{([^}]+)\}/g, (_, expr) => {
+                                    try { return eval(expr); } catch { return expr; }
+                                }));
+                            } else {
+                                // Handle regular strings and variables
+                                content = content.replace(/["']/g, '');
+                                output.push(content);
+                            }
+                        }
+                    });
+
+                    if (output.length === 0) {
+                        resolve({ success: false, output: 'Python execution requires a backend. Try JavaScript for client-side execution.' });
+                    } else {
+                        resolve({ success: true, output: output.join('\n') });
+                    }
+                } catch (err) {
+                    resolve({ success: false, output: err.message });
+                }
+            });
+        }
+
+        runBtn.addEventListener('click', async () => {
+            const code = editor.value.trim();
+            if (!code) {
+                outputContent.innerHTML = '<span class="output-empty">Please enter some code to run</span>';
+                return;
+            }
+
+            runBtn.disabled = true;
+            runBtn.innerHTML = '<span class="spinner"></span> Running...';
+            outputContent.innerHTML = '<span class="output-info">Executing...</span>';
+
+            try {
+                let result;
+                if (currentLang === 'javascript') {
+                    result = await runJavaScript(code);
+                } else {
+                    result = await runPython(code);
+                }
+
+                if (result.success) {
+                    outputContent.innerHTML = formatOutput(result.output) || '<span class="output-success">Code executed successfully (no output)</span>';
+                } else {
+                    outputContent.innerHTML = `<span class="output-error">${escapeHtml(result.output)}</span>`;
+                }
+            } catch (err) {
+                outputContent.innerHTML = `<span class="output-error">${escapeHtml(err.message)}</span>`;
+            }
+
+            runBtn.disabled = false;
+            runBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> Run';
+        });
+
+        clearBtn.addEventListener('click', () => {
+            editor.value = '';
+            editor.focus();
+        });
+
+        clearOutputBtn.addEventListener('click', () => {
+            outputContent.innerHTML = '<span class="output-empty">Run your code to see output here...</span>';
+        });
+
+        editor.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = editor.selectionStart;
+                const end = editor.selectionEnd;
+                editor.value = editor.value.substring(0, start) + '    ' + editor.value.substring(end);
+                editor.selectionStart = editor.selectionEnd = start + 4;
+            }
+            if (e.key === 'Enter' && e.ctrlKey) {
+                e.preventDefault();
+                runBtn.click();
+            }
+        });
+
+        // Syntax highlighting (basic)
+        editor.addEventListener('input', () => {
+            // For production, integrate a library like Prism or highlight.js
+        });
+    </script>
+</body>
+</html>

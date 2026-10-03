@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSONPath Query</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --bg-primary: #0d0d0f;
+            --bg-secondary: #1a1a1f;
+            --bg-tertiary: #252530;
+            --accent: #6366f1;
+            --accent-hover: #818cf8;
+            --success: #22c55e;
+            --error: #ef4444;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #2d2d3a;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+        .input-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        @media (max-width: 800px) {
+            .input-section {
+                grid-template-columns: 1fr;
+            }
+        }
+        .input-box {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+        .input-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        .input-header h3 {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        textarea {
+            width: 100%;
+            height: 250px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem;
+            color: var(--text-primary);
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            resize: vertical;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .query-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .query-row {
+            display: flex;
+            gap: 1rem;
+            align-items: stretch;
+        }
+        .path-input {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0 1rem;
+        }
+        .path-input span {
+            color: var(--accent);
+            font-family: 'Consolas', monospace;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+        .path-input input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-family: 'Consolas', monospace;
+            font-size: 0.95rem;
+            padding: 0.75rem 0.5rem;
+        }
+        .path-input input:focus {
+            outline: none;
+        }
+        button {
+            padding: 0.75rem 1.5rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        button:hover {
+            background: var(--accent-hover);
+        }
+        .buttons-row {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        button.secondary {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+        }
+        button.secondary:hover {
+            background: var(--border);
+        }
+        .output-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        .output-header h3 {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        .match-count {
+            font-size: 0.85rem;
+            padding: 0.25rem 0.75rem;
+            background: var(--bg-tertiary);
+            border-radius: 20px;
+        }
+        .match-count.success {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--success);
+        }
+        .match-count.error {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--error);
+        }
+        #result {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            max-height: 300px;
+            overflow: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        #result.error {
+            color: var(--error);
+        }
+        .quick-paths {
+            margin-top: 1rem;
+        }
+        .quick-paths-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+        .quick-paths-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .quick-path {
+            padding: 0.4rem 0.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-family: 'Consolas', monospace;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .quick-path:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--accent);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>JSONPath Query</h1>
+        <p class="subtitle">Query JSON data with JSONPath expressions</p>
+
+        <div class="input-section">
+            <div class="input-box">
+                <div class="input-header">
+                    <h3>Input JSON</h3>
+                    <button class="secondary" onclick="formatJSON()">Format</button>
+                </div>
+                <textarea id="jsonInput" placeholder='Enter your JSON here...'></textarea>
+            </div>
+            <div class="input-box">
+                <div class="input-header">
+                    <h3>Sample Data</h3>
+                    <button class="secondary" onclick="loadSample()">Load Sample</button>
+                </div>
+                <textarea id="sampleOutput" readonly placeholder="Sample data will appear here..."></textarea>
+            </div>
+        </div>
+
+        <div class="query-section">
+            <div class="query-row">
+                <div class="path-input">
+                    <span>$</span>
+                    <input type="text" id="pathInput" placeholder=".store.book[*].author" value="">
+                </div>
+                <button onclick="executeQuery()">Execute</button>
+            </div>
+            <div class="buttons-row">
+                <button class="secondary" onclick="copyResult()">Copy Result</button>
+                <button class="secondary" onclick="clearAll()">Clear All</button>
+            </div>
+            <div class="quick-paths">
+                <div class="quick-paths-label">Quick paths:</div>
+                <div class="quick-paths-list">
+                    <span class="quick-path" data-path="">$</span>
+                    <span class="quick-path" data-path=".store">.store</span>
+                    <span class="quick-path" data-path=".store.book">.store.book</span>
+                    <span class="quick-path" data-path=".store.book[*]">.store.book[*]</span>
+                    <span class="quick-path" data-path=".store.book[0]">.store.book[0]</span>
+                    <span class="quick-path" data-path=".store.book[?@.price<10]">.book[?@.price&lt;10]</span>
+                    <span class="quick-path" data-path=".store.book[*].author">.book[*].author</span>
+                    <span class="quick-path" data-path="..author">..author</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="output-section">
+            <div class="output-header">
+                <h3>Results</h3>
+                <span class="match-count" id="matchCount">0 matches</span>
+            </div>
+            <div id="result">Results will appear here...</div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const jsonInput = document.getElementById('jsonInput');
+        const sampleOutput = document.getElementById('sampleOutput');
+        const pathInput = document.getElementById('pathInput');
+        const result = document.getElementById('result');
+        const matchCount = document.getElementById('matchCount');
+        const toast = document.getElementById('toast');
+
+        const sampleData = {
+            "store": {
+                "book": [
+                    { "category": "reference", "author": "Nigel Rees", "title": "Sayings of the Century", "price": 8.95 },
+                    { "category": "fiction", "author": "Evelyn Waugh", "title": "Sword of Honour", "price": 12.99 },
+                    { "category": "fiction", "author": "Herman Melville", "title": "Moby Dick", "price": 8.99 },
+                    { "category": "fiction", "author": "J.R.R. Tolkien", "title": "The Lord of the Rings", "price": 22.99 }
+                ],
+                "bicycle": { "color": "red", "price": 19.95 }
+            }
+        };
+
+        function loadSample() {
+            sampleOutput.value = JSON.stringify(sampleData, null, 2);
+            jsonInput.value = JSON.stringify(sampleData, null, 2);
+            showToast('Sample data loaded');
+        }
+
+        function formatJSON() {
+            try {
+                const parsed = JSON.parse(jsonInput.value);
+                jsonInput.value = JSON.stringify(parsed, null, 2);
+                showToast('JSON formatted');
+            } catch (e) {
+                showToast('Invalid JSON: ' + e.message);
+            }
+        }
+
+        // Simple JSONPath implementation
+        function jsonPath(obj, path) {
+            const results = [];
+
+            // Remove leading $ and trim
+            path = path.replace(/^\$/, '').trim();
+            if (!path) return [obj];
+
+            function walk(node, currentPath) {
+                if (currentPath === path) {
+                    results.push(node);
+                    return;
+                }
+
+                // Get next segment
+                const remaining = path.slice(currentPath.length + 1);
+                const segmentMatch = remaining.match(/^(\.[a-zA-Z_][a-zA-Z0-9_]*|\[\*\]|\[\d+\]|\[\?\([^)]+\)\]|\.\.\w+)/);
+
+                if (!segmentMatch) {
+                    if (currentPath === path) {
+                        results.push(node);
+                    }
+                    return;
+                }
+
+                const segment = segmentMatch[1];
+                const newPath = currentPath + segment;
+
+                if (segment === '[*]') {
+                    if (Array.isArray(node)) {
+                        node.forEach(item => walk(item, newPath));
+                    }
+                } else if (segment.startsWith('[') && segment.endsWith(']')) {
+                    const idx = parseInt(segment.slice(1, -1));
+                    if (Array.isArray(node) && node[idx] !== undefined) {
+                        walk(node[idx], newPath);
+                    }
+                } else if (segment.startsWith('[?(')) {
+                    // Filter expression
+                    const expr = segment.slice(3, -2);
+                    const filterMatch = expr.match(/@\.(\w+)([<>=]+)([\d.]+)/);
+                    if (filterMatch && Array.isArray(node)) {
+                        const [_, prop, op, val] = filterMatch;
+                        const numVal = parseFloat(val);
+                        node.filter(item => {
+                            const itemVal = item[prop];
+                            switch (op) {
+                                case '<': return itemVal < numVal;
+                                case '>': return itemVal > numVal;
+                                case '<=': return itemVal <= numVal;
+                                case '>=': return itemVal >= numVal;
+                                case '==': return itemVal == numVal;
+                                default: return false;
+                            }
+                        }).forEach(item => walk(item, newPath));
+                    }
+                } else if (segment.startsWith('..')) {
+                    // Recursive descent
+                    const propName = segment.slice(2);
+                    function deepSearch(n) {
+                        if (n && typeof n === 'object') {
+                            if (n[propName] !== undefined) {
+                                walk(n[propName], newPath);
+                            }
+                            Object.values(n).forEach(deepSearch);
+                        }
+                    }
+                    deepSearch(node);
+                } else if (segment.startsWith('.')) {
+                    const prop = segment.slice(1);
+                    if (node && typeof node === 'object' && prop in node) {
+                        walk(node[prop], newPath);
+                    }
+                }
+            }
+
+            walk(obj, '');
+            return results;
+        }
+
+        function executeQuery() {
+            const json = jsonInput.value.trim();
+            const path = pathInput.value.trim();
+
+            result.classList.remove('error');
+
+            if (!json) {
+                result.textContent = 'Please enter JSON data';
+                result.classList.add('error');
+                matchCount.textContent = '0 matches';
+                matchCount.className = 'match-count error';
+                return;
+            }
+
+            let parsed;
+            try {
+                parsed = JSON.parse(json);
+            } catch (e) {
+                result.textContent = 'JSON Parse Error: ' + e.message;
+                result.classList.add('error');
+                matchCount.textContent = 'Error';
+                matchCount.className = 'match-count error';
+                return;
+            }
+
+            try {
+                const matches = jsonPath(parsed, path);
+                matchCount.textContent = matches.length + ' match' + (matches.length !== 1 ? 'es' : '');
+                matchCount.className = 'match-count ' + (matches.length > 0 ? 'success' : '');
+
+                if (matches.length === 0) {
+                    result.textContent = 'No matches found';
+                } else if (matches.length === 1) {
+                    result.textContent = JSON.stringify(matches[0], null, 2);
+                } else {
+                    result.textContent = JSON.stringify(matches, null, 2);
+                }
+            } catch (e) {
+                result.textContent = 'Query Error: ' + e.message;
+                result.classList.add('error');
+                matchCount.textContent = 'Error';
+                matchCount.className = 'match-count error';
+            }
+        }
+
+        // Quick path buttons
+        document.querySelectorAll('.quick-path').forEach(btn => {
+            btn.addEventListener('click', function() {
+                pathInput.value = this.dataset.path;
+                executeQuery();
+            });
+        });
+
+        function copyResult() {
+            const text = result.textContent;
+            if (text && !text.includes('will appear') && !text.includes('Error')) {
+                navigator.clipboard.writeText(text);
+                showToast('Result copied');
+            }
+        }
+
+        function clearAll() {
+            jsonInput.value = '';
+            sampleOutput.value = '';
+            pathInput.value = '';
+            result.textContent = 'Results will appear here...';
+            result.classList.remove('error');
+            matchCount.textContent = '0 matches';
+            matchCount.className = 'match-count';
+        }
+
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // Execute on Enter
+        pathInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') executeQuery();
+        });
+
+        // Load sample on start
+        sampleOutput.value = JSON.stringify(sampleData, null, 2);
+    </script>
+</body>
+</html>

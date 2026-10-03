@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}{% if correct %}Correct!{% else %}Incorrect{% endif %} - Quiz App{% endblock %}
+
+{% block extra_css %}
+<style>
+    .result-icon {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px;
+        font-size: 48px;
+    }
+    .correct { background: rgba(34, 197, 94, 0.15); }
+    .incorrect { background: rgba(239, 68, 68, 0.15); }
+    .explanation-box {
+        background: #0f0f14;
+        border-left: 4px solid #f97316;
+        padding: 20px;
+        border-radius: 0 12px 12px 0;
+        margin-top: 24px;
+    }
+    .explanation-title {
+        font-weight: 600;
+        color: #f97316;
+        margin-bottom: 8px;
+    }
+    .explanation-text {
+        color: #a1a1aa;
+        line-height: 1.6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 60px 20px;">
+    <div class="card" style="max-width: 600px; margin: 0 auto; text-align: center;">
+        <div class="result-icon {% if correct %}correct{% else %}incorrect{% endif %}">
+            {% if correct %}
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            {% else %}
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="3">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+            {% endif %}
+        </div>
+
+        <h1 style="font-size: 2rem; margin-bottom: 8px;">
+            {% if correct %}
+            Correct Answer!
+            {% else %}
+            Incorrect Answer
+            {% endif %}
+        </h1>
+
+        <p style="color: #71717a;">
+            {% if correct %}
+            Great job! Keep going!
+            {% else %}
+            The correct answer was: <strong style="color: #f97316;">{{ correct_answer }}</strong>
+            {% endif %}
+        </p>
+
+        {% if explanation %}
+        <div class="explanation-box">
+            <div class="explanation-title">Explanation</div>
+            <p class="explanation-text">{{ explanation }}</p>
+        </div>
+        {% endif %}
+
+        <a href="/quiz/question" class="btn btn-primary" style="margin-top: 32px; padding: 16px 48px; font-size: 16px;">
+            Next Question
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="12 5 19 12 12 19"/>
+            </svg>
+        </a>
+    </div>
+</div>
+{% endblock %}

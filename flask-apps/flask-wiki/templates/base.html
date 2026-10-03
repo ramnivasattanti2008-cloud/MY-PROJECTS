@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Wiki{% endblock %}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0a0a0f; color: #e0e0e0; line-height: 1.6; }
+        a { color: #f59e0b; text-decoration: none; }
+        a:hover { color: #fbbf24; }
+        nav { background: #12121a; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1a1a2e; }
+        .logo { font-size: 1.5rem; font-weight: bold; color: #f59e0b; }
+        nav ul { list-style: none; display: flex; gap: 2rem; align-items: center; }
+        nav a { color: #e0e0e0; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 2rem; display: flex; gap: 2rem; }
+        .sidebar { width: 250px; flex-shrink: 0; }
+        .sidebar h3 { color: #888; margin-bottom: 1rem; font-size: 0.9rem; text-transform: uppercase; }
+        .sidebar ul { list-style: none; }
+        .sidebar li { margin-bottom: 0.5rem; }
+        .sidebar a { color: #888; font-size: 0.95rem; }
+        .sidebar a:hover { color: #f59e0b; }
+        .main-content { flex: 1; }
+        footer { text-align: center; padding: 2rem; border-top: 1px solid #1a1a2e; margin-top: 4rem; color: #666; }
+        {% block styles %}{% endblock %}
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css">
+</head>
+<body>
+    <nav>
+        <a href="/" class="logo">WikiDocs</a>
+        <ul>
+            <li>
+                <form action="/search" method="get" style="display: flex; gap: 0.5rem;">
+                    <input type="text" name="q" placeholder="Search..." style="padding: 0.5rem 1rem; background: #0a0a0f; border: 1px solid #2a2a4e; border-radius: 6px; color: #e0e0e0; width: 200px;">
+                    <button type="submit" style="background: #f59e0b; color: #0a0a0f; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;">Go</button>
+                </form>
+            </li>
+            <li><a href="/create">New Page</a></li>
+        </ul>
+    </nav>
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+    <footer>
+        <p>&copy; 2026 WikiDocs. All rights reserved.</p>
+    </footer>
+</body>
+</html>

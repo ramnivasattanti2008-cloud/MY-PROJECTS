@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: system-ui, sans-serif; background: #f0fdf4; color: #14532d; }
+        .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        h1 { color: #16a34a; }
+        .btn { padding: 8px 16px; background: #16a34a; color: white; text-decoration: none; border-radius: 6px; display: inline-block; }
+        .btn:hover { background: #15803d; }
+        .flash { padding: 10px 15px; border-radius: 6px; margin-bottom: 15px; }
+        .flash.success { background: #dcfce7; color: #166534; }
+        .flash.info { background: #dbeafe; color: #1e40af; }
+        .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .summary-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .summary-card h3 { font-size: 14px; color: #6b7280; margin-bottom: 5px; }
+        .summary-card .amount { font-size: 24px; font-weight: bold; color: #16a34a; }
+        .filter-form { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
+        .filter-form select, .filter-form button { padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; }
+        .filter-form button { background: #16a34a; color: white; cursor: pointer; }
+        .expense-table { width: 100%; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .expense-table th, .expense-table td { padding: 12px 15px; text-align: left; }
+        .expense-table th { background: #16a34a; color: white; font-weight: 500; }
+        .expense-table tr:nth-child(even) { background: #f9fafb; }
+        .expense-table tr:hover { background: #f0fdf4; }
+        .amount { font-weight: 600; color: #dc2626; }
+        .category-badge { padding: 2px 8px; background: #dcfce7; color: #166534; border-radius: 12px; font-size: 12px; }
+        .delete-link { color: #dc2626; text-decoration: none; }
+        .delete-link:hover { text-decoration: underline; }
+        .empty { text-align: center; padding: 40px; color: #6b7280; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Expense Tracker</h1>
+            <a href="{{ url_for('add_expense') }}" class="btn">+ Add Expense</a>
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+
+        <div class="summary">
+            <div class="summary-card">
+                <h3>Total All Time</h3>
+                <div class="amount">${{ "%.2f"|format(total) }}</div>
+            </div>
+            {% for cat, amt in category_totals[:3] %}
+                <div class="summary-card">
+                    <h3>{{ cat }}</h3>
+                    <div class="amount">${{ "%.2f"|format(amt) }}</div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="filter-form">
+            <span>Filter by month:</span>
+            <form method="get" style="display: flex; gap: 10px; align-items: center;">
+                <select name="month">
+                    <option value="">Month</option>
+                    {% for m in range(1, 13) %}
+                        <option value="{{ m }}" {% if selected_month|int == m %}selected{% endif %}>{{ ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1] }}</option>
+                    {% endfor %}
+                </select>
+                <select name="year">
+                    <option value="">Year</option>
+                    {% for y in range(2024, 2030) %}
+                        <option value="{{ y }}" {% if selected_year|int == y %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Filter</button>
+                <a href="{{ url_for('index') }}" style="color: #6b7280;">Clear</a>
+            </form>
+        </div>
+
+        {% if expenses %}
+            <table class="expense-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Amount</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for expense in expenses %}
+                        <tr>
+                            <td>{{ expense.date.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ expense.description }}</td>
+                            <td><span class="category-badge">{{ expense.category }}</span></td>
+                            <td class="amount">${{ "%.2f"|format(expense.amount) }}</td>
+                            <td><a href="{{ url_for('delete_expense', id=expense.id) }}" class="delete-link" onclick="return confirm('Delete?')">Delete</a></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="empty">
+                <p>No expenses recorded. <a href="{{ url_for('add_expense') }}">Add your first expense</a></p>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

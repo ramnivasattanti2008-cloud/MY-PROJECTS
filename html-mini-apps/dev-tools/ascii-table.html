@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASCII Table Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0d0d14;
+            --bg-secondary: #151521;
+            --bg-card: #1a1a2e;
+            --accent: #8b5cf6;
+            --accent-glow: rgba(139, 92, 246, 0.4);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --success: #10b981;
+        }
+
+        body {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .input-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .input-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        textarea {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 16px;
+            color: var(--text-primary);
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            min-height: 200px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        textarea::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .style-selector {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .style-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 14px 20px;
+            background: var(--bg-secondary);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-family: 'Consolas', monospace;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .style-btn:hover {
+            border-color: var(--accent);
+        }
+
+        .style-btn.active {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .preview-section {
+            margin-top: 20px;
+        }
+
+        .preview-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .preview-label h3 {
+            font-size: 1rem;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        .btn-copy {
+            background: linear-gradient(135deg, var(--accent), #7c3aed);
+            color: white;
+        }
+
+        .btn-copy:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+
+        .btn-copy.copied {
+            background: var(--success);
+        }
+
+        .btn-download {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-primary);
+        }
+
+        .btn-download:hover {
+            border-color: var(--accent);
+        }
+
+        .output-wrapper {
+            display: flex;
+            gap: 10px;
+        }
+
+        .preview-output {
+            flex: 1;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+            white-space: pre;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            min-height: 150px;
+        }
+
+        .preview-output:empty::before {
+            content: 'Your ASCII table will appear here...';
+            color: var(--text-secondary);
+        }
+
+        .empty-state {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .buttons-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .presets {
+            margin-top: 16px;
+        }
+
+        .preset-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        .preset-btns {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .preset-btn {
+            padding: 8px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        .preset-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .help-section {
+            margin-top: 20px;
+            padding: 16px;
+            background: rgba(139, 92, 246, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .help-section h4 {
+            color: var(--accent);
+            margin-bottom: 8px;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-size: 0.9rem;
+        }
+
+        .help-section p {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            line-height: 1.6;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        .help-section code {
+            background: var(--bg-secondary);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--accent);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--success);
+            color: white;
+            padding: 14px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 1.75rem; }
+            .preview-output { font-size: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ASCII Table Generator</h1>
+            <p class="subtitle">Create beautiful ASCII art tables instantly</p>
+        </header>
+
+        <div class="card">
+            <div class="style-selector">
+                <button class="style-btn active" data-style="simple">
+                    +-+ | simple
+                </button>
+                <button class="style-btn" data-style="border">
+                    +-+ + border
+                </button>
+                <button class="style-btn" data-style="dashed">
+                    +- -+ dashed
+                </button>
+                <button class="style-btn" data-style="double">
+                    ++ || double
+                </button>
+                <button class="style-btn" data-style="heavy">
+                    ## == heavy
+                </button>
+            </div>
+
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="headerInput">Header Row (comma-separated)</label>
+                    <textarea id="headerInput" placeholder="Name, Age, City, Profession">Name, Age, City</textarea>
+                </div>
+                <div class="input-group">
+                    <label for="dataInput">Data Rows (one row per line, comma-separated)</label>
+                    <textarea id="dataInput" placeholder="Alice, 28, New York, Engineer&#10;Bob, 34, London, Designer&#10;Carol, 25, Tokyo, Developer">Alice, 28, New York
+Bob, 34, London
+Carol, 25, Tokyo</textarea>
+                </div>
+            </div>
+
+            <div class="presets">
+                <div class="preset-label">Quick Presets:</div>
+                <div class="preset-btns">
+                    <button class="preset-btn" data-preset="users">Users Table</button>
+                    <button class="preset-btn" data-preset="products">Products</button>
+                    <button class="preset-btn" data-preset="scores">Scores</button>
+                    <button class="preset-btn" data-preset="schedule">Schedule</button>
+                    <button class="preset-btn" data-preset="inventory">Inventory</button>
+                </div>
+            </div>
+
+            <div class="help-section">
+                <h4>Tips</h4>
+                <p>
+                    Separate columns with commas. The table width adjusts automatically to fit your content.
+                    Use the copy button or Ctrl+C to copy the output. Download as a .txt file for easy sharing.
+                </p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="preview-label">
+                <h3>Preview</h3>
+                <div class="buttons-row">
+                    <button class="btn btn-copy" id="copyBtn">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2"/>
+                            <path d="M5 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1"/>
+                        </svg>
+                        Copy
+                    </button>
+                    <button class="btn btn-download" id="downloadBtn">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Download
+                    </button>
+                </div>
+            </div>
+            <div class="preview-output" id="previewOutput"></div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Copied to clipboard!</div>
+
+    <script>
+        const headerInput = document.getElementById('headerInput');
+        const dataInput = document.getElementById('dataInput');
+        const previewOutput = document.getElementById('previewOutput');
+        const copyBtn = document.getElementById('copyBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const toast = document.getElementById('toast');
+        const styleBtns = document.querySelectorAll('.style-btn');
+        const presetBtns = document.querySelectorAll('.preset-btn');
+
+        let currentStyle = 'simple';
+        let currentOutput = '';
+
+        const styles = {
+            simple: {
+                tl: '+', tr: '+', bl: '+', br: '+',
+                h: '+', v: '|',
+                lm: '+', rm: '+', tm: '+', bm: '+',
+                tm2: '+', bm2: '+'
+            },
+            border: {
+                tl: '+', tr: '+', bl: '+', br: '+',
+                h: '-', v: '|',
+                lm: '+', rm: '+', tm: '+', bm: '+',
+                tm2: '+', bm2: '+'
+            },
+            dashed: {
+                tl: '+', tr: '+', bl: '+', br: '+',
+                h: '-', v: '|',
+                lm: '+', rm: '+', tm: '+', bm: '+',
+                tm2: '+', bm2: '+'
+            },
+            double: {
+                tl: '+', tr: '+', bl: '+', br: '+',
+                h: '=', v: '#',
+                lm: '+', rm: '+', tm: '+', bm: '+',
+                tm2: '+', bm2: '+'
+            },
+            heavy: {
+                tl: '#', tr: '#', bl: '#', br: '#',
+                h: '=', v: '#',
+                lm: '#', rm: '#', tm: '#', bm: '#',
+                tm2: '#', bm2: '#'
+            }
+        };
+
+        const presets = {
+            users: {
+                headers: 'ID, Username, Email, Role, Status',
+                data: '1, john_doe, john@example.com, Admin, Active\n2, jane_smith, jane@example.com, Editor, Active\n3, bob_wilson, bob@example.com, Viewer, Inactive\n4, alice_brown, alice@example.com, Editor, Active'
+            },
+            products: {
+                headers: 'SKU, Product Name, Price, Stock, Category',
+                data: 'PRD001, Wireless Mouse, $29.99, 150, Electronics\nPRD002, Mechanical Keyboard, $89.99, 75, Electronics\nPRD003, USB-C Hub, $45.00, 200, Accessories\nPRD004, Monitor Stand, $35.50, 90, Furniture'
+            },
+            scores: {
+                headers: 'Rank, Player, Score, Time, Accuracy',
+                data: '1, ProGamer99, 12500, 12:34, 98.5%\n2, SnipeKing, 11200, 13:02, 96.8%\n3, NoobMaster, 9800, 14:15, 92.3%\n4, CasualPlayer, 7500, 15:30, 88.1%'
+            },
+            schedule: {
+                headers: 'Day, 9AM, 11AM, 2PM, 4PM',
+                data: 'Monday, Meeting, Dev, Review, Planning\nTuesday, Design, Standup, Dev, Dev\nWednesday, Client, Review, Dev, Demo\nThursday, Standup, Dev, Testing, Release'
+            },
+            inventory: {
+                headers: 'Item, Qty, Location, Last Updated, Condition',
+                data: 'Laptop A1, 5, Warehouse A, 2024-01-15, Good\nMonitor B2, 12, Warehouse B, 2024-01-14, Excellent\nKeyboard C3, 8, Warehouse A, 2024-01-13, Good\nMouse D4, 25, Warehouse C, 2024-01-12, Fair'
+            }
+        };
+
+        function parseCSV(text) {
+            return text.split('\n').map(row =>
+                row.split(',').map(cell => cell.trim())
+            );
+        }
+
+        function generateTable(headers, rows, style) {
+            if (headers.length === 0 || rows.length === 0) return '';
+
+            const allRows = [headers, ...rows];
+            const colWidths = [];
+
+            for (let col = 0; col < headers.length; col++) {
+                let maxWidth = headers[col].length;
+                for (const row of rows) {
+                    if (row[col] && row[col].length > maxWidth) {
+                        maxWidth = row[col].length;
+                    }
+                }
+                colWidths.push(Math.max(maxWidth + 2, 3));
+            }
+
+            const totalWidth = colWidths.reduce((a, b) => a + b, 0) + colWidths.length + 1;
+            const s = styles[style];
+
+            let output = '';
+
+            // Top border
+            output += s.tl + colWidths.map(w => s.h.repeat(w)).join(s.tm) + s.tr + '\n';
+
+            // Header row
+            output += s.v + headers.map((h, i) => ' ' + h.padEnd(colWidths[i] - 1)).join(s.v) + s.v + '\n';
+
+            // Header separator
+            output += s.lm + colWidths.map(w => s.h.repeat(w)).join(s.tm2) + s.rm + '\n';
+
+            // Data rows
+            for (const row of rows) {
+                const paddedRow = row.map((cell, i) => ' ' + (cell || '').padEnd(colWidths[i] - 1));
+                while (paddedRow.length < headers.length) {
+                    paddedRow.push(' '.repeat(colWidths[paddedRow.length] || 3));
+                }
+                output += s.v + paddedRow.join(s.v) + s.v + '\n';
+            }
+
+            // Bottom border
+            output += s.bl + colWidths.map(w => s.h.repeat(w)).join(s.bm) + s.br;
+
+            return output;
+        }
+
+        function updatePreview() {
+            const headers = parseCSV(headerInput.value);
+            const rows = parseCSV(dataInput.value);
+
+            if (headers.length > 0 && headers[0].length > 0) {
+                currentOutput = generateTable(headers[0], rows, currentStyle);
+                previewOutput.textContent = currentOutput;
+            } else {
+                currentOutput = '';
+                previewOutput.innerHTML = '<span class="empty-state">Enter headers and data to generate a table...</span>';
+            }
+        }
+
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        function copyToClipboard() {
+            if (!currentOutput) return;
+
+            navigator.clipboard.writeText(currentOutput).then(() => {
+                copyBtn.textContent = 'Copied!';
+                copyBtn.classList.add('copied');
+                showToast('Copied to clipboard!');
+
+                setTimeout(() => {
+                    copyBtn.innerHTML = `
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2"/>
+                            <path d="M5 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1"/>
+                        </svg>
+                        Copy
+                    `;
+                    copyBtn.classList.remove('copied');
+                }, 1500);
+            });
+        }
+
+        function downloadTable() {
+            if (!currentOutput) return;
+
+            const blob = new Blob([currentOutput], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'ascii-table.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Downloaded ascii-table.txt');
+        }
+
+        // Event Listeners
+        headerInput.addEventListener('input', updatePreview);
+        dataInput.addEventListener('input', updatePreview);
+
+        styleBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                styleBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentStyle = btn.dataset.style;
+                updatePreview();
+            });
+        });
+
+        presetBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const preset = presets[btn.dataset.preset];
+                if (preset) {
+                    headerInput.value = preset.headers;
+                    dataInput.value = preset.data;
+                    updatePreview();
+                }
+            });
+        });
+
+        copyBtn.addEventListener('click', copyToClipboard);
+        downloadBtn.addEventListener('click', downloadTable);
+
+        // Keyboard shortcut
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'c' && document.activeElement !== headerInput && document.activeElement !== dataInput) {
+                if (currentOutput) {
+                    copyToClipboard();
+                }
+            }
+        });
+
+        // Initial render
+        updatePreview();
+    </script>
+</body>
+</html>

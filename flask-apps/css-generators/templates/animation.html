@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animation Generator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0d1117; --bg-secondary: #161b22; --bg-tertiary: #21262d;
+            --border: #30363d; --text: #e6edf3; --text-secondary: #8b949e;
+            --accent: #58a6ff; --success: #3fb950; --error: #f85149;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+        header { display: flex; align-items: center; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+        header h1 { font-size: 24px; }
+        header a { color: var(--text-secondary); text-decoration: none; font-size: 14px; }
+        header a:hover { color: var(--accent); }
+        .main-grid { display: grid; grid-template-columns: 1fr 400px; gap: 24px; }
+        @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+        .panel { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+        .panel-header { padding: 16px 20px; background: var(--bg-tertiary); border-bottom: 1px solid var(--border); font-weight: 600; font-size: 14px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .panel-body { padding: 20px; }
+        .preview-container { display: flex; align-items: center; justify-content: center; height: 300px; background: var(--bg-tertiary); border-radius: 8px; position: relative; overflow: hidden; }
+        .preview-element { width: 80px; height: 80px; background: var(--accent); border-radius: 12px; position: absolute; left: 50%; top: 50%; margin-left: -40px; margin-top: -40px; }
+        .controls { display: flex; flex-direction: column; gap: 20px; }
+        .control-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; }
+        .control-row { display: flex; gap: 12px; align-items: center; }
+        input[type="range"] { flex: 1; height: 8px; border-radius: 4px; background: var(--bg-tertiary); -webkit-appearance: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+        input[type="number"] { width: 80px; background: var(--bg); border: 2px solid var(--border); border-radius: 8px; color: var(--text); padding: 8px; font-size: 14px; text-align: center; }
+        select { flex: 1; background: var(--bg); border: 2px solid var(--border); border-radius: 8px; color: var(--text); padding: 10px; font-size: 14px; }
+        .range-display { min-width: 50px; text-align: right; font-size: 12px; color: var(--text-secondary); }
+        .code-output { background: var(--bg); border-radius: 8px; padding: 16px; font-family: 'Consolas', monospace; font-size: 13px; word-break: break-all; white-space: pre; overflow-x: auto; }
+        .code-output code { color: var(--accent); }
+        .copy-btn { background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; margin-top: 12px; }
+        .copy-btn:hover { background: var(--border); }
+        .presets { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+        .preset-btn { background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+        .preset-btn:hover { border-color: var(--accent); }
+        .play-btn { background: var(--success); border: none; color: white; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; margin-top: 16px; width: 100%; }
+        .play-btn:hover { opacity: 0.9; }
+        .keyframe-item { background: var(--bg-tertiary); border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+        .keyframe-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .keyframe-title { font-size: 12px; font-weight: 600; color: var(--accent); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="/">&larr; Back to All Generators</a>
+            <h1>Animation Generator</h1>
+        </header>
+        <div class="main-grid">
+            <div class="left">
+                <div class="panel">
+                    <div class="panel-header">Preview</div>
+                    <div class="panel-body">
+                        <div class="preview-container">
+                            <div class="preview-element" id="previewElement"></div>
+                        </div>
+                        <button class="play-btn" id="playBtn" onclick="playAnimation()">Play Animation</button>
+                    </div>
+                </div>
+                <div class="panel" style="margin-top: 24px;">
+                    <div class="panel-header">CSS Code</div>
+                    <div class="panel-body">
+                        <div class="code-output" id="codeOutput"></div>
+                        <button class="copy-btn" onclick="copyCode()">Copy to Clipboard</button>
+                    </div>
+                </div>
+            </div>
+            <div class="right">
+                <div class="panel">
+                    <div class="panel-header">Controls</div>
+                    <div class="panel-body">
+                        <div class="controls">
+                            <div class="control-group">
+                                <label>Presets</label>
+                                <div class="presets">
+                                    <button class="preset-btn" onclick="loadPreset('fade')">Fade In</button>
+                                    <button class="preset-btn" onclick="loadPreset('slide')">Slide</button>
+                                    <button class="preset-btn" onclick="loadPreset('bounce')">Bounce</button>
+                                    <button class="preset-btn" onclick="loadPreset('pulse')">Pulse</button>
+                                    <button class="preset-btn" onclick="loadPreset('rotate')">Rotate</button>
+                                    <button class="preset-btn" onclick="loadPreset('shake')">Shake</button>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label>Animation Name</label>
+                                <input type="text" id="animName" value="customAnimation" onchange="update()">
+                            </div>
+                            <div class="control-group">
+                                <label>Duration</label>
+                                <div class="control-row">
+                                    <input type="range" id="duration" min="100" max="3000" value="1000" oninput="document.getElementById('durationValue').textContent = this.value + 'ms'; update()">
+                                    <span class="range-display" id="durationValue">1000ms</span>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label>Timing Function</label>
+                                <select id="timing" onchange="update()">
+                                    <option value="ease">Ease</option>
+                                    <option value="linear">Linear</option>
+                                    <option value="ease-in">Ease In</option>
+                                    <option value="ease-out">Ease Out</option>
+                                    <option value="ease-in-out">Ease In Out</option>
+                                    <option value="cubic-bezier(0.68, -0.55, 0.265, 1.55)">Elastic</option>
+                                </select>
+                            </div>
+                            <div class="control-group">
+                                <label>Iteration Count</label>
+                                <select id="iteration" onchange="update()">
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="infinite" selected>Infinite</option>
+                                </select>
+                            </div>
+                            <div class="control-group">
+                                <label>Direction</label>
+                                <select id="direction" onchange="update()">
+                                    <option value="normal">Normal</option>
+                                    <option value="reverse">Reverse</option>
+                                    <option value="alternate">Alternate</option>
+                                    <option value="alternate-reverse">Alternate Reverse</option>
+                                </select>
+                            </div>
+                            <div class="control-group">
+                                <label>From (0%)</label>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                    <div>
+                                        <label style="font-size: 11px;">Translate X</label>
+                                        <input type="number" id="fromX" value="0" onchange="update()">
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 11px;">Translate Y</label>
+                                        <input type="number" id="fromY" value="0" onchange="update()">
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 11px;">Scale</label>
+                                        <input type="number" id="fromScale" value="0" step="0.1" onchange="update()">
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 11px;">Rotate</label>
+                                        <input type="number" id="fromRotate" value="0" onchange="update()">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label>To (100%)</label>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                    <div>
+                                        <label style="font-size: 11px;">Translate X</label>
+                                        <input type="number" id="toX" value="100" onchange="update()">
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 11px;">Translate Y</label>
+                                        <input type="number" id="toY" value="0" onchange="update()">
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 11px;">Scale</label>
+                                        <input type="number" id="toScale" value="1" step="0.1" onchange="update()">
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 11px;">Rotate</label>
+                                        <input type="number" id="toRotate" value="0" onchange="update()">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        let animationName = 'customAnimation';
+        let styleElement = null;
+
+        function update() {
+            const name = document.getElementById('animName').value || 'customAnimation';
+            const duration = document.getElementById('duration').value;
+            const timing = document.getElementById('timing').value;
+            const iteration = document.getElementById('iteration').value;
+            const direction = document.getElementById('direction').value;
+
+            const fromX = document.getElementById('fromX').value;
+            const fromY = document.getElementById('fromY').value;
+            const fromScale = document.getElementById('fromScale').value;
+            const fromRotate = document.getElementById('fromRotate').value;
+
+            const toX = document.getElementById('toX').value;
+            const toY = document.getElementById('toY').value;
+            const toScale = document.getElementById('toScale').value;
+            const toRotate = document.getElementById('toRotate').value;
+
+            animationName = name;
+
+            const fromTransform = `translateX(${fromX}px) translateY(${fromY}px) scale(${fromScale}) rotate(${fromRotate}deg)`;
+            const toTransform = `translateX(${toX}px) translateY(${toY}px) scale(${toScale}) rotate(${toRotate}deg)`;
+
+            const css = `@keyframes ${name} {
+  0% {
+    transform: ${fromTransform};
+    opacity: ${fromScale > 0 ? 1 : 0};
+  }
+  100% {
+    transform: ${toTransform};
+    opacity: ${toScale > 0 ? 1 : 0};
+  }
+}
+
+.animated-element {
+  animation: ${name} ${duration}ms ${timing} ${iteration} ${direction};
+}`;
+
+            // Remove old style element
+            if (styleElement) {
+                styleElement.remove();
+            }
+
+            // Create new style element
+            styleElement = document.createElement('style');
+            styleElement.textContent = css;
+            document.head.appendChild(styleElement);
+
+            // Update preview element
+            const preview = document.getElementById('previewElement');
+            preview.style.animation = `${name} ${duration}ms ${timing} ${iteration} ${direction}`;
+
+            document.getElementById('codeOutput').innerHTML = `<code>${css.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code>`;
+        }
+
+        function loadPreset(name) {
+            const presets = {
+                fade: { fromX: 0, fromY: 20, fromScale: 0, toX: 0, toY: 0, toScale: 1, duration: 1000, timing: 'ease-out', name: 'fadeIn' },
+                slide: { fromX: -100, fromY: 0, fromScale: 1, toX: 100, toY: 0, toScale: 1, duration: 1000, timing: 'ease-in-out', name: 'slideIn' },
+                bounce: { fromX: 0, fromY: -50, fromScale: 1, toX: 0, toY: 0, toScale: 1, duration: 600, timing: 'cubic-bezier(0.68, -0.55, 0.265, 1.55)', name: 'bounce' },
+                pulse: { fromX: 0, fromY: 0, fromScale: 1, toX: 0, toY: 0, toScale: 1.1, duration: 800, timing: 'ease-in-out', name: 'pulse' },
+                rotate: { fromX: 0, fromY: 0, fromScale: 1, fromRotate: 0, toX: 0, toY: 0, toScale: 1, toRotate: 360, duration: 1000, timing: 'linear', name: 'spin' },
+                shake: { fromX: -10, fromY: 0, fromScale: 1, toX: 10, toY: 0, toScale: 1, duration: 100, timing: 'ease-in-out', name: 'shake', iteration: '3' }
+            };
+
+            const p = presets[name];
+            document.getElementById('animName').value = p.name;
+            document.getElementById('fromX').value = p.fromX;
+            document.getElementById('fromY').value = p.fromY;
+            document.getElementById('fromScale').value = p.fromScale;
+            document.getElementById('fromRotate').value = p.fromRotate || 0;
+            document.getElementById('toX').value = p.toX;
+            document.getElementById('toY').value = p.toY;
+            document.getElementById('toScale').value = p.toScale;
+            document.getElementById('toRotate').value = p.toRotate || 0;
+            document.getElementById('duration').value = p.duration;
+            document.getElementById('durationValue').textContent = p.duration + 'ms';
+            document.getElementById('timing').value = p.timing;
+            if (p.iteration) document.getElementById('iteration').value = p.iteration;
+
+            update();
+        }
+
+        function playAnimation() {
+            const preview = document.getElementById('previewElement');
+            preview.style.animation = 'none';
+            preview.offsetHeight; // Trigger reflow
+            preview.style.animation = `${animationName} ${document.getElementById('duration').value}ms ${document.getElementById('timing').value} 1 ${document.getElementById('direction').value}`;
+        }
+
+        function copyCode() {
+            const code = document.getElementById('codeOutput').textContent;
+            navigator.clipboard.writeText(code);
+            const btn = document.querySelector('.copy-btn');
+            btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = 'Copy to Clipboard', 2000);
+        }
+
+        update();
+    </script>
+</body>
+</html>

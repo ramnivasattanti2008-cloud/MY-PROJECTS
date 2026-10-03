@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - URL Shortener</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #0d1117; color: #c9d1d9; min-height: 100vh; }
+        header { background: #161b22; border-bottom: 1px solid #30363d; padding: 1rem 0; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        nav { max-width: 1200px; margin: 0 auto; padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
+        nav h1 { color: #58a6ff; font-size: 1.5rem; }
+        nav a { color: #c9d1d9; text-decoration: none; padding: 0.5rem 1rem; border-radius: 6px; transition: background 0.2s; }
+        nav a:hover { background: #21262d; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 1.5rem; }
+        .stat-value { font-size: 2rem; font-weight: bold; color: #f0f6fc; }
+        .stat-label { color: #8b949e; margin-top: 0.5rem; }
+        .card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+        h2 { color: #f0f6fc; margin-bottom: 1rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 1rem; border-bottom: 1px solid #30363d; }
+        th { color: #8b949e; font-weight: 600; }
+        a { color: #58a6ff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .short-code { font-family: monospace; background: #21262d; padding: 0.25rem 0.5rem; border-radius: 4px; }
+        .empty { text-align: center; padding: 3rem; color: #8b949e; }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <h1>URL Shortener</h1>
+            <div>
+                <a href="/">Shorten</a>
+                <a href="/dashboard">Dashboard</a>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.total }}</div>
+                <div class="stat-label">Total URLs</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.clicks or 0 }}</div>
+                <div class="stat-label">Total Clicks</div>
+            </div>
+        </div>
+        <div class="card">
+            <h2>Recent URLs</h2>
+            {% if urls %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Short Code</th>
+                        <th>Original URL</th>
+                        <th>Clicks</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for url in urls %}
+                    <tr>
+                        <td><span class="short-code">{{ url.short_code }}</span></td>
+                        <td style="max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ url.original_url }}</td>
+                        <td>{{ url.click_count }}</td>
+                        <td>{{ url.created_at[:10] }}</td>
+                        <td>
+                            <a href="/{{ url.short_code }}" target="_blank">Visit</a> |
+                            <a href="/stats/{{ url.short_code }}">Stats</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty">No URLs created yet. <a href="/">Create your first short URL</a></div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

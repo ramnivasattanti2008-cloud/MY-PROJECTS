@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }}{% endblock %}
+{% block content %}
+<article class="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-8">
+    <span class="text-sm text-gray-500">{{ post.created_at.strftime('%B %d, %Y') }}</span>
+    <h1 class="text-3xl font-bold mt-2 mb-6">{{ post.title }}</h1>
+    <div class="prose max-w-none text-gray-700">{{ post.content }}</div>
+    <div class="mt-8 pt-6 border-t">
+        <a href="/" class="text-indigo-600 hover:underline">&larr; Back to blog</a>
+    </div>
+</article>
+{% endblock %}

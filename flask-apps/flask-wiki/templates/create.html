@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Create Page - Wiki{% endblock %}
+{% block content %}
+<aside class="sidebar">
+    <h3>Pages</h3>
+    <ul>
+        {% for slug, p in pages.items() %}
+        <li><a href="/wiki/{{ slug }}">{{ p.title }}</a></li>
+        {% endfor %}
+    </ul>
+</aside>
+<main class="main-content">
+    <h1 style="font-size: 2rem; color: #f59e0b; margin-bottom: 2rem;">Create New Page</h1>
+    <form method="POST" action="/create">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; color: #888;">Title</label>
+                <input type="text" name="title" required style="width: 100%; padding: 0.8rem; background: #12121a; border: 1px solid #2a2a4e; border-radius: 8px; color: #e0e0e0;">
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; color: #888;">Slug (URL)</label>
+                <input type="text" name="slug" required placeholder="my-page-name" style="width: 100%; padding: 0.8rem; background: #12121a; border: 1px solid #2a2a4e; border-radius: 8px; color: #e0e0e0;">
+            </div>
+        </div>
+        <div style="margin-bottom: 1rem;">
+            <label style="display: block; margin-bottom: 0.5rem; color: #888;">Category</label>
+            <select name="category" style="width: 100%; padding: 0.8rem; background: #12121a; border: 1px solid #2a2a4e; border-radius: 8px; color: #e0e0e0;">
+                <option value="general">General</option>
+                <option value="programming">Programming</option>
+                <option value="documentation">Documentation</option>
+                <option value="tutorial">Tutorial</option>
+            </select>
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; color: #888;">Content (Markdown)</label>
+            <textarea name="content" rows="15" required placeholder="Write your content here using Markdown..." style="width: 100%; padding: 0.8rem; background: #12121a; border: 1px solid #2a2a4e; border-radius: 8px; color: #e0e0e0; font-family: monospace; resize: vertical;"></textarea>
+        </div>
+        <button type="submit" style="background: #f59e0b; color: #0a0a0f; padding: 1rem 2rem; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">Create Page</button>
+    </form>
+</main>
+{% endblock %}

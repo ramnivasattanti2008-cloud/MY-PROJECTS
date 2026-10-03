@@ -1,0 +1,114 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Documentation{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="header-content">
+        <h1>Documentation</h1>
+        <p>Learn how to integrate our API</p>
+    </div>
+</div>
+
+<div class="docs-grid">
+    <div class="docs-sidebar">
+        <nav class="docs-nav">
+            <a href="#introduction" class="docs-link active">Introduction</a>
+            <a href="#authentication" class="docs-link">Authentication</a>
+            <a href="#endpoints" class="docs-link">API Endpoints</a>
+            <a href="#errors" class="docs-link">Error Handling</a>
+            <a href="#examples" class="docs-link">Code Examples</a>
+            <a href="#sdks" class="docs-link">SDKs</a>
+        </nav>
+    </div>
+
+    <div class="docs-content">
+        <section class="docs-section" id="introduction">
+            <h2>Introduction</h2>
+            <p>Welcome to the SaaS App API documentation. Our API allows you to integrate powerful features into your applications with just a few lines of code.</p>
+
+            <div class="code-snippet">
+                <div class="code-header">
+                    <span>Base URL</span>
+                </div>
+                <pre><code>https://api.saasapp.com/v1</code></pre>
+            </div>
+        </section>
+
+        <section class="docs-section" id="authentication">
+            <h2>Authentication</h2>
+            <p>All API requests require authentication using an API key. Include your API key in the Authorization header.</p>
+
+            <div class="code-snippet">
+                <div class="code-header">
+                    <span>Python</span>
+                </div>
+                <pre><code>import requests
+
+headers = {
+    'Authorization': 'Bearer YOUR_API_KEY',
+    'Content-Type': 'application/json'
+}
+
+response = requests.get(
+    'https://api.saasapp.com/v1/analyze',
+    headers=headers
+)</code></pre>
+            </div>
+        </section>
+
+        <section class="docs-section" id="endpoints">
+            <h2>API Endpoints</h2>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method method-post">POST</span>
+                    <code>/v1/analyze</code>
+                </div>
+                <p>Analyze data and return insights.</p>
+                <div class="endpoint-params">
+                    <h4>Parameters</h4>
+                    <table>
+                        <tr>
+                            <td><code>data</code></td>
+                            <td>string</td>
+                            <td>The data to analyze</td>
+                        </tr>
+                        <tr>
+                            <td><code>type</code></td>
+                            <td>string</td>
+                            <td>Analysis type (optional)</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="method method-get">GET</span>
+                    <code>/v1/status</code>
+                </div>
+                <p>Check API status and quota usage.</p>
+            </div>
+        </section>
+
+        <section class="docs-section" id="errors">
+            <h2>Error Handling</h2>
+            <p>The API uses standard HTTP status codes. Error responses include a JSON body with details.</p>
+
+            <div class="code-snippet">
+                <div class="code-header">
+                    <span>Error Response</span>
+                </div>
+                <pre><code>{
+    "error": {
+        "code": "rate_limit_exceeded",
+        "message": "Too many requests. Please wait.",
+        "retry_after": 60
+    }
+}</code></pre>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

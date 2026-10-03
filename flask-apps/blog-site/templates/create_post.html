@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Create Post - Flask Blog{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 1.5rem;">Create New Post</h1>
+
+<form method="POST">
+    <div class="form-group">
+        <label for="title">Title</label>
+        <input type="text" id="title" name="title" required placeholder="Enter post title">
+    </div>
+
+    <div class="form-group">
+        <label for="content">Content (Markdown supported)</label>
+        <textarea id="content" name="content" required placeholder="Write your post content here...&#10;&#10;You can use **bold**, *italic*, and other Markdown formatting."></textarea>
+    </div>
+
+    <div class="form-group">
+        <label for="tags">Tags (comma-separated)</label>
+        <input type="text" id="tags" name="tags" placeholder="python, tutorial, beginner">
+    </div>
+
+    <button type="submit" class="btn">Publish Post</button>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}E-Commerce Store{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+    <nav class="bg-white shadow-md px-6 py-4">
+        <div class="flex items-center justify-between">
+            <a href="/" class="text-2xl font-bold text-indigo-600">ShopHub</a>
+            <div class="flex gap-6">
+                <a href="/" class="hover:text-indigo-600">Products</a>
+                <a href="/cart" class="hover:text-indigo-600 flex items-center gap-1">
+                    Cart
+                    {% if session.get('cart') %}<span class="bg-indigo-600 text-white text-xs px-2 py-1 rounded-full">{{ session.get('cart')|length }}</span>{% endif %}
+                </a>
+            </div>
+        </div>
+    </nav>
+    <main class="container mx-auto px-6 py-8">
+        {% block content %}{% endblock %}
+    </main>
+    <footer class="bg-gray-800 text-white px-6 py-8 mt-12">
+        <p class="text-center">&copy; 2026 ShopHub. All rights reserved.</p>
+    </footer>
+</body>
+</html>

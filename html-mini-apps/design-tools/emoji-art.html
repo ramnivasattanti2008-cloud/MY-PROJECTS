@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASCII Art Generator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0a0a0f, #1a1a2e);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #ec4899, #8b5cf6, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+        header p { color: #888; font-size: 1rem; }
+        .card {
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            border-radius: 20px;
+            padding: 28px;
+            margin-bottom: 24px;
+            border: 1px solid #2a2a4a;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        .input-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 14px 18px;
+            background: #0a0a0f;
+            border: 2px solid #2a2a4a;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1.1rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .input-group input:focus { border-color: #8b5cf6; }
+        .style-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+        }
+        .style-btn {
+            padding: 12px 16px;
+            background: #2a2a4a;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            color: #b0b0b0;
+            cursor: pointer;
+            font-size: 0.85rem;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .style-btn:hover { background: #3a3a5a; color: #fff; }
+        .style-btn.active {
+            border-color: #8b5cf6;
+            background: rgba(139, 92, 246, 0.2);
+            color: #fff;
+        }
+        .style-btn .preview {
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+            display: block;
+        }
+        .output-section {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .output-wrapper {
+            flex: 1;
+        }
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .output-header h3 {
+            font-size: 0.85rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .char-count {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        .output-box {
+            background: #0a0a0f;
+            border: 1px solid #2a2a4a;
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 200px;
+            max-height: 400px;
+            overflow: auto;
+            position: relative;
+        }
+        .output-box::-webkit-scrollbar { width: 6px; height: 6px; }
+        .output-box::-webkit-scrollbar-track { background: transparent; }
+        .output-box::-webkit-scrollbar-thumb { background: #3a3a5a; border-radius: 3px; }
+        #asciiOutput {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            line-height: 1.2;
+            color: #10b981;
+            white-space: pre;
+            overflow-x: auto;
+            outline: none;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+        }
+        .btn-secondary {
+            background: #2a2a4a;
+            color: #b0b0b0;
+        }
+        .btn-secondary:hover { background: #3a3a5a; color: #fff; }
+        .btn svg { width: 16px; height: 16px; }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: transform 0.3s ease;
+            z-index: 300;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .examples {
+            margin-top: 24px;
+        }
+        .examples h3 {
+            font-size: 0.85rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+        .example-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .example-chip {
+            padding: 8px 14px;
+            background: #2a2a4a;
+            border: none;
+            border-radius: 20px;
+            color: #b0b0b0;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .example-chip:hover {
+            background: #3a3a5a;
+            color: #fff;
+        }
+        .quick-styles {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .quick-style-btn {
+            padding: 6px 12px;
+            background: transparent;
+            border: 1px solid #3a3a5a;
+            border-radius: 6px;
+            color: #888;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .quick-style-btn:hover {
+            border-color: #8b5cf6;
+            color: #8b5cf6;
+        }
+        .quick-style-btn.active {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: #8b5cf6;
+            color: #fff;
+        }
+        @media (max-width: 600px) {
+            .output-section { flex-direction: column; }
+            .actions { flex-wrap: wrap; }
+            .btn { flex: 1; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ASCII Art Generator</h1>
+            <p>Transform your text into beautiful ASCII art</p>
+        </header>
+
+        <div class="card">
+            <div class="input-group">
+                <label>Enter text</label>
+                <input type="text" id="textInput" placeholder="Type something..." autofocus>
+            </div>
+
+            <div class="input-group">
+                <label>Quick styles</label>
+                <div class="quick-styles">
+                    <button class="quick-style-btn active" onclick="setWidth(50)">Small</button>
+                    <button class="quick-style-btn" onclick="setWidth(80)">Medium</button>
+                    <button class="quick-style-btn" onclick="setWidth(120)">Large</button>
+                    <button class="quick-style-btn" onclick="setWidth(200)">Huge</button>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Art style</label>
+                <div class="style-grid">
+                    <button class="style-btn active" onclick="setStyle('banner')">
+                        <span class="preview">▀▄</span>
+                        Banner
+                    </button>
+                    <button class="style-btn" onclick="setStyle('block')">
+                        <span class="preview">█░</span>
+                        Block
+                    </button>
+                    <button class="style-btn" onclick="setStyle('slant')">
+                        <span class="preview">╱║</span>
+                        Slant
+                    </button>
+                    <button class="style-btn" onclick="setStyle('shadow')">
+                        <span class="preview">▓▒</span>
+                        Shadow
+                    </button>
+                    <button class="style-btn" onclick="setStyle('smslant')">
+                        <span class="preview">╱║</span>
+                        Small Slant
+                    </button>
+                    <button class="style-btn" onclick="setStyle('mini')">
+                        <span class="preview">┌┐</span>
+                        Mini
+                    </button>
+                </div>
+            </div>
+
+            <div class="output-section">
+                <div class="output-wrapper">
+                    <div class="output-header">
+                        <h3>Output</h3>
+                        <span class="char-count" id="charCount">0 chars</span>
+                    </div>
+                    <div class="output-box">
+                        <div id="asciiOutput" contenteditable="true"></div>
+                    </div>
+                    <div class="actions">
+                        <button class="btn btn-primary" onclick="copyToClipboard()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                            </svg>
+                            Copy to Clipboard
+                        </button>
+                        <button class="btn btn-secondary" onclick="downloadArt()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7,10 12,15 17,10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            Download
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="examples">
+                <h3>Try these examples</h3>
+                <div class="example-chips">
+                    <button class="example-chip" onclick="setExample('Hello')">Hello</button>
+                    <button class="example-chip" onclick="setExample('World')">World</button>
+                    <button class="example-chip" onclick="setExample('Welcome')">Welcome</button>
+                    <button class="example-chip" onclick="setExample('ASCII')">ASCII</button>
+                    <button class="example-chip" onclick="setExample('Art')">Art</button>
+                    <button class="example-chip" onclick="setExample('2026')">2026</button>
+                    <button class="example-chip" onclick="setExample('VOJAS')">VOJAS</button>
+                    <button class="example-chip" onclick="setExample('Your Name')">Your Name</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Copied!</div>
+
+    <script>
+        const textInput = document.getElementById('textInput');
+        const asciiOutput = document.getElementById('asciiOutput');
+        const charCount = document.getElementById('charCount');
+        const toast = document.getElementById('toast');
+        const quickStyleBtns = document.querySelectorAll('.quick-style-btn');
+        const styleBtns = document.querySelectorAll('.style-btn');
+
+        let currentStyle = 'banner';
+        let currentWidth = 50;
+
+        // FIGlet-like font definitions (simplified)
+        const fonts = {
+            banner: {
+                width: 50,
+                height: 6,
+                chars: {
+                    'A': ['████╗', '║██║', '█████', '║██║', '╚██╗'],
+                    'B': ['█████╗', '║██╔╝', '█████╗', '╚██╔╝', '██████╗'],
+                    'C': ['██████╗', '║', '║', '║', '██████╗'],
+                    'D': ['█████╗', '║██╔╝', '║██║', '║██╔╝', '█████╗'],
+                    'E': ['███████╗', '║', '█████╗', '║', '███████╗'],
+                    'F': ['███████╗', '║', '█████╗', '║', '╚════╝'],
+                    'G': ['███████╗', '║', '║ █████╗', '╚██╔╝', '███████╗'],
+                    'H': ['║██║', '║██║', '██████║', '║██║', '║██║'],
+                    'I': ['█████', '║██║', '║██║', '║██║', '█████'],
+                    'J': ['█████', '   ║║', '   ║║', '║ ╔╝', '╚═╝'],
+                    'K': ['║██╔╗', '║██║║', '║██║', '║██║', '╚██╔╝'],
+                    'L': ['║', '║', '║', '║', '█████╗'],
+                    'M': ['╔═██╗', '║╔██║', '║║██║', '║║██║', '╚═╝'],
+                    'N': ['╔██╗', '║║██║', '║║██║', '╚═╝║', '  ║'],
+                    'O': ['█████╗', '║   ║', '║   ║', '║   ║', '█████╗'],
+                    'P': ['█████╗', '║   ║', '█████╗', '║', '╚'],
+                    'Q': ['█████╗', '║   ║', '║ ═║║', '╚═╗║║', '██╔██║'],
+                    'R': ['█████╗', '║   ║', '█████╗', '║╔╝', '╚██╔╝'],
+                    'S': ['███████╗', '║', '███████╗', '     ║', '███████╗'],
+                    'T': ['████████╗', '   ║║   ', '   ║║   ', '   ║║   ', '   ╚╝   '],
+                    'U': ['║   ║', '║   ║', '║   ║', '║   ║', '█████╗'],
+                    'V': ['║   ║', '║   ║', '║   ║', ' ║ ║ ', '  ║  '],
+                    'W': ['║   ║', '║   ║', '║   ║', '║║ ║║', '╚═╝╚═╝'],
+                    'X': ['╔══╗', ' ║║ ', '  ║  ', ' ║║ ', '╔══╝'],
+                    'Y': ['║   ║', ' ║ ║ ', '  ║  ', '  ║  ', '  ╝  '],
+                    'Z': ['███████╗', '    ║║', '   ╔╝', '  ║║', '███████╗'],
+                    '0': ['█████╗', '║   ║', '║   ║', '║   ║', '█████╗'],
+                    '1': [' ╔╗', ' ║║', '   ║', '   ║', '█████'],
+                    '2': ['██████╗', '    ║║', ' █████║', '╔╝    ', '███████╗'],
+                    '3': ['██████╗', '    ║║', ' ████║', '    ║║', '██████╗'],
+                    '4': ['║   ║', '║   ║', '██████║', '    ║║', '    ║║'],
+                    '5': ['███████╗', '║', '███████╗', '     ║║', '███████╗'],
+                    '6': ['█████╗', '║', '██████╗', '║   ║║', '██████║'],
+                    '7': ['███████╗', '    ║║', '   ╔╝', '  ║║', '  ╚═'],
+                    '8': ['█████╗', '║   ║', '█████║', '║   ║║', '█████║'],
+                    '9': ['█████╗', '║   ║', '██████╗', '    ║║', '█████║'],
+                    ' ': ['  ', '  ', '  ', '  ', '  '],
+                    '!': ['╔╗', '║║', '║║', ' ║ ', ' ╝ '],
+                    '.': ['  ', '  ', '  ', '  ', '██'],
+                    ',': ['  ', '  ', '  ', '╔╗', '╚█'],
+                    '?': ['█████╗', '    ║║', '  ██║', '     ', '  ██ '],
+                    "'": ['╔╗', '║║', '  ', '  ', '  '],
+                    '-': ['    ', '    ', '████', '    ', '    '],
+                    '_': ['    ', '    ', '    ', '    ', '████'],
+                    '+': ['    ', ' ║║ ', '████', ' ║║ ', '    '],
+                    '/': ['   ╔╗', '  ╔╝', ' ╔╝ ', '╔╝  ', '╚   '],
+                    ':': ['  ', '██ ', '  ', '██ ', '  '],
+                    ';': ['  ', '██ ', '  ', '╔╝', '╚█'],
+                    '"': ['╔╗╔╗', '║║║║', '  ║║ ', '    ', '    '],
+                }
+            },
+            block: {
+                width: 50,
+                height: 8,
+                chars: {
+                    'A': ['████████', '██    ██', '████████', '██    ██', '██    ██'],
+                    'B': ['████████', '██    ██', '████████', '██    ██', '████████'],
+                    'C': ['████████', '██', '██', '██', '████████'],
+                    'D': ['███████ ', '██    ██', '██    ██', '██    ██', '███████ '],
+                    'E': ['████████', '██', '███████', '██', '████████'],
+                    'F': ['████████', '██', '███████', '██', '██'],
+                    'G': ['████████', '██    ██', '██  ████', '██    ██', '████████'],
+                    'H': ['██    ██', '██    ██', '████████', '██    ██', '██    ██'],
+                    'I': ['███████', '  ███  ', '  ███  ', '  ███  ', '███████'],
+                    'J': ['███████', '    ██', '    ██', '██  ██', '██████ '],
+                    'K': ['██   ██', '██  ██ ', '█████ ', '██  ██ ', '██   ██'],
+                    'L': ['██', '██', '██', '██', '████████'],
+                    'M': ['███   ███', '████ ████', '██ ██ ██', '██     ██', '██     ██'],
+                    'N': ['███    ██', '████   ██', '██ ██  ██', '██  ██ ██', '██   ████'],
+                    'O': ['████████', '██    ██', '██    ██', '██    ██', '████████'],
+                    'P': ['████████', '██    ██', '████████', '██', '██'],
+                    'Q': ['████████', '██    ██', '██ ██ ██', '██  ████', '█████████'],
+                    'R': ['████████', '██    ██', '████████', '██  ██ ', '██   ██'],
+                    'S': ['████████', '██', '████████', '    ██', '████████'],
+                    'T': ['█████████', '   ███   ', '   ███   ', '   ███   ', '   ███   '],
+                    'U': ['██    ██', '██    ██', '██    ██', '██    ██', '████████'],
+                    'V': ['██    ██', '██    ██', '██    ██', ' ██  ██ ', '  ████  '],
+                    'W': ['██     ██', '██     ██', '██ ██ ██', '█████ ██', '███   ███'],
+                    'X': ['██    ██', ' ██  ██ ', '  ████  ', ' ██  ██ ', '██    ██'],
+                    'Y': ['██    ██', ' ██  ██ ', '  ████  ', '  ███   ', '  ███   '],
+                    'Z': ['████████', '   ████ ', '  ████  ', ' ████   ', '████████'],
+                    '0': ['████████', '██  ██ ██', '██ █ █ ██', '███   ███', '████████'],
+                    '1': ['  ███  ', ' ████  ', '  ███  ', '  ███  ', '███████'],
+                    '2': ['████████', '     ██', ' ██████', ' ██    ', '████████'],
+                    '3': ['████████', '     ██', ' ██████', '     ██', '████████'],
+                    '4': ['██    ██', '██    ██', '████████', '     ██', '     ██'],
+                    '5': ['████████', '██    ', '████████', '     ██', '████████'],
+                    '6': ['████████', '██    ', '████████', '██    ██', '████████'],
+                    '7': ['████████', '     ██', '    ██ ', '   ██  ', '   ██  '],
+                    '8': ['████████', '██    ██', '████████', '██    ██', '████████'],
+                    '9': ['████████', '██    ██', '████████', '     ██', '████████'],
+                    ' ': ['  ', '  ', '  ', '  ', '  '],
+                }
+            },
+            slant: {
+                width: 60,
+                height: 6,
+                chars: {
+                    'A': ['   /\\', '  /  \\', ' / /\\ \\', '/ /__\\ \\', '/      \\', '/       \\'],
+                    'B': ['|‾‾‾\\ ', '|  _ | ', '| |_| |', '|  _ | ', '|____|/'],
+                    'C': ['  /‾‾‾\\', ' /     ', '/  ___ ', '\\      ', ' \\___/|'],
+                    'D': ['|‾‾‾\\ ', '|     |', '|     |', '|     |', '|____/ '],
+                    'E': ['|‾‾‾‾‾|', '|     |', '|‾‾‾‾ |', '|     |', '|_____|'],
+                    'F': ['|‾‾‾‾‾|', '|     |', '|‾‾‾‾ |', '|     |', '|     '],
+                    'G': ['  /‾‾‾\\', ' /     ', '/   ___\\', '\\     |', ' \\___/|'],
+                    'H': ['|     |', '|     |', '|‾‾‾‾‾|', '|     |', '|     |'],
+                    'I': ['|‾‾‾|', '  | |  ', '  | |  ', '  | |  ', '|_|_| '],
+                    'J': ['   |‾‾|', '   |  |', '   |  |', ' / |  |', '/_/|__|'],
+                    'K': ['|    /', '|   / ', '|‾‾<  ', '|   \\ ', '|    \\'],
+                    'L': ['|     ', '|     ', '|     ', '|     ', '|_____|'],
+                    'M': ['/\\    /\\', '/  \\  /  \\', '/ /\\ \\/ /\\ \\', '/ /  \\/  \\ \\', '/_/          \\_\\'],
+                    'N': ['|\\     |', '| \\    |', '|  \\   |', '|   \\  |', '|    \\_|'],
+                    'O': ['  /‾‾\\', ' /     \\', '/       \\', '\\       /', ' \\_____/'],
+                    'P': ['|‾‾‾\\ ', '|     |', '|‾‾‾‾/ ', '|     ', '|     '],
+                    'Q': ['  /‾‾\\', ' /     \\', '/   |   \\', '\\   |   /', ' \\__|__/'],
+                    'R': ['|‾‾‾\\ ', '|     |', '|‾‾‾‾\\ ', '|    / ', '|     \\'],
+                    'S': ['  /‾‾‾\\', ' |     ', '  \\___ ', '    | |', '|___/|'],
+                    'T': ['|‾‾‾‾‾‾|', '   |   |', '   |   |', '   |   |', '   |___|'],
+                    'U': ['|     |', '|     |', '|     |', '|     |', ' \\___/|'],
+                    'V': ['\\     /', ' \\   / ', '  \\ /  ', '  | |  ', '  |_|  '],
+                    'W': ['|       |', '|       |', '| |   | |', '| |   | |', ' \\_| |_/ '],
+                    'X': ['\\     /', ' \\   / ', '  \\ /  ', ' /   \\ ', '/     \\'],
+                    'Y': ['\\     /', ' \\   / ', '  \\ /  ', '  | |  ', '  |_|  '],
+                    'Z': ['|‾‾‾‾‾|', '    /  ', '   /   ', '  /    ', '|_____|'],
+                    '0': ['  /‾‾\\', ' / 0  \\', '/      \\', '\\      /', ' \\____/'],
+                    '1': ['  |  ', ' /|  ', '  |  ', '  |  ', '  |  '],
+                    '2': ['  /‾‾\\', '    / ', '   /  ', '  /   ', '|_____|'],
+                    '3': ['  /‾‾\\', '    / ', '  /___/', '    / ', '|____/'],
+                    '4': ['|    |', '|    |', '|____|', '    | ', '    | '],
+                    '5': ['|____', '|     ', '|___  ', '    | ', '|___/ '],
+                    '6': ['  /‾‾\\', ' /    ', '|‾‾‾\\ ', '|    |', ' \\___/'],
+                    '7': ['|‾‾‾‾|', '   /  ', '  /   ', ' /    ', '|     '],
+                    '8': ['  /‾‾\\', ' /   \\', ' \\ | /', '  | | ', ' /_|_\\'],
+                    '9': ['  /‾‾\\', ' /   |', ' \\_‾|/', '   |  ', '   |_ '],
+                    ' ': ['  ', '  ', '  ', '  ', '  '],
+                }
+            },
+            shadow: {
+                width: 50,
+                height: 10,
+                chars: {
+                    'A': [' ▄▀▀▀▀▄ ', '▀▄     ▄▀', '  ▀▀▀▀▀ ', ' ▄ ▀▀▀▀ ▄', '▀  ▀▀▀▀  ▀'],
+                    'B': ['▄▀▀▀▀▄ ', '▀▄    ▄▀', ' ▀▀▀▀▄ ', '▀▄    ▄▀', ' ▀▀▀▀▀ '],
+                    'C': [' ▄▀▀▀▀▄', '▀        ', '▀        ', '▀        ', ' ▀▀▀▀▀ '],
+                    'D': ['▄▀▀▀▀▄ ', '▀▄     ▄▀', '▀ ▄   ▄ ▀', '▀  ▀▀▀  ▀', ' ▀▀▀▀▀ '],
+                    'E': ['▄▀▀▀▀▀▀', '▀       ', ' ▀▀▀▀▄ ', '▀       ', ' ▀▀▀▀▀ '],
+                    'F': ['▄▀▀▀▀▀▀', '▀       ', ' ▀▀▀▀▄ ', '▀       ', '▀        '],
+                    'G': [' ▄▀▀▀▀▄', '▀       ', '▀ ▄▀▀▀▄ ', '▀    ▄▀ ', ' ▀▀▀▀▀ '],
+                    'H': ['▀   ▄▀ ', '▀   ▄▀ ', ' ▀▀▀▀▀▀', '▀   ▄▀ ', '▀   ▄▀ '],
+                    'I': ['▄▀▀▀▀▄', '  ▀▀▀ ', '  ▀▀▀ ', '  ▀▀▀ ', '▄▀▀▀▀▄'],
+                    'J': ['   ▄▀▀▀', '    ▀▀ ', '    ▀▀ ', '▄▄ ▀  ', ' ▀▀▀▀ '],
+                    'K': ['▀  ▄ ▀ ', '▀ ▄▀▄ ▀', '▄▀   ▀▄', '▀    ▀ ', '▀     ▀'],
+                    'L': ['▀      ', '▀      ', '▀      ', '▀      ', ' ▀▀▀▀▀'],
+                    'M': ['▄▀   ▀▄ ', '▀▄▄ ▄▄▀ ', '▀  ▀▀  ▀', '▀       ▀', '▀        ▀'],
+                    'N': ['▄▀    ▀ ', '▀▄    ▄▀', '▀ ▄  ▄ ▀', '▀  ▀▀  ▀', '▀       ▀'],
+                    'O': [' ▄▀▀▀▀▄ ', '▀▄     ▄▀', '▀       ▀', '▀  ▄▄  ▀', ' ▀▀▀▀▀ '],
+                    'P': ['▄▀▀▀▀▄ ', '▀▄     ▄▀', ' ▀▀▀▀▀▄ ', '▀        ', '▀        '],
+                    'Q': [' ▄▀▀▀▀▄ ', '▀▄     ▄▀', '▀  ▄ ▄  ▀', '▀  ▀▀  ▀ ', ' ▀▀▀▀▀▄▀'],
+                    'R': ['▄▀▀▀▀▄ ', '▀▄     ▄▀', ' ▀▀▀▀▀▄ ', '▀ ▄   ▄ ▀', '▀  ▀▀  ▀'],
+                    'S': [' ▄▀▀▀▀▄', '▀       ', ' ▀▀▀▀▀ ', '     ▄▀ ', '▄▀▀▀▀▀ '],
+                    'T': ['▄▀▀▀▀▀▀▀', '   ▄▀   ', '   ▀    ', '   ▀    ', '   ▀▀▀ '],
+                    'U': ['▀     ▀ ', '▀     ▀ ', '▀     ▀ ', '▀  ▄▄  ▀', ' ▀▀▀▀▀ '],
+                    'V': ['▀     ▀ ', ' ▀   ▀  ', '  ▀ ▀   ', '  ▄▀▄   ', '   ▀    '],
+                    'W': ['▀       ▀', '▀  ▄ ▄  ▀', '▀ ▄ ▀ ▄ ▀', '▀▄▀   ▀▄▀', ' ▀▀▀▀▀ '],
+                    'X': ['▀     ▀ ', ' ▀▄ ▄▀  ', '  ▀▀▀   ', ' ▀▄ ▄▀  ', '▀     ▀ '],
+                    'Y': ['▀     ▀ ', ' ▀  ▀  ', '  ▀▀▀   ', '   ▀    ', '   ▀▀▀ '],
+                    'Z': ['▄▀▀▀▀▀▀▀', '     ▄▀ ', '   ▄▀  ', ' ▄▀    ', '▀▀▀▀▀▀ '],
+                    '0': [' ▄▀▀▀▀▄ ', '▀▄  ▄  ▄▀', '▀  ▄▄  ▀', '▀ ▄   ▄ ▀', ' ▀▀▀▀▀ '],
+                    '1': ['  ▄▀   ', ' ▀▄▀   ', '   ▀   ', '   ▀   ', ' ▄▀▀▀ '],
+                    '2': [' ▄▀▀▀▀▄', '    ▄▀ ', '  ▄▀  ', ' ▄▀   ', '▄▀▀▀▀▀▀'],
+                    '3': ['▄▀▀▀▀▀▀', '     ▄▀ ', ' ▄▀▀▀ ', '   ▄▀ ', '▀▀▀▀▀▀ '],
+                    '4': ['▀    ▄▀ ', '▀   ▄▀  ', '▀▀▀▀▀▀▀', '    ▄▀ ', '    ▀  '],
+                    '5': ['▄▀▀▀▀▀▀', '▀▄      ', ' ▀▀▀▀▀▄', '    ▄▀ ', '▀▀▀▀▀▀ '],
+                    '6': [' ▄▀▀▀▀▄', '▀▄      ', '▄▀▀▀▀▀▄', '▀  ▄  ▄▀', ' ▀▀▀▀▀ '],
+                    '7': ['▄▀▀▀▀▀▀▀', '    ▄▀  ', '   ▄▀  ', '  ▄▀   ', ' ▀     '],
+                    '8': [' ▄▀▀▀▀▄ ', '▀▄  ▄  ▄▀', ' ▀▀▀▀▀▀ ', '▀▄  ▄  ▄▀', ' ▀▀▀▀▀ '],
+                    '9': [' ▄▀▀▀▀▄ ', '▀  ▄  ▄▀', ' ▀▀▀▀▀▄▀', '    ▄▀  ', ' ▀▀▀▀▀ '],
+                    ' ': ['   ', '   ', '   ', '   ', '   '],
+                }
+            },
+            smslant: {
+                width: 50,
+                height: 5,
+                chars: {
+                    'A': [' /\\ ', '/  \\', '/ /\\', '/  \\'],
+                    'B': ['|__/', '|  \\', '|__/'],
+                    'C': ['/__/', '/   ', '/   '],
+                    'D': ['|__\\', '|  |', '|__/'],
+                    'E': ['|___', '|   ', '|___'],
+                    'F': ['|___', '|   ', '|    '],
+                    'G': ['/__/', '/   ', '/_/\\_'],
+                    'H': ['|  |', '|__|', '|  |'],
+                    'I': ['|||', ' | ', ' | '],
+                    'J': ['  |', '  |', '/  '],
+                    'K': ['| /', '|< ', '| \\'],
+                    'L': ['|  ', '|  ', '|__'],
+                    'M': ['/\\/', '/  \\', '/   \\'],
+                    'N': ['|\\|', '| |\\', '|  |'],
+                    'O': ['/\\/', '|  |', '\\/ '],
+                    'P': ['|__/', '|   ', '|    '],
+                    'Q': ['/\\/', '|\\ |', '\\/(_)'],
+                    'R': ['|__/', '|  \\', '|  \\'],
+                    'S': ['/__/', '   |', '\\__/'],
+                    'T': ['|||', ' | ', ' | '],
+                    'U': ['|  |', '|  |', '\\__/'],
+                    'V': ['\\  /', ' \\/ ', '  V  '],
+                    'W': ['|  |', '| ||', '\\  /'],
+                    'X': ['\\ /', ' X ', '/ \\'],
+                    'Y': ['\\ /', ' X ', ' | '],
+                    'Z': ['|--|', '  / ', '/__ '],
+                    '0': ['/\\/', '|\\|', '\\/ '],
+                    '1': [' | ', '.| ', ' V '],
+                    '2': ['/__/', ' _/', '/__'],
+                    '3': ['--/', '  /', '--/'],
+                    '4': ['|  |', '|--|', '   |'],
+                    '5': ['/__/', '|__', '  \\'],
+                    '6': ['/__/', '|__', '\\/ '],
+                    '7': ['|--|', '  / ', ' /  '],
+                    '8': ['/\\/', '\\/ ', '/\\ '],
+                    '9': ['/\\/', '|_/', '  \\'],
+                    ' ': ['  ', '  ', '  '],
+                }
+            },
+            mini: {
+                width: 40,
+                height: 3,
+                chars: {
+                    'A': ['._.', '| |', '|_|'],
+                    'B': ['|~|', '|~]', '|~)'],
+                    'C': ['|--|', '|  ', '|  '],
+                    'D': ['|~/', '|  |', '|  \\'],
+                    'E': ['|--|', '|- ', '|--|'],
+                    'F': ['|--|', '|- ', '|  '],
+                    'G': ['|--|', '|  |', '|--)'],
+                    'H': ['|  |', '|--|', '|  |'],
+                    'I': ['|||', ' | ', ' | '],
+                    'J': ['  |', '  |', '.-|'],
+                    'K': ['|/<', '|  ', '|  \\'],
+                    'L': ['|  ', '|  ', '|__'],
+                    'M': ['/\\/\\', '|  |', '|  |'],
+                    'N': ['/\\|', '| |\\', '|  |'],
+                    'O': ['|  |', '|  |', '|  |'],
+                    'P': ['|~|', '|~]', '|  '],
+                    'Q': ['|  |', '| |>', '|__\\'],
+                    'R': ['|~|', '|~]', '| \\'],
+                    'S': ['|--|', '|--', ' --|'],
+                    'T': ['|||', ' | ', ' | '],
+                    'U': ['|  |', '|  |', '|__|'],
+                    'V': ['\\  /', ' \\/ ', '  V  '],
+                    'W': ['|  |', '|  |', '|\\/|'],
+                    'X': ['\\  /', ' X ', '/  \\'],
+                    'Y': ['\\  /', ' X ', ' | '],
+                    'Z': ['|--|', '  / ', '/__'],
+                    '0': ['|  |', '|  |', '|  |'],
+                    '1': [' | ', '.| ', ' V '],
+                    '2': ['|--|', ' _/ ', '/__'],
+                    '3': ['|--|', ' _/ ', ' --|'],
+                    '4': ['|  |', '|--|', '   |'],
+                    '5': ['|--|', '|__', '  |'],
+                    '6': ['|--|', '|__', '|__|'],
+                    '7': ['|--|', '  / ', ' /  '],
+                    '8': ['|--|', '|--|', '|--|'],
+                    '9': ['|--|', '|--|', '   |'],
+                    ' ': ['   ', '   ', '   '],
+                }
+            }
+        };
+
+        function setStyle(style) {
+            currentStyle = style;
+            styleBtns.forEach(b => b.classList.remove('active'));
+            styleBtns[[...styleBtns].findIndex(b => b.onclick.toString().includes(style))].classList.add('active');
+            generateArt();
+        }
+
+        function setWidth(width) {
+            currentWidth = width;
+            quickStyleBtns.forEach(b => b.classList.remove('active'));
+            quickStyleBtns[[...quickStyleBtns].findIndex(b => b.onclick.toString().includes(width))].classList.add('active');
+            generateArt();
+        }
+
+        function setExample(text) {
+            textInput.value = text;
+            generateArt();
+        }
+
+        function generateArt() {
+            const text = textInput.value.toUpperCase();
+            const font = fonts[currentStyle];
+
+            if (!text) {
+                asciiOutput.textContent = '';
+                charCount.textContent = '0 chars';
+                return;
+            }
+
+            const lines = [];
+            const charData = font.chars;
+
+            for (let row = 0; row < font.height; row++) {
+                let line = '';
+                for (const char of text) {
+                    const charLines = charData[char] || charData[' '];
+                    line += (charLines[row] || '') + ' ';
+                }
+                lines.push(line);
+            }
+
+            // Scale based on width setting
+            const scale = currentWidth / font.width;
+            asciiOutput.textContent = lines.join('\n');
+            charCount.textContent = asciiOutput.textContent.length + ' chars';
+        }
+
+        function copyToClipboard() {
+            const text = asciiOutput.textContent;
+            if (!text) {
+                showToast('Nothing to copy!');
+                return;
+            }
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Copied to clipboard!');
+            }).catch(() => {
+                // Fallback
+                const range = document.createRange();
+                range.selectNodeContents(asciiOutput);
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+                document.execCommand('copy');
+                showToast('Copied to clipboard!');
+            });
+        }
+
+        function downloadArt() {
+            const text = asciiOutput.textContent;
+            if (!text) {
+                showToast('Nothing to download!');
+                return;
+            }
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'ascii-art-' + Date.now() + '.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Downloaded!');
+        }
+
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // Events
+        textInput.addEventListener('input', generateArt);
+
+        // Initialize
+        textInput.focus();
+    </script>
+</body>
+</html>

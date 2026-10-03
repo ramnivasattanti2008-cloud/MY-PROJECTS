@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lorem Ipsum Generator</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0d0d12;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      background: #16161f;
+      border: 1px solid #2a2a3a;
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 680px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+    .subtitle {
+      color: #888;
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .control-group {
+      text-align: center;
+    }
+    .control-group label {
+      display: block;
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .control-group input,
+    .control-group select {
+      width: 100%;
+      background: #1e1e2a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 12px;
+      color: #fff;
+      font-size: 14px;
+      text-align: center;
+      outline: none;
+    }
+    .control-group input:focus,
+    .control-group select:focus { border-color: #6366f1; }
+    .control-group select option { background: #1e1e2a; }
+    .buttons {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .btn {
+      flex: 1;
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+    .btn-primary {
+      background: #6366f1;
+      color: #fff;
+    }
+    .btn-primary:hover { background: #5558e3; }
+    .btn-secondary {
+      background: #252530;
+      color: #fff;
+    }
+    .btn-secondary:hover { background: #2f2f40; }
+    .output {
+      background: #1a1a24;
+      border-radius: 12px;
+      padding: 24px;
+      min-height: 200px;
+      max-height: 400px;
+      overflow-y: auto;
+      margin-bottom: 16px;
+    }
+    .output::-webkit-scrollbar { width: 8px; }
+    .output::-webkit-scrollbar-track { background: #1a1a24; }
+    .output::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+    .output::-webkit-scrollbar-thumb:hover { background: #444; }
+    .output p {
+      color: #ccc;
+      line-height: 1.7;
+      margin-bottom: 16px;
+    }
+    .output p:last-child { margin-bottom: 0; }
+    .output ul, .output ol {
+      color: #ccc;
+      line-height: 1.7;
+      padding-left: 24px;
+      margin-bottom: 16px;
+    }
+    .output li { margin-bottom: 8px; }
+    .output:empty::before {
+      content: 'Your lorem ipsum text will appear here...';
+      color: #666;
+      font-style: italic;
+    }
+    .copy-status {
+      text-align: center;
+      font-size: 13px;
+      color: #22c55e;
+      height: 20px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .copy-status.show { opacity: 1; }
+    .format-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .format-tab {
+      background: #252530;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 13px;
+      color: #888;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .format-tab:hover { color: #fff; }
+    .format-tab.active {
+      background: #6366f133;
+      border-color: #6366f1;
+      color: #6366f1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Lorem Ipsum Generator</h1>
+    <p class="subtitle">Generate placeholder text for your designs</p>
+
+    <div class="format-tabs">
+      <button class="format-tab active" onclick="setFormat('paragraphs')">Paragraphs</button>
+      <button class="format-tab" onclick="setFormat('words')">Words</button>
+      <button class="format-tab" onclick="setFormat('bytes')">Bytes</button>
+      <button class="format-tab" onclick="setFormat('lists')">Lists</button>
+      <button class="format-tab" onclick="setFormat('headings')">Headings</button>
+    </div>
+
+    <div class="controls">
+      <div class="control-group">
+        <label>Paragraphs</label>
+        <input type="number" id="count" value="3" min="1" max="20">
+      </div>
+      <div class="control-group">
+        <label>Length</label>
+        <select id="length">
+          <option value="short">Short</option>
+          <option value="medium" selected>Medium</option>
+          <option value="long">Long</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label>List Items</label>
+        <input type="number" id="listCount" value="5" min="1" max="20">
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button class="btn btn-primary" onclick="generate()">Generate</button>
+      <button class="btn btn-secondary" onclick="copyToClipboard()">Copy to Clipboard</button>
+    </div>
+
+    <div class="output" id="output"></div>
+    <div class="copy-status" id="copyStatus">Copied to clipboard!</div>
+  </div>
+
+  <script>
+    const loremWords = [
+      'lorem', 'ipsum', 'dolor', 'sit', 'amet', 'consectetur', 'adipiscing', 'elit',
+      'sed', 'do', 'eiusmod', 'tempor', 'incididunt', 'ut', 'labore', 'et', 'dolore',
+      'magna', 'aliqua', 'enim', 'ad', 'minim', 'veniam', 'quis', 'nostrud',
+      'exercitation', 'ullamco', 'laboris', 'nisi', 'aliquip', 'ex', 'ea', 'commodo',
+      'consequat', 'duis', 'aute', 'irure', 'in', 'reprehenderit', 'voluptate',
+      'velit', 'esse', 'cillum', 'fugiat', 'nulla', 'pariatur', 'excepteur', 'sint',
+      'occaecat', 'cupidatat', 'non', 'proident', 'sunt', 'culpa', 'qui', 'officia',
+      'deserunt', 'mollit', 'anim', 'id', 'est', 'laborum', 'pellentesque', 'habitant',
+      'morbi', 'tristique', 'senectus', 'netus', 'malesuada', 'fames', 'ac', 'turpis',
+      'egestas', 'proin', 'sagittis', 'nisl', 'rhoncus', 'mattis', 'massa', 'vitae',
+      'tortor', 'condimentum', 'lacinia', 'quis', 'vel', 'eros', 'donec', 'odio',
+      'quisque', 'volutpat', 'ligula', 'nec', 'diam', 'vulputate', 'ut', 'pharetra',
+      'sit', 'amet', 'curabitur', 'gravida', 'rutrum', 'tellus', 'nullam', 'sodales',
+      'vestibulum', 'tincidunt', 'bibendum', 'arcu', 'class', 'aptent', 'taciti',
+      'sociosqu', 'ad', 'litora', 'torquent', 'per', 'conubia', 'nostra', 'inceptos',
+      'himenaeos', 'fusce', 'dapibus', 'pulvinar', 'convallis', 'posuere', 'cubilia',
+      'curae', 'maecenas', 'tristique', 'orci', 'varius', 'natoque', 'penatibus',
+      'magnis', 'dis', 'parturient', 'montes', 'nascetur', 'ridiculus', 'mus'
+    ];
+
+    const headingTexts = [
+      'The Art of Design', 'Understanding Complexity', 'Building Better Systems',
+      'Modern Solutions', 'The Future of Technology', 'Creative Approaches',
+      'Effective Strategies', 'Innovation and Growth', 'Quality and Excellence',
+      'Streamlined Processes', 'User-Centered Design', 'Digital Transformation',
+      'Sustainable Practices', 'Strategic Vision', 'Collaborative Success'
+    ];
+
+    let currentFormat = 'paragraphs';
+    let generatedText = '';
+
+    function shuffle(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function getWords(count) {
+      const words = [];
+      const shuffled = shuffle(loremWords);
+      for (let i = 0; i < count; i++) {
+        words.push(shuffled[i % shuffled.length]);
+      }
+      return words;
+    }
+
+    function capitalize(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    function generateSentence(minWords, maxWords) {
+      const count = Math.floor(Math.random() * (maxWords - minWords + 1)) + minWords;
+      const words = getWords(count);
+      let sentence = capitalize(words.join(' '));
+      return sentence + '.';
+    }
+
+    function generateParagraph(sentences) {
+      const sents = [];
+      for (let i = 0; i < sentences; i++) {
+        sents.push(generateSentence(8, 15));
+      }
+      return sents.join(' ');
+    }
+
+    function setFormat(format) {
+      currentFormat = format;
+      document.querySelectorAll('.format-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.textContent.toLowerCase().includes(format));
+      });
+    }
+
+    function generate() {
+      const count = parseInt(document.getElementById('count').value);
+      const length = document.getElementById('length').value;
+      const listCount = parseInt(document.getElementById('listCount').value);
+
+      const sentenceCount = { short: 2, medium: 4, long: 8 };
+      const sentences = sentenceCount[length];
+
+      let html = '';
+      generatedText = '';
+
+      switch (currentFormat) {
+        case 'paragraphs':
+          for (let i = 0; i < count; i++) {
+            const para = generateParagraph(sentences);
+            html += `<p>${para}</p>`;
+            generatedText += para + '\n\n';
+          }
+          break;
+
+        case 'words':
+          const wordCount = count * 50;
+          const words = getWords(wordCount);
+          generatedText = words.join(' ');
+          html = `<p>${generatedText}</p>`;
+          break;
+
+        case 'bytes':
+          const byteCount = count * 500;
+          const byteWords = getWords(Math.ceil(byteCount / 6));
+          generatedText = byteWords.join(' ').substring(0, byteCount);
+          html = `<p>${generatedText}</p>`;
+          break;
+
+        case 'lists':
+          html = '<ul>';
+          for (let i = 0; i < listCount; i++) {
+            const item = generateSentence(4, 10);
+            html += `<li>${item}</li>`;
+            generatedText += `• ${item}\n`;
+          }
+          html += '</ul>';
+          break;
+
+        case 'headings':
+          const shuffled = shuffle(headingTexts);
+          for (let i = 0; i < count; i++) {
+            html += `<p style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px;">${shuffled[i % shuffled.length]}</p>`;
+            html += `<p>${generateParagraph(sentences)}</p>`;
+            generatedText += `${shuffled[i % shuffled.length]}\n\n${generateParagraph(sentences)}\n\n`;
+          }
+          break;
+      }
+
+      document.getElementById('output').innerHTML = html;
+    }
+
+    function copyToClipboard() {
+      if (!generatedText) {
+        generate();
+      }
+      navigator.clipboard.writeText(generatedText).then(() => {
+        const status = document.getElementById('copyStatus');
+        status.classList.add('show');
+        setTimeout(() => status.classList.remove('show'), 2000);
+      });
+    }
+
+    generate();
+  </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "node-url-shortener",
+  "version": "1.0.0",
+  "description": "Express URL shortener with SQLite",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "better-sqlite3": "^9.2.2",
+    "nanoid": "^3.3.7"
+  }
+}

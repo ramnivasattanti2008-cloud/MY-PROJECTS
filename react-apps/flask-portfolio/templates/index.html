@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}About Me - Portfolio{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- About Section -->
+    <section id="about" class="mb-5">
+        <div class="row align-items-center">
+            <div class="col-md-4 mb-4 mb-md-0">
+                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 200px; height: 200px;">
+                    <span class="fs-1 text-muted">Avatar</span>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <h1 class="mb-3">Hello, I'm a Developer</h1>
+                <p class="lead text-secondary">
+                    Full-stack developer passionate about building scalable web applications
+                    and creating seamless user experiences. I love turning complex problems
+                    into simple, elegant solutions.
+                </p>
+                <p class="text-secondary">
+                    With experience in Python, Flask, and modern web technologies,
+                    I craft robust backend systems and intuitive frontend interfaces.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="mb-5">
+        <h2 class="section-title mb-4">Projects</h2>
+        <div class="row">
+            {% for project in projects %}
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ project.title }}</h5>
+                        <p class="card-text">{{ project.description }}</p>
+                        <div class="mb-2">
+                            {% for tech in project.tech %}
+                            <span class="badge me-1">{{ tech }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills" class="mb-5">
+        <h2 class="section-title mb-4">Skills</h2>
+        <div class="row">
+            {% for skill in skills %}
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ skill.category }}</h5>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for item in skill.items %}
+                            <span class="badge bg-secondary">{{ item }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Create Paste - Pastebin Clone{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 40px 20px;">
+    <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 8px;">Create a New Paste</h1>
+    <p style="color: #71717a; margin-bottom: 32px;">Share code, text, or any content with syntax highlighting</p>
+
+    <form action="/create" method="POST">
+        <div class="card" style="margin-bottom: 24px;">
+            <div class="form-group">
+                <label class="label" for="title">Title (optional)</label>
+                <input type="text" id="title" name="title" class="input" placeholder="My Awesome Paste">
+            </div>
+
+            <div class="form-group">
+                <label class="label" for="content">Content</label>
+                <textarea id="content" name="content" placeholder="Paste your code or text here..." required></textarea>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="label" for="language">Language</label>
+                    <select id="language" name="language">
+                        <option value="auto">Auto-detect</option>
+                        {% for value, name in languages %}
+                        <option value="{{ value }}">{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="label" for="expiration">Expiration</label>
+                    <select id="expiration" name="expiration">
+                        {% for value, name in expiration_options %}
+                        <option value="{{ value }}">{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="label" for="exposure">Exposure</label>
+                    <select id="exposure" name="exposure">
+                        <option value="public">Public</option>
+                        <option value="unlisted">Unlisted</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="label" for="password">Password (optional)</label>
+                <input type="password" id="password" name="password" class="input" placeholder="Leave empty for no password">
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 14px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                    <polyline points="17 21 17 13 7 13 7 21"/>
+                    <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                Create Paste
+            </button>
+        </div>
+    </form>
+
+    {% if recent_pastes %}
+    <div style="margin-top: 48px;">
+        <h2 style="font-size: 1.25rem; margin-bottom: 20px;">Recent Pastes</h2>
+        <div class="paste-list">
+            {% for paste in recent_pastes %}
+            <a href="/p/{{ paste.paste_id }}" class="paste-item" style="text-decoration: none;">
+                <div>
+                    <div class="paste-title">{{ paste.title or 'Untitled' }}</div>
+                    <div class="paste-meta">
+                        {{ paste.created_at[:10] }} &middot; {{ paste.view_count }} views
+                    </div>
+                </div>
+                <span class="badge badge-purple">{{ paste.language }}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

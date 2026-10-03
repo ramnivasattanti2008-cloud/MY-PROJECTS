@@ -1,0 +1,53 @@
+---
+title: "Getting Started with Next.js 15"
+date: "2024-01-15"
+excerpt: "Learn how to build modern web applications with Next.js 15 and its powerful features."
+category: "Tutorial"
+readingTime: "8 min read"
+---
+
+# Getting Started with Next.js 15
+
+Next.js 15 brings exciting new features and improvements that make building web applications easier and more powerful than ever. In this tutorial, we'll explore the key features and get you up to speed.
+
+## What's New in Next.js 15?
+
+### 1. Improved Performance
+
+Next.js 15 includes significant performance improvements:
+
+- Faster cold starts
+- Reduced bundle sizes
+- Better caching strategies
+
+### 2. Enhanced Developer Experience
+
+The developer experience has been further refined with:
+
+- Better error messages
+- Improved hot module replacement
+- Enhanced TypeScript support
+
+### 3. New App Router Features
+
+The App Router continues to evolve with new capabilities:
+
+```typescript
+// Example of new async components
+async function UserProfile({ params }: { params: { id: string } }) {
+  const user = await getUser(params.id);
+  return <div>{user.name}</div>;
+}
+```
+
+## Getting Started
+
+To create a new Next.js 15 project, run:
+
+```bash
+npx create-next-app@latest my-app --typescript --tailwind
+```
+
+## Conclusion
+
+Next.js 15 is a powerful framework that continues to push the boundaries of what's possible with React. Start building today!

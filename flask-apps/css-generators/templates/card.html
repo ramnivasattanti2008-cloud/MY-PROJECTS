@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Generator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0d1117; --bg-secondary: #161b22; --bg-tertiary: #21262d;
+            --border: #30363d; --text: #e6edf3; --text-secondary: #8b949e;
+            --accent: #58a6ff; --success: #3fb950; --error: #f85149;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+        header { display: flex; align-items: center; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+        header h1 { font-size: 24px; }
+        header a { color: var(--text-secondary); text-decoration: none; font-size: 14px; }
+        header a:hover { color: var(--accent); }
+        .main-grid { display: grid; grid-template-columns: 1fr 400px; gap: 24px; }
+        @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+        .panel { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+        .panel-header { padding: 16px 20px; background: var(--bg-tertiary); border-bottom: 1px solid var(--border); font-weight: 600; font-size: 14px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .panel-body { padding: 20px; }
+        .preview-container { display: flex; align-items: center; justify-content: center; min-height: 400px; background: var(--bg-tertiary); border-radius: 8px; padding: 24px; }
+        .controls { display: flex; flex-direction: column; gap: 20px; }
+        .control-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; }
+        .control-row { display: flex; gap: 12px; align-items: center; }
+        input[type="range"] { flex: 1; height: 8px; border-radius: 4px; background: var(--bg-tertiary); -webkit-appearance: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+        input[type="number"] { width: 80px; background: var(--bg); border: 2px solid var(--border); border-radius: 8px; color: var(--text); padding: 8px; font-size: 14px; text-align: center; }
+        input[type="color"] { width: 48px; height: 40px; border: 2px solid var(--border); border-radius: 8px; cursor: pointer; background: none; }
+        select { flex: 1; background: var(--bg); border: 2px solid var(--border); border-radius: 8px; color: var(--text); padding: 10px; font-size: 14px; }
+        .range-display { min-width: 50px; text-align: right; font-size: 12px; color: var(--text-secondary); }
+        .code-output { background: var(--bg); border-radius: 8px; padding: 16px; font-family: 'Consolas', monospace; font-size: 13px; word-break: break-all; white-space: pre; overflow-x: auto; }
+        .code-output code { color: var(--accent); }
+        .copy-btn { background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; margin-top: 12px; }
+        .copy-btn:hover { background: var(--border); }
+        .presets { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+        .preset-btn { background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+        .preset-btn:hover { border-color: var(--accent); }
+        /* Generated Card Styles */
+        .generated-card { width: 320px; overflow: hidden; transition: all 0.3s; }
+        .card-image { width: 100%; height: 180px; object-fit: cover; }
+        .card-content { padding: 20px; }
+        .card-tag { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 12px; }
+        .card-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; line-height: 1.3; }
+        .card-description { font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px; }
+        .card-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid var(--border); }
+        .card-author { display: flex; align-items: center; gap: 8px; }
+        .card-avatar { width: 32px; height: 32px; border-radius: 50%; }
+        .card-author-name { font-size: 13px; font-weight: 600; }
+        .card-date { font-size: 12px; color: var(--text-secondary); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="/">&larr; Back to All Generators</a>
+            <h1>Card Generator</h1>
+        </header>
+        <div class="main-grid">
+            <div class="left">
+                <div class="panel">
+                    <div class="panel-header">Preview</div>
+                    <div class="panel-body">
+                        <div class="preview-container">
+                            <div class="generated-card" id="card">
+                                <img class="card-image" id="cardImage" src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=200&fit=crop" alt="Mountain landscape">
+                                <div class="card-content">
+                                    <span class="card-tag" id="cardTag">Travel</span>
+                                    <h3 class="card-title" id="cardTitle">Explore the Mountains</h3>
+                                    <p class="card-description" id="cardDesc">Discover breathtaking mountain views and scenic hiking trails around the world.</p>
+                                    <div class="card-footer">
+                                        <div class="card-author">
+                                            <img class="card-avatar" id="cardAvatar" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop" alt="Avatar">
+                                            <span class="card-author-name" id="cardAuthor">John Doe</span>
+                                        </div>
+                                        <span class="card-date" id="cardDate">2 hours ago</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel" style="margin-top: 24px;">
+                    <div class="panel-header">CSS Code</div>
+                    <div class="panel-body">
+                        <div class="code-output" id="codeOutput"></div>
+                        <button class="copy-btn" onclick="copyCode()">Copy to Clipboard</button>
+                    </div>
+                </div>
+            </div>
+            <div class="right">
+                <div class="panel">
+                    <div class="panel-header">Controls</div>
+                    <div class="panel-body">
+                        <div class="controls">
+                            <div class="control-group">
+                                <label>Presets</label>
+                                <div class="presets">
+                                    <button class="preset-btn" onclick="loadPreset('minimal')">Minimal</button>
+                                    <button class="preset-btn" onclick="loadPreset('gradient')">Gradient</button>
+                                    <button class="preset-btn" onclick="loadPreset('elevated')">Elevated</button>
+                                    <button class="preset-btn" onclick="loadPreset('outline')">Outline</button>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label>Background</label>
+                                <div class="control-row">
+                                    <input type="color" id="cardBg" value="#ffffff" onchange="update()">
+                                    <span id="cardBgValue" class="range-display">#ffffff</span>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label>Border Radius</label>
+                                <div class="control-row">
+                                    <input type="range" id="borderRadius" min="0" max="24" value="12" oninput="document.getElementById('radiusValue').textContent = this.value + 'px'; update()">
+                                    <span class="range-display" id="radiusValue">12px</span>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label>Shadow</label>
+                                <div class="control-row">
+                                    <input type="range" id="shadow" min="0" max="30" value="0" oninput="document.getElementById('shadowValue').textContent = this.value + 'px'; update()">
+                                    <span class="range-display" id="shadowValue">0px</span>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label>Padding</label>
+                                <div class="control-row">
+                                    <span style="font-size: 12px;">Content:</span>
+                                    <input type="number" id="padding" value="20" min="0" max="50" onchange="update()">
+                                    <span style="font-size: 12px;">px</span>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label>Border Width</label>
+                                <div class="control-row">
+                                    <input type="range" id="borderWidth" min="0" max="4" value="0" oninput="document.getElementById('borderWidthValue').textContent = this.value + 'px'; update()">
+                                    <span class="range-display" id="borderWidthValue">0px</span>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label>Border Color</label>
+                                <div class="control-row">
+                                    <input type="color" id="borderColor" value="#e5e7eb" onchange="update()">
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label>Hover Effect</label>
+                                <select id="hoverEffect" onchange="update()">
+                                    <option value="lift">Lift Up</option>
+                                    <option value="scale">Scale</option>
+                                    <option value="glow">Glow</option>
+                                    <option value="none">None</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function update() {
+            const cardBg = document.getElementById('cardBg').value;
+            const borderRadius = document.getElementById('borderRadius').value;
+            const shadow = document.getElementById('shadow').value;
+            const padding = document.getElementById('padding').value;
+            const borderWidth = document.getElementById('borderWidth').value;
+            const borderColor = document.getElementById('borderColor').value;
+            const hoverEffect = document.getElementById('hoverEffect').value;
+
+            document.getElementById('cardBgValue').textContent = cardBg;
+
+            let hoverStyles = '';
+            switch (hoverEffect) {
+                case 'lift':
+                    hoverStyles = 'transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.15);';
+                    break;
+                case 'scale':
+                    hoverStyles = 'transform: scale(1.02);';
+                    break;
+                case 'glow':
+                    hoverStyles = 'box-shadow: 0 0 20px rgba(88, 166, 255, 0.3);';
+                    break;
+            }
+
+            const card = document.getElementById('card');
+            card.style.cssText = `
+                background: ${cardBg};
+                border-radius: ${borderRadius}px;
+                box-shadow: 0 ${shadow}px ${shadow * 2}px rgba(0, 0, 0, ${shadow > 0 ? 0.1 : 0});
+                border: ${borderWidth}px solid ${borderColor};
+                transition: all 0.3s ease;
+                ${hoverEffect !== 'none' ? `&:hover { ${hoverStyles} }` : ''}
+            `;
+
+            // Apply hover styles
+            if (hoverEffect !== 'none') {
+                card.onmouseenter = () => {
+                    if (hoverEffect === 'lift') card.style.transform = 'translateY(-4px)';
+                    if (hoverEffect === 'scale') card.style.transform = 'scale(1.02)';
+                    if (hoverEffect === 'glow') card.style.boxShadow = `0 0 20px rgba(88, 166, 255, 0.3)`;
+                };
+                card.onmouseleave = () => {
+                    card.style.transform = '';
+                    card.style.boxShadow = `0 ${shadow}px ${shadow * 2}px rgba(0, 0, 0, ${shadow > 0 ? 0.1 : 0})`;
+                };
+            }
+
+            document.getElementById('cardContent').style.padding = padding + 'px';
+            document.getElementById('cardImage').style.borderRadius = `${borderRadius}px ${borderRadius}px 0 0`;
+
+            const css = `.card {
+  background: ${cardBg};
+  border-radius: ${borderRadius}px;
+  box-shadow: 0 ${shadow}px ${shadow * 2}px rgba(0, 0, 0, ${shadow > 0 ? 0.1 : 0});
+  border: ${borderWidth}px solid ${borderColor};
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  ${hoverStyles || '/* No hover effect */'}
+}
+
+.card-image {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: ${borderRadius}px ${borderRadius}px 0 0;
+}
+
+.card-content {
+  padding: ${padding}px;
+}
+
+.card-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+
+.card-description {
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid ${borderColor};
+}`;
+
+            document.getElementById('codeOutput').innerHTML = `<code>${css.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code>`;
+        }
+
+        function loadPreset(name) {
+            const presets = {
+                minimal: { bg: '#ffffff', shadow: 0, border: 0, hover: 'none' },
+                gradient: { bg: '#1a1a2e', shadow: 0, border: 1, hover: 'lift' },
+                elevated: { bg: '#ffffff', shadow: 8, border: 0, hover: 'lift' },
+                outline: { bg: 'transparent', shadow: 0, border: 2, hover: 'glow' }
+            };
+            const p = presets[name];
+            document.getElementById('cardBg').value = p.bg.startsWith('#') ? p.bg : '#ffffff';
+            document.getElementById('shadow').value = p.shadow;
+            document.getElementById('shadowValue').textContent = p.shadow + 'px';
+            document.getElementById('borderWidth').value = p.border;
+            document.getElementById('borderWidthValue').textContent = p.border + 'px';
+            document.getElementById('hoverEffect').value = p.hover;
+            update();
+        }
+
+        function copyCode() {
+            const code = document.getElementById('codeOutput').textContent;
+            navigator.clipboard.writeText(code);
+            const btn = document.querySelector('.copy-btn');
+            btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = 'Copy to Clipboard', 2000);
+        }
+
+        update();
+    </script>
+</body>
+</html>

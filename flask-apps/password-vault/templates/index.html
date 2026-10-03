@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Password Vault - Home{% endblock %}
+
+{% block content %}
+<div class="stats">
+    <div class="stat">
+        <div class="stat-value">{{ entries|length }}</div>
+        <div class="stat-label">Total Entries</div>
+    </div>
+    <div class="stat">
+        <div class="stat-value">{{ all_tags|length }}</div>
+        <div class="stat-label">Tags</div>
+    </div>
+</div>
+
+<form method="get" class="search-bar">
+    <input type="text" name="search" placeholder="Search passwords..." value="{{ search_query or '' }}">
+    <button type="submit" class="btn btn-primary">Search</button>
+</form>
+
+{% if all_tags %}
+<div style="margin-bottom: 1rem;">
+    <span style="color: #8b949e;">Filter by tag:</span>
+    <a href="{{ url_for('index', search=search_query or '') }}" class="tag {% if not tag_filter %}active{% endif %}">All</a>
+    {% for tag in all_tags %}
+    <a href="{{ url_for('index', tag=tag, search=search_query or '') }}"
+       class="tag {% if tag_filter == tag %}active{% endif %}"
+       style="{% if tag_filter == tag %}background: #58a6ff; color: white; border-color: #58a6ff;{% endif %}">
+        {{ tag }}
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if entries %}
+<div class="entry-list">
+    {% for entry in entries %}
+    <div class="entry-item">
+        <div class="entry-info">
+            <h3><a href="{{ url_for('view_entry', id=entry.id) }}" style="color: #c9d1d9; text-decoration: none;">{{ entry.title }}</a></h3>
+            {% if entry.username %}
+            <div class="username">{{ entry.username }}</div>
+            {% endif %}
+            {% if entry.tags %}
+            <div class="tags">
+                {% for tag in entry.tags.split(',') %}
+                <a href="{{ url_for('index', tag=tag.strip()) }}" class="tag">{{ tag.strip() }}</a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        <div class="entry-actions">
+            <a href="{{ url_for('view_entry', id=entry.id) }}" class="btn btn-sm btn-secondary">View</a>
+            <a href="{{ url_for('edit_entry', id=entry.id) }}" class="btn btn-sm btn-secondary">Edit</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card empty-state">
+    <p>No passwords found.
+        {% if search_query or tag_filter %}
+        Try a different search.
+        {% else %}
+        <a href="{{ url_for('add_entry') }}" style="color: #58a6ff;">Add your first password!</a>
+        {% endif %}
+    </p>
+</div>
+{% endif %}
+{% endblock %}

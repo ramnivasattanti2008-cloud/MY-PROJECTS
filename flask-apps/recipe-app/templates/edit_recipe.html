@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Recipe{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Edit Recipe</h2>
+    <form method="post">
+        <div class="form-group">
+            <label for="name">Recipe Name *</label>
+            <input type="text" id="name" name="name" value="{{ recipe.name }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="category">Category *</label>
+            <select id="category" name="category" required>
+                {% set categories = ['Breakfast', 'Lunch', 'Dinner', 'Dessert', 'Snack', 'Beverage', 'Appetizer', 'Salad', 'Soup', 'Italian', 'Asian', 'Mexican', 'Indian', 'Other'] %}
+                {% for cat in categories %}
+                <option value="{{ cat }}" {% if recipe.category == cat %}selected{% endif %}>{{ cat }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description">{{ recipe.description or '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="ingredients">Ingredients * (one per line)</label>
+            <textarea id="ingredients" name="ingredients" required>{{ recipe.ingredients }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="instructions">Instructions * (one step per line)</label>
+            <textarea id="instructions" name="instructions" required>{{ recipe.instructions }}</textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+            <div class="form-group">
+                <label for="prep_time">Prep Time (min)</label>
+                <input type="number" id="prep_time" name="prep_time" value="{{ recipe.prep_time }}" min="0">
+            </div>
+            <div class="form-group">
+                <label for="cook_time">Cook Time (min)</label>
+                <input type="number" id="cook_time" name="cook_time" value="{{ recipe.cook_time }}" min="0">
+            </div>
+            <div class="form-group">
+                <label for="servings">Servings</label>
+                <input type="number" id="servings" name="servings" value="{{ recipe.servings }}" min="1">
+            </div>
+        </div>
+
+        <button type="submit" class="btn">Update Recipe</button>
+        <a href="{{ url_for('recipe_detail', id=recipe.id) }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

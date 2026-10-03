@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Page Not Found - Wiki{% endblock %}
+{% block content %}
+<aside class="sidebar">
+    <h3>Pages</h3>
+    <ul>
+        {% for slug, p in pages.items() %}
+        <li><a href="/wiki/{{ slug }}">{{ p.title }}</a></li>
+        {% endfor %}
+    </ul>
+</aside>
+<main class="main-content" style="text-align: center; padding: 4rem 0;">
+    <h1 style="font-size: 4rem; color: #f59e0b; margin-bottom: 1rem;">404</h1>
+    <h2 style="margin-bottom: 1rem;">Page Not Found</h2>
+    <p style="color: #888; margin-bottom: 2rem;">The page "/wiki/{{ slug }}" does not exist.</p>
+    <a href="/" style="background: #f59e0b; color: #0a0a0f; padding: 1rem 2rem; border-radius: 8px; font-weight: bold;">Go Home</a>
+</main>
+{% endblock %}

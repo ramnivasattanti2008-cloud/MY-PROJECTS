@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ page.title }} - Wiki{% endblock %}
+{% block content %}
+<aside class="sidebar">
+    <h3>Pages</h3>
+    <ul>
+        {% for slug, p in pages.items() %}
+        <li><a href="/wiki/{{ slug }}">{{ p.title }}</a></li>
+        {% endfor %}
+    </ul>
+</aside>
+<main class="main-content">
+    <h1 style="font-size: 2rem; color: #f59e0b; margin-bottom: 2rem;">Edit: {{ page.title }}</h1>
+    <form method="POST" action="/edit/{{ page.title.lower().replace(' ', '-') }}">
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; color: #888;">Content (Markdown)</label>
+            <textarea name="content" rows="20" required style="width: 100%; padding: 0.8rem; background: #12121a; border: 1px solid #2a2a4e; border-radius: 8px; color: #e0e0e0; font-family: monospace; resize: vertical;">{{ page.content }}</textarea>
+        </div>
+        <div style="display: flex; gap: 1rem;">
+            <button type="submit" style="background: #f59e0b; color: #0a0a0f; padding: 1rem 2rem; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">Save Changes</button>
+            <a href="/wiki/{{ page.title.lower().replace(' ', '-') }}" style="background: #1a1a2e; padding: 1rem 2rem; border-radius: 8px; display: inline-flex; align-items: center;">Cancel</a>
+        </div>
+    </form>
+</main>
+{% endblock %}

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revision - Flask Wiki</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #0d1117; color: #c9d1d9; min-height: 100vh; }
+        header { background: #161b22; border-bottom: 1px solid #30363d; padding: 1rem 0; }
+        .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+        nav { max-width: 900px; margin: 0 auto; padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
+        nav h1 { color: #58a6ff; font-size: 1.5rem; }
+        nav a { color: #c9d1d9; text-decoration: none; padding: 0.5rem 1rem; border-radius: 6px; }
+        nav a:hover { background: #21262d; }
+        .btn { background: #21262d; color: #c9d1d9; border: 1px solid #30363d; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; text-decoration: none; }
+        .btn:hover { background: #30363d; }
+        .btn-primary { background: #238636; border-color: #238636; }
+        .btn-primary:hover { background: #2ea043; }
+        .breadcrumb { color: #8b949e; margin-bottom: 1rem; }
+        .breadcrumb a { color: #58a6ff; }
+        .revision-header { background: #161b22; border: 1px solid #30363d; border-radius: 12px 12px 0 0; padding: 1rem 1.5rem; }
+        .revision-header h2 { color: #f0f6fc; font-size: 1.25rem; margin-bottom: 0.5rem; }
+        .revision-meta { color: #8b949e; font-size: 0.9rem; }
+        .markdown-body { background: #161b22; border: 1px solid #30363d; border-top: none; border-radius: 0 0 12px 12px; padding: 2rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <h1>Flask Wiki</h1>
+            <a href="/history/{{ page.slug }}">&larr; Back to History</a>
+        </nav>
+    </header>
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="/">Home</a> / <a href="/page/{{ page.slug }}">{{ page.title }}</a> / History / Revision
+        </div>
+        <div class="revision-header">
+            <h2>{{ revision.title }}</h2>
+            <div class="revision-meta">
+                {{ revision.edited_at }} by {{ revision.edited_by }}
+                {% if revision.edit_message %} - {{ revision.edit_message }}{% endif %}
+            </div>
+        </div>
+        <div class="markdown-body">
+            {{ revision.content|replace('\n', '<br>')|safe }}
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<h1 class="text-3xl font-bold mb-8">Admin Dashboard</h1>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">Pages</h2>
+            <a href="/admin/page/new" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">New Page</a>
+        </div>
+        <table class="w-full">
+            <thead>
+                <tr class="text-left border-b"><th class="pb-2">Title</th><th class="pb-2">Slug</th><th class="pb-2">Actions</th></tr>
+            </thead>
+            <tbody class="divide-y">
+                {% for page in pages %}
+                <tr>
+                    <td class="py-3">{{ page.title }}</td>
+                    <td class="py-3 text-gray-500">{{ page.slug }}</td>
+                    <td class="py-3">
+                        <form action="/admin/page/{{ page.id }}/delete" method="POST" class="inline">
+                            <button class="text-red-600 hover:underline">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">Posts</h2>
+            <a href="/admin/post/new" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">New Post</a>
+        </div>
+        <table class="w-full">
+            <thead>
+                <tr class="text-left border-b"><th class="pb-2">Title</th><th class="pb-2">Status</th><th class="pb-2">Actions</th></tr>
+            </thead>
+            <tbody class="divide-y">
+                {% for post in posts %}
+                <tr>
+                    <td class="py-3">{{ post.title }}</td>
+                    <td class="py-3">
+                        <form action="/admin/post/{{ post.id }}/toggle" method="POST" class="inline">
+                            <button class="px-2 py-1 text-xs rounded {{ 'bg-green-100 text-green-800' if post.published else 'bg-yellow-100 text-yellow-800' }}">
+                                {{ 'Published' if post.published else 'Draft' }}
+                            </button>
+                        </form>
+                    </td>
+                    <td class="py-3">
+                        <form action="/admin/post/{{ post.id }}/delete" method="POST" class="inline">
+                            <button class="text-red-600 hover:underline">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

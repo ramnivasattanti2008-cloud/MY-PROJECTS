@@ -1,0 +1,2 @@
+# excel-to-json requirements
+openpyxl>=3.0.0

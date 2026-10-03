@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cron Expression Generator</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --border: #30363d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent: #58a6ff;
+            --accent-hover: #79c0ff;
+            --success: #3fb950;
+            --error: #f85149;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+        }
+        .subtitle { color: var(--text-secondary); margin-bottom: 2rem; }
+        .cron-display {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .cron-expression {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 2rem;
+            color: var(--accent);
+            text-align: center;
+            padding: 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+        .cron-labels {
+            display: flex;
+            justify-content: center;
+            gap: 2.5rem;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .fields-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .field-group {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        .field-group label {
+            display: block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        .field-group input[type="text"] {
+            width: 100%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 0.5rem;
+            color: var(--text-primary);
+            font-family: monospace;
+            font-size: 1rem;
+            text-align: center;
+        }
+        .field-group input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .quick-select {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+        .quick-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 0.25rem 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .quick-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .next-runs {
+            background: var(--bg-secondary);
+            border: 1xlid: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+        .next-runs h3 {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .run-list {
+            list-style: none;
+        }
+        .run-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+            font-family: 'Monaco', 'Consolas', monospace;
+            color: var(--text-secondary);
+        }
+        .run-list li:last-child { border-bottom: none; }
+        .run-list li span { color: var(--text-primary); margin-left: 0.5rem; }
+        .description {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        @media (max-width: 768px) {
+            .fields-grid { grid-template-columns: repeat(2, 1fr); }
+            .cron-labels { gap: 0.5rem; font-size: 0.6rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cron Expression Generator</h1>
+        <p class="subtitle">Visual cron expression builder with next run preview</p>
+
+        <div class="cron-display">
+            <div class="cron-expression" id="cronExpression">* * * * *</div>
+            <div class="cron-labels">
+                <span>Minute</span>
+                <span>Hour</span>
+                <span>Day</span>
+                <span>Month</span>
+                <span>Weekday</span>
+            </div>
+        </div>
+
+        <div class="fields-grid">
+            <div class="field-group">
+                <label>Minute (0-59)</label>
+                <input type="text" id="minute" value="*" maxlength="20">
+                <div class="quick-select">
+                    <button class="quick-btn" data-field="minute" data-value="*">Every</button>
+                    <button class="quick-btn" data-field="minute" data-value="0">:00</button>
+                    <button class="quick-btn" data-field="minute" data-value="*/15">*/15</button>
+                    <button class="quick-btn" data-field="minute" data-value="*/30">*/30</button>
+                </div>
+            </div>
+            <div class="field-group">
+                <label>Hour (0-23)</label>
+                <input type="text" id="hour" value="*" maxlength="20">
+                <div class="quick-select">
+                    <button class="quick-btn" data-field="hour" data-value="*">Every</button>
+                    <button class="quick-btn" data-field="hour" data-value="0">0</button>
+                    <button class="quick-btn" data-field="hour" data-value="9-17">9-5</button>
+                    <button class="quick-btn" data-field="hour" data-value="*/6">*/6</button>
+                </div>
+            </div>
+            <div class="field-group">
+                <label>Day (1-31)</label>
+                <input type="text" id="day" value="*" maxlength="20">
+                <div class="quick-select">
+                    <button class="quick-btn" data-field="day" data-value="*">Every</button>
+                    <button class="quick-btn" data-field="day" data-value="1">1st</button>
+                    <button class="quick-btn" data-field="day" data-value="15">15th</button>
+                    <button class="quick-btn" data-field="day" data-value="L">Last</button>
+                </div>
+            </div>
+            <div class="field-group">
+                <label>Month (1-12)</label>
+                <input type="text" id="month" value="*" maxlength="20">
+                <div class="quick-select">
+                    <button class="quick-btn" data-field="month" data-value="*">Every</button>
+                    <button class="quick-btn" data-field="month" data-value="1">Jan</button>
+                    <button class="quick-btn" data-field="month" data-value="*/3">Q</button>
+                    <button class="quick-btn" data-field="month" data-value="1,4,7,10">Seasons</button>
+                </div>
+            </div>
+            <div class="field-group">
+                <label>Weekday (0-6)</label>
+                <input type="text" id="weekday" value="*" maxlength="20">
+                <div class="quick-select">
+                    <button class="quick-btn" data-field="weekday" data-value="*">Every</button>
+                    <button class="quick-btn" data-field="weekday" data-value="1-5">Weekdays</button>
+                    <button class="quick-btn" data-field="weekday" data-value="0,6">Weekends</button>
+                    <button class="quick-btn" data-field="weekday" data-value="1">Mon</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="next-runs">
+            <h3>Next 5 Scheduled Runs</h3>
+            <ul class="run-list" id="runList"></ul>
+            <div class="description" id="description"></div>
+        </div>
+    </div>
+
+    <script>
+        const fields = ['minute', 'hour', 'day', 'month', 'weekday'];
+        const fieldElements = {};
+        const limits = { minute: 59, hour: 23, day: 31, month: 12, weekday: 6 };
+
+        fields.forEach(f => {
+            fieldElements[f] = document.getElementById(f);
+            fieldElements[f].addEventListener('input', updateCron);
+        });
+
+        document.querySelectorAll('.quick-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const field = btn.dataset.field;
+                const value = btn.dataset.value;
+                fieldElements[field].value = value;
+                updateCron();
+            });
+        });
+
+        function parseField(field, value, max) {
+            if (value === '*') return { type: 'any' };
+            if (value === 'L') return { type: 'last' };
+            if (value.includes('/')) {
+                const [range, step] = value.split('/');
+                return { type: 'step', start: range === '*' ? 0 : parseInt(range), step: parseInt(step) };
+            }
+            if (value.includes('-')) {
+                const [start, end] = value.split('-').map(Number);
+                return { type: 'range', start, end };
+            }
+            if (value.includes(',')) {
+                return { type: 'list', values: value.split(',').map(Number) };
+            }
+            return { type: 'value', value: parseInt(value) };
+        }
+
+        function getMatches(parsed, max, reference = null) {
+            const matches = [];
+            switch (parsed.type) {
+                case 'any':
+                    for (let i = 0; i <= max; i++) matches.push(i);
+                    break;
+                case 'value':
+                    matches.push(parsed.value);
+                    break;
+                case 'range':
+                    for (let i = parsed.start; i <= parsed.end; i++) matches.push(i);
+                    break;
+                case 'step':
+                    for (let i = parsed.start; i <= max; i += parsed.step) matches.push(i);
+                    break;
+                case 'list':
+                    matches.push(...parsed.values);
+                    break;
+                case 'last':
+                    matches.push(max);
+                    break;
+            }
+            return matches;
+        }
+
+        function getNextDate() {
+            const now = new Date();
+            let year = now.getFullYear();
+            const month = parseField('month', fieldElements.month.value, 12);
+            const dayField = parseField('day', fieldElements.day.value, 31);
+            const weekday = parseField('weekday', fieldElements.weekday.value, 6);
+            const hour = parseField('hour', fieldElements.hour.value, 23);
+            const minute = parseField('minute', fieldElements.minute.value, 59);
+
+            const hourMatches = getMatches(hour, 23);
+            const minuteMatches = getMatches(minute, 59);
+
+            for (let m = 0; m < 12; m++) {
+                const testMonth = (now.getMonth() + m) % 12;
+                const testYear = year + Math.floor((now.getMonth() + m) / 12);
+
+                const monthValues = month.type === 'any' ? [testMonth] : getMatches(month, 11).filter(v =>
+                    month.type === 'value' ? v === testMonth : true
+                );
+
+                if (month.type !== 'any' && !getMatches(month, 11).includes(testMonth)) continue;
+
+                const daysInMonth = new Date(testYear, testMonth + 1, 0).getDate();
+                const dayValues = dayField.type === 'any'
+                    ? Array.from({length: daysInMonth}, (_, i) => i + 1)
+                    : getMatches(dayField, 31).filter(d => d <= daysInMonth);
+
+                for (const day of dayValues.sort((a, b) => a - b)) {
+                    const date = new Date(testYear, testMonth, day);
+                    const dayOfWeek = date.getDay();
+
+                    const weekdayMatch = weekday.type === 'any' || getMatches(weekday, 6).includes(dayOfWeek);
+                    if (!weekdayMatch) continue;
+
+                    for (const h of hourMatches) {
+                        for (const min of minuteMatches) {
+                            const candidate = new Date(testYear, testMonth, day, h, min, 0);
+                            if (candidate > now) {
+                                return candidate;
+                            }
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        function getNextRuns(count = 5) {
+            const runs = [];
+            let current = new Date();
+
+            for (let i = 0; i < count; i++) {
+                const next = findNextRun(current);
+                if (!next) break;
+                runs.push(next);
+                current = new Date(next.getTime() + 60000);
+            }
+            return runs;
+        }
+
+        function findNextRun(from) {
+            const minute = parseField('minute', fieldElements.minute.value, 59);
+            const hour = parseField('hour', fieldElements.hour.value, 23);
+            const dayField = parseField('day', fieldElements.day.value, 31);
+            const month = parseField('month', fieldElements.month.value, 12);
+            const weekday = parseField('weekday', fieldElements.weekday.value, 6);
+
+            let d = new Date(from.getTime() + 60000);
+
+            for (let iterations = 0; iterations < 525600; iterations++) {
+                const matchesMinute = minute.type === 'any' || getMatches(minute, 59).includes(d.getMinutes());
+                const matchesHour = hour.type === 'any' || getMatches(hour, 23).includes(d.getHours());
+
+                const monthValues = getMatches(month, 11);
+                const dayValues = getMatches(dayField, 31);
+                const weekdayValues = getMatches(weekday, 6);
+
+                const matchesMonth = monthValues.includes(d.getMonth());
+                const matchesDayOfMonth = dayValues.includes(d.getDate());
+                const matchesDayOfWeek = weekdayValues.includes(d.getDay());
+
+                const dayMatch = (dayField.type === 'any' && weekday.type === 'any')
+                    || (dayField.type === 'any' && matchesDayOfWeek)
+                    || (weekday.type === 'any' && matchesDayOfMonth)
+                    || (matchesDayOfMonth && matchesDayOfWeek);
+
+                if (matchesMinute && matchesHour && matchesMonth && dayMatch) {
+                    return d;
+                }
+                d = new Date(d.getTime() + 60000);
+            }
+            return null;
+        }
+
+        function getDescription() {
+            const parts = [];
+            const minuteVal = fieldElements.minute.value;
+            const hourVal = fieldElements.hour.value;
+            const dayVal = fieldElements.day.value;
+            const monthVal = fieldElements.month.value;
+            const weekdayVal = fieldElements.weekday.value;
+
+            if (minuteVal === '*' && hourVal === '*' && dayVal === '*' && monthVal === '*' && weekdayVal === '*') {
+                return 'Runs every minute, every hour, every day.';
+            }
+
+            if (minuteVal === '0' && hourVal === '*' && dayVal === '*' && monthVal === '*' && weekdayVal === '*') {
+                return 'Runs at the start of every hour.';
+            }
+
+            if (minuteVal === '0' && hourVal === '0' && dayVal === '*' && monthVal === '*' && weekdayVal === '*') {
+                return 'Runs once daily at midnight (00:00).';
+            }
+
+            if (weekdayVal === '1-5') {
+                return `Runs ${minuteVal === '*' ? 'every minute' : 'at minute ' + minuteVal} on weekdays at ${hourVal === '*' ? 'all hours' : 'hour ' + hourVal}.`;
+            }
+
+            return 'Custom schedule - see next run times for specifics.';
+        }
+
+        function updateCron() {
+            const expr = fields.map(f => fieldElements[f].value || '*').join(' ');
+            document.getElementById('cronExpression').textContent = expr;
+
+            const runs = getNextRuns(5);
+            const runList = document.getElementById('runList');
+            runList.innerHTML = runs.map((d, i) => {
+                const formatted = d.toLocaleString('en-US', {
+                    weekday: 'short', month: 'short', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                });
+                return `<li>Run ${i + 1}<span>${formatted}</span></li>`;
+            }).join('');
+
+            document.getElementById('description').textContent = getDescription();
+        }
+
+        updateCron();
+    </script>
+</body>
+</html>

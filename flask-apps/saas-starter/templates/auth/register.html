@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Account - SaaS App{% endblock %}
+
+{% block body %}
+<div class="auth-page">
+    <div class="auth-container">
+        <a href="/" class="auth-logo">
+            <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
+                <rect width="32" height="32" rx="8" fill="#6366f1"/>
+                <path d="M10 16L14 20L22 12" stroke="white" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+            SaaS App
+        </a>
+
+        <div class="auth-card">
+            <h1>Create your account</h1>
+            <p class="auth-subtitle">Start your 14-day free trial</p>
+
+            <form method="POST">
+                {{ form.hidden_tag() }}
+
+                <div class="form-group">
+                    {{ form.name.label(class="form-label") }}
+                    {{ form.name(class="form-control", placeholder="John Doe") }}
+                    {% for error in form.name.errors %}
+                    <span class="error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.email.label(class="form-label") }}
+                    {{ form.email(class="form-control", placeholder="john@example.com") }}
+                    {% for error in form.email.errors %}
+                    <span class="error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form.password.label(class="form-label") }}
+                        {{ form.password(class="form-control", placeholder="Min. 8 characters") }}
+                        {% for error in form.password.errors %}
+                        <span class="error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.confirm_password.label(class="form-label") }}
+                        {{ form.confirm_password(class="form-control", placeholder="Confirm password") }}
+                        {% for error in form.confirm_password.errors %}
+                        <span class="error">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="form-checkbox">
+                    {{ form.agree_terms() }}
+                    {{ form.agree_terms.label }}
+                    <a href="#">Terms of Service</a>
+                </div>
+
+                {{ form.submit(class="btn btn-primary btn-block") }}
+            </form>
+
+            <div class="auth-divider">
+                <span>or</span>
+            </div>
+
+            <p class="auth-footer">
+                Already have an account? <a href="{{ url_for('login') }}">Sign in</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="toast-container">
+        {% for category, message in messages %}
+        <div class="toast toast-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+{% endwith %}
+{% endblock %}

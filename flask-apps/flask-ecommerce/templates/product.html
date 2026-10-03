@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }}{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="md:flex">
+            <div class="md:w-1/2">
+                <img src="{{ product.image }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+            </div>
+            <div class="md:w-1/2 p-8">
+                <span class="text-sm text-indigo-600 uppercase font-semibold">{{ product.category }}</span>
+                <h1 class="text-3xl font-bold mt-2">{{ product.name }}</h1>
+                <p class="text-4xl font-bold text-gray-900 mt-4">${{ "%.2f"|format(product.price) }}</p>
+                <p class="text-gray-600 mt-6">High-quality product with premium features. Perfect for everyday use with exceptional durability and design.</p>
+                <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="POST" class="mt-8">
+                    <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700">Add to Cart</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <a href="/" class="inline-block mt-6 text-indigo-600 hover:underline">&larr; Back to Products</a>
+</div>
+{% endblock %}

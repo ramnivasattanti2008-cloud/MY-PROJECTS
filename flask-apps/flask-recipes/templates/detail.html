@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ recipe.name }}</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: system-ui, sans-serif; background: #fffbeb; color: #78350f; }
+        .container { max-width: 800px; margin: 40px auto; padding: 20px; }
+        .back { color: #d97706; text-decoration: none; margin-bottom: 20px; display: inline-block; }
+        .back:hover { text-decoration: underline; }
+        h1 { color: #d97706; margin-bottom: 10px; font-size: 32px; }
+        .description { font-size: 18px; color: #92400e; margin-bottom: 20px; line-height: 1.6; }
+        .meta { display: flex; gap: 25px; margin-bottom: 30px; padding: 15px; background: white; border-radius: 8px; }
+        .meta-item { text-align: center; }
+        .meta-item .label { font-size: 12px; color: #b45309; text-transform: uppercase; }
+        .meta-item .value { font-size: 20px; font-weight: bold; color: #d97706; }
+        .section { background: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .section h2 { color: #d97706; margin-bottom: 15px; font-size: 22px; border-bottom: 2px solid #fcd34d; padding-bottom: 10px; }
+        .section ul { list-style: none; padding: 0; }
+        .section ul li { padding: 8px 0; border-bottom: 1px solid #fef3c7; padding-left: 25px; position: relative; }
+        .section ul li:before { content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; background: #d97706; border-radius: 50%; }
+        .section ol { padding-left: 25px; }
+        .section ol li { padding: 8px 0; border-bottom: 1px solid #fef3c7; line-height: 1.6; }
+        .delete-link { color: #dc2626; text-decoration: none; margin-top: 20px; display: inline-block; }
+        .delete-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{{ url_for('index') }}" class="back">Back to Recipe Book</a>
+        <h1>{{ recipe.name }}</h1>
+        {% if recipe.description %}
+            <p class="description">{{ recipe.description }}</p>
+        {% endif %}
+
+        <div class="meta">
+            {% if recipe.prep_time %}
+                <div class="meta-item">
+                    <div class="label">Prep Time</div>
+                    <div class="value">{{ recipe.prep_time }}m</div>
+                </div>
+            {% endif %}
+            {% if recipe.cook_time %}
+                <div class="meta-item">
+                    <div class="label">Cook Time</div>
+                    <div class="value">{{ recipe.cook_time }}m</div>
+                </div>
+            {% endif %}
+            {% if recipe.servings %}
+                <div class="meta-item">
+                    <div class="label">Servings</div>
+                    <div class="value">{{ recipe.servings }}</div>
+                </div>
+            {% endif %}
+            {% if recipe.prep_time and recipe.cook_time %}
+                <div class="meta-item">
+                    <div class="label">Total Time</div>
+                    <div class="value">{{ recipe.prep_time + recipe.cook_time }}m</div>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <h2>Ingredients</h2>
+            <ul>
+                {% for ingredient in recipe.ingredients.split('\n') %}
+                    {% if ingredient.strip() %}
+                        <li>{{ ingredient.strip() }}</li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>Instructions</h2>
+            <ol>
+                {% for step in recipe.instructions.split('\n') %}
+                    {% if step.strip() %}
+                        <li>{{ step.strip()|replace('**', '') }}</li>
+                    {% endif %}
+                {% endfor %}
+            </ol>
+        </div>
+
+        <a href="{{ url_for('delete_recipe', id=recipe.id) }}" class="delete-link" onclick="return confirm('Delete this recipe?')">Delete Recipe</a>
+    </div>
+</body>
+</html>

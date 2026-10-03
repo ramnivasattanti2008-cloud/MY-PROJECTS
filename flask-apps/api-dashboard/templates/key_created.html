@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}API Key Created - API Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .key-display {
+        background: #0a0a0f;
+        border: 1px solid #1f1f2e;
+        border-radius: 8px;
+        padding: 16px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 14px;
+        word-break: break-all;
+        margin-bottom: 16px;
+    }
+    .warning-box {
+        background: rgba(234, 179, 8, 0.1);
+        border: 1px solid #eab308;
+        border-radius: 8px;
+        padding: 16px;
+        margin-top: 24px;
+    }
+    .warning-title { color: #eab308; font-weight: 600; margin-bottom: 8px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 600px; padding: 40px 20px;">
+    <div style="text-align: center; margin-bottom: 32px;">
+        <div style="width: 80px; height: 80px; background: rgba(16, 185, 129, 0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 2rem;">&#9989;</div>
+        <h1 style="font-size: 1.75rem; margin-bottom: 8px;">API Key Created!</h1>
+        <p style="color: #71717a;">Your new API key for <strong style="color: #10b981;">{{ name }}</strong> is ready.</p>
+    </div>
+
+    <div class="card">
+        <h3 style="font-size: 1rem; margin-bottom: 16px; color: #71717a;">Key ID</h3>
+        <div class="key-display">{{ key_id }}</div>
+
+        <h3 style="font-size: 1rem; margin-bottom: 16px; color: #71717a;">Key Secret</h3>
+        <div class="key-display" id="secret">{{ key_secret }}</div>
+
+        <div style="display: flex; gap: 12px;">
+            <button onclick="copyKey()" class="btn btn-primary" style="flex: 1; justify-content: center;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+                Copy Key
+            </button>
+            <button onclick="toggleSecret()" class="btn btn-secondary" style="flex: 1; justify-content: center;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                </svg>
+                Show/Hide
+            </button>
+        </div>
+    </div>
+
+    <div class="warning-box">
+        <div class="warning-title">&#9888; Important</div>
+        <p style="color: #a1a1aa; font-size: 14px; line-height: 1.6;">
+            Store your key secret securely. It will not be shown again. Use the Key ID and Key Secret together when making API requests.
+        </p>
+    </div>
+
+    <div style="text-align: center; margin-top: 32px;">
+        <a href="{{ url_for('manage_keys') }}" class="btn btn-secondary">Back to Keys</a>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
+    </div>
+</div>
+
+<script>
+function copyKey() {
+    const key = document.getElementById('secret').textContent;
+    navigator.clipboard.writeText('{{ key_id }}:' + key).then(() => {
+        alert('API Key copied to clipboard!');
+    });
+}
+
+let hidden = false;
+function toggleSecret() {
+    const el = document.getElementById('secret');
+    if (hidden) {
+        el.textContent = '{{ key_secret }}';
+    } else {
+        el.textContent = '***SECRET***';
+    }
+    hidden = !hidden;
+}
+</script>
+{% endblock %}

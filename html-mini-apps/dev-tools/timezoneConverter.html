@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timezone Converter</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0d0d12;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      background: #16161f;
+      border: 1px solid #2a2a3a;
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 640px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+    .subtitle {
+      color: #888;
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+    .input-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .input-group {
+      flex: 1;
+    }
+    .input-group label {
+      display: block;
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    select, input[type="time"] {
+      width: 100%;
+      background: #1e1e2a;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 14px 16px;
+      color: #fff;
+      font-size: 15px;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    select:focus, input[type="time"]:focus { border-color: #6366f1; }
+    select option { background: #1e1e2a; }
+    .time-display {
+      background: #1a1a24;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .current-time {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .current-time .label {
+      font-size: 12px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .current-time .time {
+      font-size: 36px;
+      font-weight: 700;
+      color: #fff;
+      font-variant-numeric: tabular-nums;
+    }
+    .current-time .date {
+      font-size: 14px;
+      color: #888;
+      margin-top: 4px;
+    }
+    .zones-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+    }
+    .zone-card {
+      background: #252530;
+      border-radius: 10px;
+      padding: 16px;
+      transition: all 0.2s;
+    }
+    .zone-card:hover {
+      transform: translateY(-2px);
+      background: #2a2a3a;
+    }
+    .zone-card .zone-name {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .zone-card .zone-time {
+      font-size: 22px;
+      font-weight: 600;
+      color: #fff;
+      font-variant-numeric: tabular-nums;
+    }
+    .zone-card .zone-offset {
+      font-size: 11px;
+      color: #6366f1;
+      margin-top: 4px;
+    }
+    .add-zone {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .add-zone select {
+      flex: 1;
+    }
+    .add-zone button {
+      background: #6366f1;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .add-zone button:hover { background: #5558e3; }
+    .remove-btn {
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      font-size: 18px;
+      padding: 0;
+      margin-left: 8px;
+      opacity: 0;
+      transition: opacity 0.2s, color 0.2s;
+    }
+    .zone-card:hover .remove-btn { opacity: 1; }
+    .remove-btn:hover { color: #ef4444; }
+    .popular-zones {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .quick-add {
+      background: #252530;
+      border: 1px solid #333;
+      border-radius: 20px;
+      padding: 8px 16px;
+      font-size: 13px;
+      color: #aaa;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .quick-add:hover {
+      background: #6366f1;
+      border-color: #6366f1;
+      color: #fff;
+    }
+    .quick-add.active {
+      background: #22c55e33;
+      border-color: #22c55e;
+      color: #22c55e;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Timezone Converter</h1>
+    <p class="subtitle">Convert and compare times across different zones</p>
+
+    <div class="time-display">
+      <div class="current-time">
+        <div class="label">Local Time</div>
+        <div class="time" id="localTime">--:--:--</div>
+        <div class="date" id="localDate">---</div>
+      </div>
+      <div class="zones-grid" id="zonesGrid"></div>
+    </div>
+
+    <div class="popular-zones" id="popularZones"></div>
+
+    <div class="add-zone">
+      <div class="input-group">
+        <label>Add Timezone</label>
+        <select id="zoneSelect"></select>
+      </div>
+      <button onclick="addZone()" style="align-self: flex-end;">Add Zone</button>
+    </div>
+  </div>
+
+  <script>
+    const timezones = [
+      { value: 'Pacific/Honolulu', label: 'Hawaii (HST)', offset: -10 },
+      { value: 'America/Anchorage', label: 'Alaska (AKST)', offset: -9 },
+      { value: 'America/Los_Angeles', label: 'Pacific Time (PST)', offset: -8 },
+      { value: 'America/Denver', label: 'Mountain Time (MST)', offset: -7 },
+      { value: 'America/Chicago', label: 'Central Time (CST)', offset: -6 },
+      { value: 'America/New_York', label: 'Eastern Time (EST)', offset: -5 },
+      { value: 'America/Sao_Paulo', label: 'Brasilia (BRT)', offset: -3 },
+      { value: 'Atlantic/Reykjavik', label: 'Iceland (GMT)', offset: 0 },
+      { value: 'Europe/London', label: 'London (GMT/BST)', offset: 0 },
+      { value: 'Europe/Paris', label: 'Paris (CET)', offset: 1 },
+      { value: 'Europe/Berlin', label: 'Berlin (CET)', offset: 1 },
+      { value: 'Africa/Cairo', label: 'Cairo (EET)', offset: 2 },
+      { value: 'Europe/Moscow', label: 'Moscow (MSK)', offset: 3 },
+      { value: 'Asia/Dubai', label: 'Dubai (GST)', offset: 4 },
+      { value: 'Asia/Kolkata', label: 'India (IST)', offset: 5.5 },
+      { value: 'Asia/Dhaka', label: 'Dhaka (BST)', offset: 6 },
+      { value: 'Asia/Bangkok', label: 'Bangkok (ICT)', offset: 7 },
+      { value: 'Asia/Singapore', label: 'Singapore (SGT)', offset: 8 },
+      { value: 'Asia/Shanghai', label: 'Shanghai (CST)', offset: 8 },
+      { value: 'Asia/Tokyo', label: 'Tokyo (JST)', offset: 9 },
+      { value: 'Australia/Sydney', label: 'Sydney (AEST)', offset: 10 },
+      { value: 'Pacific/Auckland', label: 'Auckland (NZST)', offset: 12 }
+    ];
+
+    const popularDefaults = ['America/New_York', 'Europe/London', 'Asia/Kolkata', 'Asia/Tokyo', 'Europe/Paris'];
+    let addedZones = [...popularDefaults];
+
+    function initZoneSelect() {
+      const select = document.getElementById('zoneSelect');
+      timezones.forEach(tz => {
+        const opt = document.createElement('option');
+        opt.value = tz.value;
+        opt.textContent = tz.label;
+        select.appendChild(opt);
+      });
+    }
+
+    function initPopularZones() {
+      const container = document.getElementById('popularZones');
+      popularDefaults.forEach(tz => {
+        const tzData = timezones.find(t => t.value === tz);
+        if (tzData) {
+          const btn = document.createElement('button');
+          btn.className = 'quick-add active';
+          btn.textContent = tzData.label.split(' ')[0];
+          btn.onclick = () => toggleDefaultZone(tz, btn);
+          btn.dataset.tz = tz;
+          container.appendChild(btn);
+        }
+      });
+    }
+
+    function toggleDefaultZone(tz, btn) {
+      const idx = addedZones.indexOf(tz);
+      if (idx > -1) {
+        addedZones.splice(idx, 1);
+        btn.classList.remove('active');
+      } else {
+        addedZones.push(tz);
+        btn.classList.add('active');
+      }
+      renderZones();
+    }
+
+    function addZone() {
+      const select = document.getElementById('zoneSelect');
+      const tz = select.value;
+      if (!addedZones.includes(tz)) {
+        addedZones.push(tz);
+        renderZones();
+        updatePopularButtons();
+      }
+    }
+
+    function removeZone(tz) {
+      addedZones = addedZones.filter(z => z !== tz);
+      renderZones();
+      updatePopularButtons();
+    }
+
+    function updatePopularButtons() {
+      document.querySelectorAll('.quick-add').forEach(btn => {
+        btn.classList.toggle('active', addedZones.includes(btn.dataset.tz));
+      });
+    }
+
+    function formatOffset(hours) {
+      const sign = hours >= 0 ? '+' : '';
+      if (hours % 1 === 0) return `UTC${sign}${hours}`;
+      return `UTC${sign}${Math.floor(hours)}:${((hours % 1) * 60).toString().padStart(2, '0')}`;
+    }
+
+    function getTimeInZone(tz) {
+      const now = new Date();
+      const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: tz,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      });
+      return formatter.format(now);
+    }
+
+    function getDateInZone(tz) {
+      const now = new Date();
+      const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: tz,
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric'
+      });
+      return formatter.format(now);
+    }
+
+    function renderZones() {
+      const grid = document.getElementById('zonesGrid');
+      grid.innerHTML = '';
+
+      addedZones.forEach(tz => {
+        const tzData = timezones.find(t => t.value === tz) || { label: tz, offset: 0 };
+        const time = getTimeInZone(tz);
+        const date = getDateInZone(tz);
+
+        const card = document.createElement('div');
+        card.className = 'zone-card';
+        card.innerHTML = `
+          <div class="zone-name">
+            ${tzData.label}
+            <button class="remove-btn" onclick="removeZone('${tz}')">&times;</button>
+          </div>
+          <div class="zone-time">${time}</div>
+          <div class="zone-offset">${date} &bull; ${formatOffset(tzData.offset)}</div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function updateTime() {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
+      const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+      document.getElementById('localTime').textContent = timeStr;
+      document.getElementById('localDate').textContent = dateStr;
+
+      renderZones();
+    }
+
+    initZoneSelect();
+    initPopularZones();
+    updateTime();
+    setInterval(updateTime, 1000);
+  </script>
+</body>
+</html>

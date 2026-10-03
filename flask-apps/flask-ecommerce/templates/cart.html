@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Shopping Cart{% endblock %}
+{% block content %}
+<h1 class="text-3xl font-bold mb-8">Shopping Cart</h1>
+{% if cart_items %}
+<div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <table class="w-full">
+        <thead class="bg-gray-100">
+            <tr>
+                <th class="px-6 py-3 text-left">Product</th>
+                <th class="px-6 py-3 text-left">Price</th>
+                <th class="px-6 py-3 text-left">Quantity</th>
+                <th class="px-6 py-3 text-left">Total</th>
+                <th class="px-6 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y">
+            {% for item in cart_items %}
+            <tr>
+                <td class="px-6 py-4 flex items-center gap-4">
+                    <img src="{{ item.image }}" class="w-16 h-16 object-cover rounded">
+                    <span class="font-semibold">{{ item.name }}</span>
+                </td>
+                <td class="px-6 py-4">${{ "%.2f"|format(item.price) }}</td>
+                <td class="px-6 py-4">{{ item.quantity }}</td>
+                <td class="px-6 py-4 font-semibold">${{ "%.2f"|format(item.price * item.quantity) }}</td>
+                <td class="px-6 py-4">
+                    <form action="{{ url_for('remove_from_cart', product_id=item.id) }}" method="POST">
+                        <button class="text-red-600 hover:underline">Remove</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="mt-6 flex justify-between items-center">
+    <p class="text-2xl font-bold">Total: ${{ "%.2f"|format(total) }}</p>
+    <a href="/checkout" class="bg-indigo-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-indigo-700">Proceed to Checkout</a>
+</div>
+{% else %}
+<p class="text-gray-600">Your cart is empty.</p>
+<a href="/" class="inline-block mt-4 bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">Browse Products</a>
+{% endif %}
+{% endblock %}

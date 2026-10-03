@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="hero">
+    <div class="container">
+        <div class="hero-content">
+            <h1>Discover Quality Products</h1>
+            <p>Shop the latest products at amazing prices</p>
+            <a href="{{ url_for('shop') }}" class="btn btn-primary btn-lg">Shop Now</a>
+        </div>
+    </div>
+</section>
+
+<section class="categories">
+    <div class="container">
+        <h2 class="section-title">Shop by Category</h2>
+        <div class="category-grid">
+            {% for cat in categories %}
+            <a href="{{ url_for('category', slug=cat.slug) }}" class="category-card">
+                <div class="category-icon">
+                    {% if cat.slug == 'electronics' %}📱
+                    {% elif cat.slug == 'clothing' %}👕
+                    {% elif cat.slug == 'home-garden' %}🏠
+                    {% elif cat.slug == 'sports' %}⚽
+                    {% else %}📦{% endif %}
+                </div>
+                <h3>{{ cat.name }}</h3>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="featured-products">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Featured Products</h2>
+            <a href="{{ url_for('shop') }}" class="view-all">View All</a>
+        </div>
+        <div class="products-grid">
+            {% for product in featured %}
+            <article class="product-card">
+                <a href="{{ url_for('product', slug=product.slug) }}" class="product-image">
+                    <div class="product-placeholder">
+                        {% if product.sale_price %}<span class="sale-badge">Sale</span>{% endif %}
+                    </div>
+                </a>
+                <div class="product-info">
+                    <span class="product-category">{{ product.category.name if product.category else 'General' }}</span>
+                    <h3><a href="{{ url_for('product', slug=product.slug) }}">{{ product.name }}</a></h3>
+                    <div class="product-price">
+                        {% if product.sale_price %}
+                        <span class="price-sale">${{ "%.2f"|format(product.sale_price) }}</span>
+                        <span class="price-original">${{ "%.2f"|format(product.price) }}</span>
+                        {% else %}
+                        <span class="price">${{ "%.2f"|format(product.price) }}</span>
+                        {% endif %}
+                    </div>
+                    <button class="btn btn-primary btn-sm add-to-cart" data-id="{{ product.id }}">Add to Cart</button>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="new-arrivals">
+    <div class="container">
+        <h2 class="section-title">New Arrivals</h2>
+        <div class="products-grid">
+            {% for product in new_arrivals %}
+            <article class="product-card">
+                <a href="{{ url_for('product', slug=product.slug) }}" class="product-image">
+                    <div class="product-placeholder">
+                        {% if product.sale_price %}<span class="sale-badge">Sale</span>{% endif %}
+                    </div>
+                </a>
+                <div class="product-info">
+                    <span class="product-category">{{ product.category.name if product.category else 'General' }}</span>
+                    <h3><a href="{{ url_for('product', slug=product.slug) }}">{{ product.name }}</a></h3>
+                    <div class="product-price">
+                        {% if product.sale_price %}
+                        <span class="price-sale">${{ "%.2f"|format(product.sale_price) }}</span>
+                        <span class="price-original">${{ "%.2f"|format(product.price) }}</span>
+                        {% else %}
+                        <span class="price">${{ "%.2f"|format(product.price) }}</span>
+                        {% endif %}
+                    </div>
+                    <button class="btn btn-primary btn-sm add-to-cart" data-id="{{ product.id }}">Add to Cart</button>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="features">
+    <div class="container">
+        <div class="feature-grid">
+            <div class="feature-item">
+                <div class="feature-icon">🚚</div>
+                <h3>Free Shipping</h3>
+                <p>On orders over $50</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🔒</div>
+                <h3>Secure Payment</h3>
+                <p>100% secure checkout</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">↩️</div>
+                <h3>Easy Returns</h3>
+                <p>30-day return policy</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">💬</div>
+                <h3>24/7 Support</h3>
+                <p>Always here to help</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

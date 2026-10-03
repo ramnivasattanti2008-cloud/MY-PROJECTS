@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Checkout{% endblock %}
+{% block content %}
+<h1 class="text-3xl font-bold mb-8">Checkout</h1>
+<form method="POST" class="max-w-xl bg-white rounded-lg shadow-md p-8">
+    <h2 class="text-xl font-semibold mb-4">Shipping Information</h2>
+    <div class="space-y-4">
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Full Name</label>
+            <input type="text" name="name" required class="mt-1 block w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Email</label>
+            <input type="email" name="email" required class="mt-1 block w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Address</label>
+            <textarea name="address" rows="3" required class="mt-1 block w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+        </div>
+    </div>
+    <h2 class="text-xl font-semibold mt-8 mb-4">Payment (Mock)</h2>
+    <p class="text-gray-600 mb-4">This is a demo checkout. No real payment will be processed.</p>
+    <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700">Place Order</button>
+</form>
+{% endblock %}

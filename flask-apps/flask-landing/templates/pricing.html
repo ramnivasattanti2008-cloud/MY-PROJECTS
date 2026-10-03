@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Pricing - Productify{% endblock %}
+{% block content %}
+<section style="padding: 4rem 2rem; max-width: 1200px; margin: 0 auto;">
+    <h1 style="text-align: center; font-size: 3rem; margin-bottom: 1rem;">Simple, Transparent Pricing</h1>
+    <p style="text-align: center; color: #9ca3af; max-width: 600px; margin: 0 auto 3rem;">Choose the plan that fits your team. No hidden fees.</p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; max-width: 1000px; margin: 0 auto;">
+        <div style="background: #111827; padding: 2rem; border-radius: 12px; border: 1px solid #1f2937;">
+            <h3 style="color: #9ca3af; font-size: 1.25rem;">Starter</h3>
+            <div style="margin: 1.5rem 0;"><span style="font-size: 3rem; font-weight: 700;">$0</span><span style="color: #9ca3af;">/month</span></div>
+            <ul style="list-style: none; margin-bottom: 2rem;">
+                <li style="padding: 0.75rem 0; border-bottom: 1px solid #1f2937;">&#10003; Up to 3 team members</li>
+                <li style="padding: 0.75rem 0; border-bottom: 1px solid #1f2937;">&#10003; 5 projects</li>
+                <li style="padding: 0.75rem 0; border-bottom: 1px solid #1f2937;">&#10003; 10GB storage</li>
+                <li style="padding: 0.75rem 0;">&#10003; Community support</li>
+            </ul>
+            <a href="/contact" style="display: block; text-align: center; padding: 0.75rem; border: 1px solid #374151; border-radius: 8px; text-decoration: none; color: #fff;">Get Started</a>
+        </div>
+
+        <div style="background: linear-gradient(135deg, #667eea22 0%, #764ba222 100%); padding: 2rem; border-radius: 12px; border: 2px solid #667eea;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <h3 style="color: #667eea; font-size: 1.25rem;">Pro</h3>
+                <span style="background: #667eea; color: #fff; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem;">Popular</span>
+            </div>
+            <div style="margin: 1.5rem 0;"><span style="font-size: 3rem; font-weight: 700;">$29</span><span style="color: #9ca3af;">/month</span></div>
+            <ul style="list-style: none; margin-bottom: 2rem;">
+                <li style="padding: 0.75rem 0; border-bottom: 1px solid #1f2937;">&#10003; Unlimited team members</li>
+                <li style="padding: 0.75rem 0; border-bottom: 1px solid #1f2937;">&#10003; Unlimited projects</li>
+                <li style="padding: 0.75rem 0; border-bottom: 1px solid #1f2937;">&#10003; 100GB storage</li>
+                <li style="padding: 0.75rem 0; border-bottom: 1px solid #1f2937;">&#10003; Priority support</li>
+                <li style="padding: 0.75rem 0;">&#10003; Advanced analytics</li>
+            </ul>
+            <a href="/contact" class="btn-primary" style="display: block; text-align: center;">Start Free Trial</a>
+        </div>
+
+        <div style="background: #111827; padding: 2rem; border-radius: 12px; border: 1px solid #1f2937;">
+            <h3 style="color: #9ca3af; font-size: 1.25rem;">Enterprise</h3>
+            <div style="margin: 1.5rem 0;"><span style="font-size: 3rem; font-weight: 700;">Custom</span></div>
+            <ul style="list-style: none; margin-bottom: 2rem;">
+                <li style="padding: 0.75rem 0; border-bottom: 1px solid #1f2937;">&#10003; Everything in Pro</li>
+                <li style="padding: 0.75rem 0; border-bottom: 1px solid #1f2937;">&#10003; Custom integrations</li>
+                <li style="padding: 0.75rem 0; border-bottom: 1px solid #1f2937;">&#10003; Dedicated support</li>
+                <li style="padding: 0.75rem 0; border-bottom: 1px solid #1f2937;">&#10003; SLA guarantee</li>
+                <li style="padding: 0.75rem 0;">&#10003; On-premise option</li>
+            </ul>
+            <a href="/contact" style="display: block; text-align: center; padding: 0.75rem; border: 1px solid #374151; border-radius: 8px; text-decoration: none; color: #fff;">Contact Sales</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

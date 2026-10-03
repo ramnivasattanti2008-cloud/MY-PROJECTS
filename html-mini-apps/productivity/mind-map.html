@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mind Map Creator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        .toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            padding: 12px 20px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            z-index: 100;
+            border-bottom: 1px solid #2a2a4a;
+            flex-wrap: wrap;
+        }
+        .toolbar h1 {
+            font-size: 1.2rem;
+            background: linear-gradient(90deg, #00d4ff, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-right: 20px;
+        }
+        .btn {
+            background: linear-gradient(135deg, #7c3aed, #5b21b6);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #7c3aed;
+        }
+        .btn-outline:hover {
+            background: rgba(124, 58, 237, 0.2);
+        }
+        .canvas-container {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow: hidden;
+        }
+        #mindMapCanvas {
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+        }
+        #mindMapCanvas:active { cursor: grabbing; }
+        .node-input {
+            position: fixed;
+            background: #1a1a2e;
+            border: 2px solid #7c3aed;
+            border-radius: 12px;
+            padding: 12px;
+            z-index: 200;
+            display: none;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            animation: popIn 0.2s ease;
+        }
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .node-input input {
+            background: #0a0a0f;
+            border: 1px solid #3a3a5a;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            outline: none;
+            width: 180px;
+        }
+        .node-input input:focus { border-color: #7c3aed; }
+        .node-input .colors {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+            max-width: 180px;
+        }
+        .color-dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .color-dot:hover, .color-dot.selected { border-color: white; transform: scale(1.1); }
+        .shortcuts {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(26, 26, 46, 0.95);
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            color: #888;
+            max-width: 250px;
+            border: 1px solid #2a2a4a;
+        }
+        .shortcuts h3 {
+            color: #00d4ff;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        .shortcuts p { margin: 4px 0; }
+        .shortcuts kbd {
+            background: #2a2a4a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: linear-gradient(135deg, #059669, #047857);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: transform 0.3s ease;
+            z-index: 300;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <h1>Mind Map</h1>
+        <button class="btn" onclick="addNode()">+ Add Node</button>
+        <button class="btn btn-outline" onclick="deleteSelected()">Delete</button>
+        <button class="btn btn-outline" onclick="clearAll()">Clear</button>
+        <button class="btn" onclick="saveMap()">Save</button>
+        <button class="btn btn-outline" onclick="loadMap()">Load</button>
+        <button class="btn btn-outline" onclick="toggleConnections()">Connect: ON</button>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="mindMapCanvas"></canvas>
+    </div>
+
+    <div class="node-input" id="nodeInput">
+        <input type="text" id="nodeText" placeholder="Node text..." onkeydown="if(event.key==='Enter')confirmNode()">
+        <div class="colors">
+            <div class="color-dot selected" style="background:#7c3aed" data-color="#7c3aed"></div>
+            <div class="color-dot" style="background:#ec4899" data-color="#ec4899"></div>
+            <div class="color-dot" style="background:#f59e0b" data-color="#f59e0b"></div>
+            <div class="color-dot" style="background:#10b981" data-color="#10b981"></div>
+            <div class="color-dot" style="background:#3b82f6" data-color="#3b82f6"></div>
+            <div class="color-dot" style="background:#ef4444" data-color="#ef4444"></div>
+            <div class="color-dot" style="background:#06b6d4" data-color="#06b6d4"></div>
+            <div class="color-dot" style="background:#84cc16" data-color="#84cc16"></div>
+        </div>
+    </div>
+
+    <div class="shortcuts">
+        <h3>Shortcuts</h3>
+        <p><kbd>Double-click</kbd> Add node</p>
+        <p><kbd>Click node</kbd> Select</p>
+        <p><kbd>Drag node</kbd> Move</p>
+        <p><kbd>Delete</kbd> Remove selected</p>
+        <p><kbd>Scroll</kbd> Zoom</p>
+    </div>
+
+    <div class="toast" id="toast">Saved!</div>
+
+    <script>
+        const canvas = document.getElementById('mindMapCanvas');
+        const ctx = canvas.getContext('2d');
+        const nodeInput = document.getElementById('nodeInput');
+        const nodeText = document.getElementById('nodeText');
+        const toast = document.getElementById('toast');
+
+        let nodes = [];
+        let connections = [];
+        let selectedNode = null;
+        let draggingNode = null;
+        let isConnectMode = false;
+        let connectFrom = null;
+        let scale = 1;
+        let offset = { x: 0, y: 0 };
+        let isPanning = false;
+        let panStart = { x: 0, y: 0 };
+
+        const nodeColors = document.querySelectorAll('.color-dot');
+        let selectedColor = '#7c3aed';
+        nodeColors.forEach(dot => {
+            dot.addEventListener('click', () => {
+                nodeColors.forEach(d => d.classList.remove('selected'));
+                dot.classList.add('selected');
+                selectedColor = dot.dataset.color;
+            });
+        });
+
+        function resize() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            draw();
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.translate(offset.x, offset.y);
+            ctx.scale(scale, scale);
+
+            // Draw connections
+            connections.forEach(conn => {
+                const from = nodes.find(n => n.id === conn.from);
+                const to = nodes.find(n => n.id === conn.to);
+                if (from && to) {
+                    ctx.beginPath();
+                    ctx.moveTo(from.x, from.y);
+                    ctx.lineTo(to.x, to.y);
+                    ctx.strokeStyle = '#4a4a6a';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    // Arrow
+                    const angle = Math.atan2(to.y - from.y, to.x - from.x);
+                    const arrowLen = 12;
+                    ctx.beginPath();
+                    ctx.moveTo(to.x, to.y);
+                    ctx.lineTo(to.x - arrowLen * Math.cos(angle - 0.4), to.y - arrowLen * Math.sin(angle - 0.4));
+                    ctx.lineTo(to.x - arrowLen * Math.cos(angle + 0.4), to.y - arrowLen * Math.sin(angle + 0.4));
+                    ctx.closePath();
+                    ctx.fillStyle = '#4a4a6a';
+                    ctx.fill();
+                }
+            });
+
+            // Draw nodes
+            nodes.forEach(node => {
+                const isSelected = selectedNode && selectedNode.id === node.id;
+                const w = node.text.length * 8 + 40;
+                const h = 40;
+
+                // Shadow
+                ctx.shadowColor = node.color;
+                ctx.shadowBlur = isSelected ? 25 : 15;
+
+                // Node body
+                ctx.beginPath();
+                ctx.roundRect(node.x - w/2, node.y - h/2, w, h, 12);
+                ctx.fillStyle = isSelected ? lightenColor(node.color, 30) : node.color;
+                ctx.fill();
+
+                ctx.shadowBlur = 0;
+
+                // Border
+                ctx.strokeStyle = isSelected ? '#fff' : 'rgba(255,255,255,0.2)';
+                ctx.lineWidth = isSelected ? 3 : 1;
+                ctx.stroke();
+
+                // Text
+                ctx.fillStyle = '#fff';
+                ctx.font = '14px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(node.text, node.x, node.y);
+
+                // Store bounds
+                node.width = w;
+                node.height = h;
+            });
+
+            ctx.restore();
+        }
+
+        function lightenColor(hex, percent) {
+            const num = parseInt(hex.slice(1), 16);
+            const amt = Math.round(2.55 * percent);
+            const R = Math.min(255, (num >> 16) + amt);
+            const G = Math.min(255, ((num >> 8) & 0x00FF) + amt);
+            const B = Math.min(255, (num & 0x0000FF) + amt);
+            return `rgb(${R},${G},${B})`;
+        }
+
+        let nodeIdCounter = 0;
+
+        function addNode(x, y) {
+            const id = 'node_' + (nodeIdCounter++);
+            const node = {
+                id,
+                x: x || canvas.width / 2,
+                y: y || canvas.height / 2,
+                text: 'New Idea',
+                color: selectedColor,
+                width: 100,
+                height: 40
+            };
+            nodes.push(node);
+            selectedNode = node;
+            showNodeInput(node);
+            draw();
+        }
+
+        function showNodeInput(node) {
+            nodeInput.style.display = 'block';
+            nodeInput.style.left = (node.x + offset.x) * scale + 'px';
+            nodeInput.style.top = (node.y + offset.y) * scale + 20 + 'px';
+            nodeText.value = node.text;
+            nodeText.focus();
+            nodeText.select();
+            nodeInput.dataset.nodeId = node.id;
+        }
+
+        function confirmNode() {
+            const id = nodeInput.dataset.nodeId;
+            const node = nodes.find(n => n.id === id);
+            if (node) {
+                node.text = nodeText.value || 'Idea';
+                node.color = selectedColor;
+            }
+            nodeInput.style.display = 'none';
+            draw();
+        }
+
+        nodeInput.addEventListener('mouseleave', confirmNode);
+
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: (e.clientX - rect.left - offset.x) / scale,
+                y: (e.clientY - rect.top - offset.y) / scale
+            };
+        }
+
+        function findNodeAt(pos) {
+            for (let i = nodes.length - 1; i >= 0; i--) {
+                const n = nodes[i];
+                if (pos.x >= n.x - n.width/2 && pos.x <= n.x + n.width/2 &&
+                    pos.y >= n.y - n.height/2 && pos.y <= n.y + n.height/2) {
+                    return n;
+                }
+            }
+            return null;
+        }
+
+        canvas.addEventListener('dblclick', (e) => {
+            const pos = getMousePos(e);
+            addNode(pos.x, pos.y);
+        });
+
+        canvas.addEventListener('mousedown', (e) => {
+            const pos = getMousePos(e);
+            const node = findNodeAt(pos);
+
+            if (isConnectMode && node) {
+                if (!connectFrom) {
+                    connectFrom = node;
+                    selectedNode = node;
+                    draw();
+                    showToast('Click another node to connect');
+                } else if (connectFrom && connectFrom.id !== node.id) {
+                    // Check if connection exists
+                    const exists = connections.some(c =>
+                        (c.from === connectFrom.id && c.to === node.id) ||
+                        (c.from === node.id && c.to === connectFrom.id)
+                    );
+                    if (!exists) {
+                        connections.push({ from: connectFrom.id, to: node.id });
+                    }
+                    connectFrom = null;
+                    document.querySelector('[onclick="toggleConnections()"]').textContent = 'Connect: ON';
+                    isConnectMode = false;
+                    draw();
+                }
+                return;
+            }
+
+            if (node) {
+                selectedNode = node;
+                draggingNode = node;
+            } else {
+                selectedNode = null;
+                isPanning = true;
+                panStart = { x: e.clientX - offset.x, y: e.clientY - offset.y };
+            }
+            draw();
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (draggingNode) {
+                const pos = getMousePos(e);
+                draggingNode.x = pos.x;
+                draggingNode.y = pos.y;
+                draw();
+            } else if (isPanning) {
+                offset.x = e.clientX - panStart.x;
+                offset.y = e.clientY - panStart.y;
+                draw();
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            draggingNode = null;
+            isPanning = false;
+        });
+
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+            scale = Math.max(0.3, Math.min(3, scale * zoomFactor));
+            draw();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+                if (document.activeElement !== nodeText) {
+                    deleteSelected();
+                }
+            }
+            if (e.key === 'Escape') {
+                nodeInput.style.display = 'none';
+                connectFrom = null;
+                draw();
+            }
+        });
+
+        function deleteSelected() {
+            if (selectedNode) {
+                nodes = nodes.filter(n => n.id !== selectedNode.id);
+                connections = connections.filter(c => c.from !== selectedNode.id && c.to !== selectedNode.id);
+                selectedNode = null;
+                draw();
+            }
+        }
+
+        function clearAll() {
+            if (confirm('Clear all nodes?')) {
+                nodes = [];
+                connections = [];
+                selectedNode = null;
+                scale = 1;
+                offset = { x: 0, y: 0 };
+                draw();
+            }
+        }
+
+        function toggleConnections() {
+            isConnectMode = !isConnectMode;
+            connectFrom = null;
+            document.querySelector('[onclick="toggleConnections()"]').textContent =
+                isConnectMode ? 'Connect: OFF' : 'Connect: ON';
+            if (isConnectMode) showToast('Click two nodes to connect');
+        }
+
+        function saveMap() {
+            const data = { nodes, connections, scale, offset };
+            localStorage.setItem('mindmap', JSON.stringify(data));
+            showToast('Mind map saved!');
+        }
+
+        function loadMap() {
+            const data = localStorage.getItem('mindmap');
+            if (data) {
+                const parsed = JSON.parse(data);
+                nodes = parsed.nodes || [];
+                connections = parsed.connections || [];
+                scale = parsed.scale || 1;
+                offset = parsed.offset || { x: 0, y: 0 };
+                nodeIdCounter = nodes.length;
+                draw();
+                showToast('Mind map loaded!');
+            } else {
+                showToast('No saved map found');
+            }
+        }
+
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // Initial node
+        addNode(canvas.width / 2, canvas.height / 2);
+        nodeInput.style.display = 'none';
+    </script>
+</body>
+</html>

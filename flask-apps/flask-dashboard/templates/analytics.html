@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Analytics - Dashboard{% endblock %}
+{% block content %}
+<div class="header">
+    <h1>Analytics</h1>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+    <div style="background: #12121a; padding: 1.5rem; border-radius: 12px; border: 1px solid #1a1a2e;">
+        <h3 style="margin-bottom: 1rem;">User Growth</h3>
+        <canvas id="userChart" height="200"></canvas>
+    </div>
+    <div style="background: #12121a; padding: 1.5rem; border-radius: 12px; border: 1px solid #1a1a2e;">
+        <h3 style="margin-bottom: 1rem;">Revenue by Month</h3>
+        <canvas id="revenueChart" height="200"></canvas>
+    </div>
+</div>
+
+<div style="background: #12121a; padding: 1.5rem; border-radius: 12px; border: 1px solid #1a1a2e;">
+    <h3 style="margin-bottom: 1.5rem;">Performance Metrics</h3>
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; text-align: center;">
+        <div>
+            <p style="color: #888; margin-bottom: 0.5rem;">Conversion Rate</p>
+            <h2 style="color: #22c55e; font-size: 2rem;">3.2%</h2>
+        </div>
+        <div>
+            <p style="color: #888; margin-bottom: 0.5rem;">Avg. Session</p>
+            <h2 style="color: #22c55e; font-size: 2rem;">4m 32s</h2>
+        </div>
+        <div>
+            <p style="color: #888; margin-bottom: 0.5rem;">Bounce Rate</p>
+            <h2 style="color: #22c55e; font-size: 2rem;">24%</h2>
+        </div>
+        <div>
+            <p style="color: #888; margin-bottom: 0.5rem;">Page Views</p>
+            <h2 style="color: #22c55e; font-size: 2rem;">45.2K</h2>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    fetch('/api/chart-data')
+        .then(res => res.json())
+        .then(data => {
+            new Chart(document.getElementById('userChart'), {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Users',
+                        data: data.users_monthly,
+                        backgroundColor: 'rgba(34, 197, 94, 0.7)',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#888' } },
+                        y: { grid: { color: '#1a1a2e' }, ticks: { color: '#888' } }
+                    }
+                }
+            });
+            new Chart(document.getElementById('revenueChart'), {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Revenue',
+                        data: data.revenue_monthly,
+                        borderColor: '#22c55e',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: '#1a1a2e' }, ticks: { color: '#888' } },
+                        y: { grid: { color: '#1a1a2e' }, ticks: { color: '#888' } }
+                    }
+                }
+            });
+        });
+</script>
+{% endblock %}

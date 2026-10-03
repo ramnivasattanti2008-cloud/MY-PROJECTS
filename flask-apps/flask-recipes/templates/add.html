@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Recipe</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: system-ui, sans-serif; background: #fffbeb; color: #78350f; }
+        .container { max-width: 700px; margin: 40px auto; padding: 20px; }
+        h1 { color: #d97706; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 500; color: #b45309; }
+        input[type="text"], input[type="number"], textarea { width: 100%; padding: 10px; border: 1px solid #fcd34d; border-radius: 6px; font-size: 14px; font-family: inherit; }
+        textarea { min-height: 120px; resize: vertical; }
+        .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .btn { padding: 10px 20px; background: #d97706; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
+        .btn:hover { background: #b45309; }
+        .btn-secondary { background: #6b7280; }
+        .btn-secondary:hover { background: #4b5563; }
+        .actions { display: flex; gap: 10px; margin-top: 20px; }
+        a { color: #d97706; text-decoration: none; }
+        .hint { font-size: 12px; color: #92400e; margin-top: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>New Recipe</h1>
+        <form method="POST">
+            <div class="form-group">
+                <label for="name">Recipe Name *</label>
+                <input type="text" id="name" name="name" required placeholder="e.g., Chicken Tikka Masala">
+            </div>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <input type="text" id="description" name="description" placeholder="A brief description of the dish">
+            </div>
+            <div class="row">
+                <div class="form-group">
+                    <label for="prep_time">Prep Time (min)</label>
+                    <input type="number" id="prep_time" name="prep_time" min="0" placeholder="15">
+                </div>
+                <div class="form-group">
+                    <label for="cook_time">Cook Time (min)</label>
+                    <input type="number" id="cook_time" name="cook_time" min="0" placeholder="30">
+                </div>
+                <div class="form-group">
+                    <label for="servings">Servings</label>
+                    <input type="number" id="servings" name="servings" min="1" placeholder="4">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="ingredients">Ingredients *</label>
+                <textarea id="ingredients" name="ingredients" required placeholder="List each ingredient on a new line:&#10;2 cups flour&#10;1 tsp salt&#10;3 eggs"></textarea>
+                <p class="hint">One ingredient per line for best formatting</p>
+            </div>
+            <div class="form-group">
+                <label for="instructions">Instructions *</label>
+                <textarea id="instructions" name="instructions" required placeholder="Step-by-step instructions:&#10;1. Preheat oven to 375F&#10;2. Mix dry ingredients&#10;3. ..." style="min-height: 200px;"></textarea>
+            </div>
+            <div class="actions">
+                <button type="submit" class="btn">Save Recipe</button>
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

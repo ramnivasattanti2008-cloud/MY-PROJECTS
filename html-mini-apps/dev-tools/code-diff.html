@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Diff Tool</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent: #58a6ff;
+            --border: #30363d;
+            --added: #238636;
+            --added-bg: rgba(35, 134, 54, 0.15);
+            --removed: #f85149;
+            --removed-bg: rgba(248, 81, 73, 0.15);
+            --changed: #d29922;
+            --changed-bg: rgba(210, 153, 34, 0.15);
+        }
+        body {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+        header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        header h1 span { color: var(--accent); }
+        .header-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+        .btn {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .btn:hover { background: var(--accent); border-color: var(--accent); }
+        .btn.primary { background: linear-gradient(135deg, var(--accent), #a855f7); border: none; }
+        .btn.primary:hover { transform: scale(1.02); box-shadow: 0 4px 20px rgba(88, 166, 255, 0.3); }
+        .input-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px;
+            background: var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+        .input-panel {
+            background: var(--bg-secondary);
+        }
+        .panel-header {
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+        .panel-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .panel-title.old { color: var(--removed); }
+        .panel-title.new { color: var(--added); }
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: none;
+            padding: 16px;
+            font-family: inherit;
+            font-size: 13px;
+            line-height: 1.6;
+            resize: vertical;
+            outline: none;
+        }
+        textarea::placeholder { color: var(--text-secondary); }
+        .diff-section {
+            padding: 16px;
+        }
+        .diff-stats {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            font-size: 13px;
+        }
+        .stat { display: flex; align-items: center; gap: 8px; }
+        .stat-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .stat-dot.added { background: var(--added); }
+        .stat-dot.removed { background: var(--removed); }
+        .stat-dot.changed { background: var(--changed); }
+        .diff-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .diff-content {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .diff-line {
+            display: grid;
+            grid-template-columns: 50px 50px 1fr;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .diff-line:last-child { border-bottom: none; }
+        .diff-line.added { background: var(--added-bg); }
+        .diff-line.removed { background: var(--removed-bg); }
+        .diff-line.changed { background: var(--changed-bg); }
+        .line-num {
+            padding: 4px 12px;
+            color: var(--text-secondary);
+            text-align: right;
+            border-right: 1px solid var(--border);
+            user-select: none;
+        }
+        .line-indicator {
+            padding: 4px 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .added .line-indicator { color: var(--added); }
+        .removed .line-indicator { color: var(--removed); }
+        .changed .line-indicator { color: var(--changed); }
+        .line-content {
+            padding: 4px 12px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .word-added { background: rgba(35, 134, 54, 0.4); border-radius: 2px; }
+        .word-removed { background: rgba(248, 81, 73, 0.4); border-radius: 2px; }
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-secondary);
+        }
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--accent);
+            color: var(--text-primary);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .options {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+        }
+        .option-group { display: flex; align-items: center; gap: 8px; }
+        .option-group label { font-size: 13px; color: var(--text-secondary); }
+        .option-group select {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+        }
+        @media (max-width: 768px) {
+            .input-section { grid-template-columns: 1fr; }
+            .diff-line { grid-template-columns: 40px 40px 1fr; }
+            .diff-stats { flex-wrap: wrap; gap: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><span>&#8800;</span> Code Diff</h1>
+        <div class="header-actions">
+            <button class="btn" onclick="swapCode()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+                Swap
+            </button>
+            <button class="btn" onclick="clearAll()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                Clear
+            </button>
+            <button class="btn primary" onclick="computeDiff()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
+                Compare
+            </button>
+        </div>
+    </header>
+
+    <div class="input-section">
+        <div class="input-panel">
+            <div class="panel-header">
+                <span class="panel-title old">Original Code</span>
+            </div>
+            <textarea id="oldCode" placeholder="Paste your original code here..."></textarea>
+        </div>
+        <div class="input-panel">
+            <div class="panel-header">
+                <span class="panel-title new">Modified Code</span>
+            </div>
+            <textarea id="newCode" placeholder="Paste your modified code here..."></textarea>
+        </div>
+    </div>
+
+    <div class="diff-section" id="diffSection">
+        <div class="empty-state" id="emptyState">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="9" y1="15" x2="15" y2="15"></line>
+            </svg>
+            <p>Paste your code above and click "Compare" to see the differences</p>
+        </div>
+        <div id="diffResults" style="display: none;">
+            <div class="diff-stats" id="diffStats"></div>
+            <div class="diff-container">
+                <div class="options">
+                    <div class="option-group">
+                        <label>Context:</label>
+                        <select id="contextLines" onchange="renderDiff()">
+                            <option value="0">No context</option>
+                            <option value="1">1 line</option>
+                            <option value="3" selected>3 lines</option>
+                            <option value="5">5 lines</option>
+                            <option value="-1">All lines</option>
+                        </select>
+                    </div>
+                    <div class="option-group">
+                        <label>View:</label>
+                        <select id="diffView" onchange="renderDiff()">
+                            <option value="unified" selected>Unified</option>
+                            <option value="side">Side by side</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="diff-content" id="diffContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Copied to clipboard!</div>
+
+    <script>
+        let diffResult = null;
+
+        function lcs(a, b) {
+            const m = a.length, n = b.length;
+            const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+
+            for (let i = 1; i <= m; i++) {
+                for (let j = 1; j <= n; j++) {
+                    if (a[i - 1] === b[j - 1]) {
+                        dp[i][j] = dp[i - 1][j - 1] + 1;
+                    } else {
+                        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+                    }
+                }
+            }
+
+            const result = [];
+            let i = m, j = n;
+            while (i > 0 && j > 0) {
+                if (a[i - 1] === b[j - 1]) {
+                    result.unshift({ type: 'same', oldLine: i - 1, newLine: j - 1, content: a[i - 1] });
+                    i--; j--;
+                } else if (dp[i - 1][j] > dp[i][j - 1]) {
+                    result.unshift({ type: 'removed', oldLine: i - 1, content: a[i - 1] });
+                    i--;
+                } else {
+                    result.uneshift({ type: 'added', newLine: j - 1, content: b[j - 1] });
+                    j--;
+                }
+            }
+
+            while (i > 0) {
+                result.unshift({ type: 'removed', oldLine: i - 1, content: a[i - 1] });
+                i--;
+            }
+            while (j > 0) {
+                result.unshift({ type: 'added', newLine: j - 1, content: b[j - 1] });
+                j--;
+            }
+
+            return result;
+        }
+
+        function computeDiff() {
+            const oldCode = document.getElementById('oldCode').value;
+            const newCode = document.getElementById('newCode').value;
+
+            if (!oldCode && !newCode) {
+                showToast('Please enter code in both panels');
+                return;
+            }
+
+            const oldLines = oldCode.split('\n');
+            const newLines = newCode.split('\n');
+
+            diffResult = lcs(oldLines, newLines);
+
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('diffResults').style.display = 'block';
+
+            renderDiff();
+        }
+
+        function renderDiff() {
+            if (!diffResult) return;
+
+            const context = parseInt(document.getElementById('contextLines').value);
+            const view = document.getElementById('diffView').value;
+
+            // Calculate stats
+            const stats = { added: 0, removed: 0, same: 0 };
+            diffResult.forEach(d => stats[d.type]++);
+
+            document.getElementById('diffStats').innerHTML = `
+                <div class="stat"><span class="stat-dot added"></span> +${stats.added} added</div>
+                <div class="stat"><span class="stat-dot removed"></span> -${stats.removed} removed</div>
+                <div class="stat"><span class="stat-dot changed"></span> ${stats.same} unchanged</div>
+            `;
+
+            const content = document.getElementById('diffContent');
+
+            if (view === 'unified') {
+                content.innerHTML = diffResult.map((d, i) => {
+                    const lineClass = d.type === 'added' ? 'added' : d.type === 'removed' ? 'removed' : '';
+                    const indicator = d.type === 'added' ? '+' : d.type === 'removed' ? '-' : ' ';
+                    const oldNum = d.oldLine !== undefined ? d.oldLine + 1 : '';
+                    const newNum = d.newLine !== undefined ? d.newLine + 1 : '';
+
+                    return `
+                        <div class="diff-line ${lineClass}">
+                            <div class="line-num">${oldNum}</div>
+                            <div class="line-num">${newNum}</div>
+                            <div class="line-indicator">${indicator}</div>
+                            <div class="line-content">${escapeHtml(d.content)}</div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                // Side by side view
+                let html = '';
+                for (let i = 0; i < diffResult.length; i++) {
+                    const d = diffResult[i];
+                    if (d.type === 'same') {
+                        html += `
+                            <div class="diff-line">
+                                <div class="line-num">${d.oldLine + 1}</div>
+                                <div class="line-num">${d.newLine + 1}</div>
+                                <div class="line-indicator" style="color:var(--text-secondary)">=</div>
+                                <div class="line-content">${escapeHtml(d.content)}</div>
+                            </div>
+                        `;
+                    } else if (d.type === 'removed') {
+                        html += `
+                            <div class="diff-line removed">
+                                <div class="line-num">${d.oldLine + 1}</div>
+                                <div class="line-num"></div>
+                                <div class="line-indicator">-</div>
+                                <div class="line-content">${escapeHtml(d.content)}</div>
+                            </div>
+                        `;
+                    } else if (d.type === 'added') {
+                        html += `
+                            <div class="diff-line added">
+                                <div class="line-num"></div>
+                                <div class="line-num">${d.newLine + 1}</div>
+                                <div class="line-indicator">+</div>
+                                <div class="line-content">${escapeHtml(d.content)}</div>
+                            </div>
+                        `;
+                    }
+                }
+                content.innerHTML = html;
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function swapCode() {
+            const old = document.getElementById('oldCode');
+            const neu = document.getElementById('newCode');
+            [old.value, neu.value] = [neu.value, old.value];
+        }
+
+        function clearAll() {
+            document.getElementById('oldCode').value = '';
+            document.getElementById('newCode').value = '';
+            document.getElementById('emptyState').style.display = 'block';
+            document.getElementById('diffResults').style.display = 'none';
+            diffResult = null;
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+    </script>
+</body>
+</html>

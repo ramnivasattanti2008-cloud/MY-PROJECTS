@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard - Quiz App</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #0d1117; color: #c9d1d9; min-height: 100vh; }
+        header { background: #161b22; border-bottom: 1px solid #30363d; padding: 1rem 0; }
+        .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+        nav { max-width: 900px; margin: 0 auto; padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
+        nav h1 { color: #58a6ff; font-size: 1.5rem; }
+        nav a { color: #c9d1d9; text-decoration: none; padding: 0.5rem 1rem; border-radius: 6px; }
+        nav a:hover { background: #21262d; }
+        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 1.5rem; text-align: center; }
+        .stat-value { font-size: 2rem; font-weight: bold; color: #f0f6fc; }
+        .stat-label { color: #8b949e; margin-top: 0.5rem; }
+        .card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; overflow: hidden; }
+        h2 { color: #f0f6fc; margin-bottom: 1rem; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #30363d; }
+        th { background: #21262d; color: #8b949e; font-weight: 600; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #161b22; }
+        .rank { font-weight: bold; }
+        .rank-1 { color: #ffd700; }
+        .rank-2 { color: #c0c0c0; }
+        .rank-3 { color: #cd7f32; }
+        .score { color: #58a6ff; font-weight: bold; }
+        .btn { background: #238636; color: #fff; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn:hover { background: #2ea043; }
+        .empty { text-align: center; padding: 3rem; color: #8b949e; }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <h1>Quiz App</h1>
+            <a href="/">Take Quiz</a>
+        </nav>
+    </header>
+    <div class="container">
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value">{{ total }}</div>
+                <div class="stat-label">Total Quizzes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ average }}%</div>
+                <div class="stat-label">Average Score</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ scores|length }}</div>
+                <div class="stat-label">Shown Entries</div>
+            </div>
+        </div>
+        <div class="card">
+            <h2>Top Scores</h2>
+            {% if scores %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Player</th>
+                        <th>Score</th>
+                        <th>Category</th>
+                        <th>Difficulty</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for score in scores %}
+                    <tr>
+                        <td class="rank {% if loop.index <= 3 %}rank-{{ loop.index }}{% endif %}">#{{ loop.index }}</td>
+                        <td>{{ score.player_name }}</td>
+                        <td class="score">{{ score.score_percentage }}%</td>
+                        <td>{{ score.category }}</td>
+                        <td>{{ score.difficulty|capitalize if score.difficulty else 'Any' }}</td>
+                        <td>{{ score.completed_at[:10] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty">
+                <p>No scores yet. Be the first to take the quiz!</p>
+                <a href="/" class="btn" style="margin-top: 1rem;">Take Quiz</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

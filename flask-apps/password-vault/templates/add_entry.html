@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Password{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <div class="card">
+        <h2>Add New Password</h2>
+
+        <form method="post">
+            <div class="form-group">
+                <label for="title">Title *</label>
+                <input type="text" id="title" name="title" required placeholder="e.g., Gmail, Twitter">
+            </div>
+
+            <div class="form-group">
+                <label for="username">Username / Email</label>
+                <input type="text" id="username" name="username" placeholder="username@example.com">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password *</label>
+                <input type="password" id="password" name="password" required placeholder="Enter password">
+            </div>
+
+            <div class="form-group">
+                <label for="url">Website URL</label>
+                <input type="url" id="url" name="url" placeholder="https://example.com">
+            </div>
+
+            <div class="form-group">
+                <label for="tags">Tags (comma-separated)</label>
+                <input type="text" id="tags" name="tags" placeholder="work, personal, social">
+            </div>
+
+            <div class="form-group">
+                <label for="notes">Notes</label>
+                <textarea id="notes" name="notes" placeholder="Additional notes..."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Save Password</button>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

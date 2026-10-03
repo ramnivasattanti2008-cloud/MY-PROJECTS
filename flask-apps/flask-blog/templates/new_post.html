@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}New Post - DevBlog{% endblock %}
+{% block content %}
+<div class="container">
+    <h1 style="font-size: 2rem; margin-bottom: 2rem; color: #a855f7;">Create New Post</h1>
+    <form method="POST" action="/create">
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; color: #888;">Title</label>
+            <input type="text" name="title" required style="width: 100%; padding: 0.8rem; background: #12121a; border: 1px solid #2a2a4e; border-radius: 8px; color: #e0e0e0; font-size: 1rem;">
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; color: #888;">Tags (comma-separated)</label>
+            <input type="text" name="tags" placeholder="Python, Flask, Tutorial" style="width: 100%; padding: 0.8rem; background: #12121a; border: 1px solid #2a2a4e; border-radius: 8px; color: #e0e0e0; font-size: 1rem;">
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; color: #888;">Content (Markdown)</label>
+            <textarea name="content" rows="15" required style="width: 100%; padding: 0.8rem; background: #12121a; border: 1px solid #2a2a4e; border-radius: 8px; color: #e0e0e0; font-size: 1rem; font-family: monospace; resize: vertical;"></textarea>
+        </div>
+        <button type="submit" style="background: #a855f7; color: #fff; padding: 1rem 2rem; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">Publish Post</button>
+    </form>
+</div>
+{% endblock %}

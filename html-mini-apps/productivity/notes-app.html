@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+        }
+        .sidebar {
+            width: 300px;
+            background: linear-gradient(180deg, #1a1a2e, #16213e);
+            border-right: 1px solid #2a2a4a;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #2a2a4a;
+        }
+        .sidebar-header h1 {
+            font-size: 1.5rem;
+            background: linear-gradient(90deg, #f59e0b, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+        }
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: #0a0a0f;
+            border-radius: 10px;
+            padding: 10px 14px;
+            gap: 10px;
+        }
+        .search-box svg { color: #666; flex-shrink: 0; }
+        .search-box input {
+            flex: 1;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .search-box input::placeholder { color: #666; }
+        .tags-filter {
+            padding: 12px 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            border-bottom: 1px solid #2a2a4a;
+        }
+        .tag-filter {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            background: #2a2a4a;
+            color: #b0b0b0;
+            transition: all 0.2s;
+            border: none;
+        }
+        .tag-filter:hover, .tag-filter.active {
+            background: linear-gradient(135deg, #f59e0b, #ec4899);
+            color: #fff;
+        }
+        .notes-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+        .notes-list::-webkit-scrollbar { width: 4px; }
+        .notes-list::-webkit-scrollbar-thumb { background: #3a3a5a; border-radius: 2px; }
+        .note-item {
+            padding: 14px;
+            background: #1a1a2e;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        .note-item:hover { background: #22223a; }
+        .note-item.active {
+            border-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+        }
+        .note-item-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+            color: #fff;
+        }
+        .note-item-preview {
+            font-size: 0.8rem;
+            color: #888;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .note-item-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 8px;
+        }
+        .note-tag {
+            padding: 2px 8px;
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            border-radius: 10px;
+            font-size: 0.7rem;
+        }
+        .note-item-date {
+            font-size: 0.7rem;
+            color: #666;
+            margin-top: 6px;
+        }
+        .new-note-btn {
+            margin: 12px;
+            padding: 14px;
+            background: linear-gradient(135deg, #f59e0b, #ec4899);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        .new-note-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+        }
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #121218;
+        }
+        .editor-header {
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #2a2a4a;
+            background: #1a1a2e;
+        }
+        .editor-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .action-btn {
+            padding: 8px 12px;
+            background: #2a2a4a;
+            border: none;
+            border-radius: 8px;
+            color: #b0b0b0;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .action-btn:hover { background: #3a3a5a; color: #fff; }
+        .action-btn.delete:hover { background: #dc2626; color: #fff; }
+        .editor-container {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+        .title-input {
+            width: 100%;
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 16px;
+            outline: none;
+        }
+        .title-input::placeholder { color: #444; }
+        .tags-input-container {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #1a1a2e;
+            border-radius: 10px;
+        }
+        .tag-chip {
+            padding: 4px 10px;
+            background: linear-gradient(135deg, #f59e0b, #ec4899);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .tag-chip span { cursor: pointer; opacity: 0.7; }
+        .tag-chip span:hover { opacity: 1; }
+        .tag-input {
+            background: none;
+            border: none;
+            color: #b0b0b0;
+            font-size: 0.85rem;
+            outline: none;
+            min-width: 80px;
+        }
+        .tag-input::placeholder { color: #666; }
+        .content-input {
+            width: 100%;
+            min-height: calc(100vh - 250px);
+            background: none;
+            border: none;
+            color: #d0d0d0;
+            font-size: 1rem;
+            line-height: 1.8;
+            resize: none;
+            outline: none;
+        }
+        .content-input::placeholder { color: #444; }
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #444;
+        }
+        .empty-state svg { margin-bottom: 16px; opacity: 0.3; }
+        .empty-state h2 { font-size: 1.2rem; margin-bottom: 8px; color: #555; }
+        .empty-state p { font-size: 0.9rem; }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: transform 0.3s ease;
+            z-index: 300;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .toast.warn { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; max-height: 40vh; }
+            .main-content { height: calc(60vh - 60px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Notes</h1>
+            <div class="search-box">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                </svg>
+                <input type="text" id="searchInput" placeholder="Search notes...">
+            </div>
+        </div>
+        <div class="tags-filter" id="tagsFilter"></div>
+        <div class="notes-list" id="notesList"></div>
+        <button class="new-note-btn" onclick="createNote()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12h14"/>
+            </svg>
+            New Note
+        </button>
+    </div>
+
+    <div class="main-content" id="mainContent">
+        <div class="empty-state" id="emptyState">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                <polyline points="14,2 14,8 20,8"/>
+            </svg>
+            <h2>No note selected</h2>
+            <p>Create a new note or select one from the list</p>
+        </div>
+
+        <div id="editorView" style="display:none; flex-direction:column; flex:1;">
+            <div class="editor-header">
+                <span id="lastEdited" style="font-size:0.8rem; color:#666;"></span>
+                <div class="editor-actions">
+                    <button class="action-btn" onclick="togglePin()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="pinIcon">
+                            <path d="M12 2L12 12"/><circle cx="12" cy="17" r="5"/>
+                        </svg>
+                        <span id="pinText">Pin</span>
+                    </button>
+                    <button class="action-btn delete" onclick="deleteNote()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                        Delete
+                    </button>
+                </div>
+            </div>
+            <div class="editor-container">
+                <input type="text" class="title-input" id="noteTitle" placeholder="Note title...">
+                <div class="tags-input-container">
+                    <div id="noteTags"></div>
+                    <input type="text" class="tag-input" id="tagInput" placeholder="Add tag...">
+                </div>
+                <textarea class="content-input" id="noteContent" placeholder="Start writing..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Saved!</div>
+
+    <script>
+        const notesList = document.getElementById('notesList');
+        const editorView = document.getElementById('editorView');
+        const emptyState = document.getElementById('emptyState');
+        const noteTitle = document.getElementById('noteTitle');
+        const noteContent = document.getElementById('noteContent');
+        const noteTags = document.getElementById('noteTags');
+        const tagInput = document.getElementById('tagInput');
+        const searchInput = document.getElementById('searchInput');
+        const tagsFilter = document.getElementById('tagsFilter');
+        const lastEdited = document.getElementById('lastEdited');
+        const toast = document.getElementById('toast');
+        const pinIcon = document.getElementById('pinIcon');
+        const pinText = document.getElementById('pinText');
+
+        let notes = [];
+        let currentNote = null;
+        let allTags = [];
+        let activeTagFilter = null;
+        let saveTimeout = null;
+
+        function loadNotes() {
+            const saved = localStorage.getItem('notes');
+            if (saved) {
+                notes = JSON.parse(saved);
+            }
+            extractTags();
+            renderNotes();
+            renderTagFilters();
+        }
+
+        function saveNotes() {
+            localStorage.setItem('notes', JSON.stringify(notes));
+        }
+
+        function extractTags() {
+            const tagSet = new Set();
+            notes.forEach(n => n.tags.forEach(t => tagSet.add(t)));
+            allTags = Array.from(tagSet).sort();
+        }
+
+        function createNote() {
+            const note = {
+                id: Date.now(),
+                title: '',
+                content: '',
+                tags: [],
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                pinned: false
+            };
+            notes.unshift(note);
+            saveNotes();
+            extractTags();
+            renderNotes();
+            renderTagFilters();
+            openNote(note);
+        }
+
+        function openNote(note) {
+            currentNote = note;
+            emptyState.style.display = 'none';
+            editorView.style.display = 'flex';
+            noteTitle.value = note.title;
+            noteContent.value = note.content;
+            renderNoteTags();
+            updatePinUI();
+            lastEdited.textContent = 'Last edited ' + formatDate(note.updatedAt);
+            renderNotes();
+        }
+
+        function deleteNote() {
+            if (!currentNote) return;
+            if (!confirm('Delete this note?')) return;
+            notes = notes.filter(n => n.id !== currentNote.id);
+            saveNotes();
+            extractTags();
+            renderNotes();
+            renderTagFilters();
+            currentNote = null;
+            editorView.style.display = 'none';
+            emptyState.style.display = 'flex';
+            showToast('Note deleted');
+        }
+
+        function autoSave() {
+            if (!currentNote) return;
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                currentNote.title = noteTitle.value;
+                currentNote.content = noteContent.value;
+                currentNote.updatedAt = new Date().toISOString();
+                saveNotes();
+                renderNotes();
+                lastEdited.textContent = 'Last edited ' + formatDate(currentNote.updatedAt);
+            }, 500);
+        }
+
+        function togglePin() {
+            if (!currentNote) return;
+            currentNote.pinned = !currentNote.pinned;
+            saveNotes();
+            updatePinUI();
+            renderNotes();
+            showToast(currentNote.pinned ? 'Note pinned' : 'Note unpinned');
+        }
+
+        function updatePinUI() {
+            if (currentNote?.pinned) {
+                pinIcon.setAttribute('fill', 'currentColor');
+                pinText.textContent = 'Unpin';
+            } else {
+                pinIcon.setAttribute('fill', 'none');
+                pinText.textContent = 'Pin';
+            }
+        }
+
+        function renderNotes() {
+            let filtered = [...notes];
+
+            if (activeTagFilter) {
+                filtered = filtered.filter(n => n.tags.includes(activeTagFilter));
+            }
+
+            const search = searchInput.value.toLowerCase();
+            if (search) {
+                filtered = filtered.filter(n =>
+                    n.title.toLowerCase().includes(search) ||
+                    n.content.toLowerCase().includes(search) ||
+                    n.tags.some(t => t.toLowerCase().includes(search))
+                );
+            }
+
+            // Sort: pinned first, then by updated
+            filtered.sort((a, b) => {
+                if (a.pinned !== b.pinned) return b.pinned - a.pinned;
+                return new Date(b.updatedAt) - new Date(a.updatedAt);
+            });
+
+            notesList.innerHTML = filtered.map(note => `
+                <div class="note-item ${currentNote?.id === note.id ? 'active' : ''}" onclick="openNote(notes.find(n=>n.id===${note.id}))">
+                    <div class="note-item-title">${note.title || 'Untitled'}</div>
+                    <div class="note-item-preview">${note.content || 'No content'}</div>
+                    ${note.tags.length ? `<div class="note-item-tags">${note.tags.map(t => `<span class="note-tag">${t}</span>`).join('')}</div>` : ''}
+                    <div class="note-item-date">${formatDate(note.updatedAt)}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderNoteTags() {
+            noteTags.innerHTML = currentNote.tags.map(tag => `
+                <div class="tag-chip">
+                    ${tag}
+                    <span onclick="removeTag('${tag}')">&times;</span>
+                </div>
+            `).join('');
+        }
+
+        function addTag(tag) {
+            if (!currentNote || !tag.trim()) return;
+            const t = tag.trim().toLowerCase();
+            if (!currentNote.tags.includes(t)) {
+                currentNote.tags.push(t);
+                saveNotes();
+                extractTags();
+                renderNoteTags();
+                renderTagFilters();
+                renderNotes();
+            }
+            tagInput.value = '';
+        }
+
+        function removeTag(tag) {
+            if (!currentNote) return;
+            currentNote.tags = currentNote.tags.filter(t => t !== tag);
+            saveNotes();
+            extractTags();
+            renderNoteTags();
+            renderTagFilters();
+            renderNotes();
+        }
+
+        function renderTagFilters() {
+            tagsFilter.innerHTML = `
+                <button class="tag-filter ${!activeTagFilter ? 'active' : ''}" onclick="setTagFilter(null)">All</button>
+                ${allTags.map(tag => `
+                    <button class="tag-filter ${activeTagFilter === tag ? 'active' : ''}" onclick="setTagFilter('${tag}')">${tag}</button>
+                `).join('')}
+            `;
+        }
+
+        function setTagFilter(tag) {
+            activeTagFilter = tag;
+            renderTagFilters();
+            renderNotes();
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diff = now - date;
+            if (diff < 60000) return 'Just now';
+            if (diff < 3600000) return Math.floor(diff/60000) + 'm ago';
+            if (diff < 86400000) return Math.floor(diff/3600000) + 'h ago';
+            if (diff < 604800000) return Math.floor(diff/86400000) + 'd ago';
+            return date.toLocaleDateString();
+        }
+
+        function showToast(msg, warn = false) {
+            toast.textContent = msg;
+            toast.classList.toggle('warn', warn);
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // Events
+        noteTitle.addEventListener('input', autoSave);
+        noteContent.addEventListener('input', autoSave);
+
+        searchInput.addEventListener('input', renderNotes);
+
+        tagInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ',') {
+                e.preventDefault();
+                addTag(tagInput.value);
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'n' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                createNote();
+            }
+        });
+
+        // Init
+        loadNotes();
+    </script>
+</body>
+</html>

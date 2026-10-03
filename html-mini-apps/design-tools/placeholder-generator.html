@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Placeholder Generator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #0f0f0f; color: #fff; min-height: 100vh; padding: 2rem; }
+    .container { max-width: 700px; margin: 0 auto; }
+    h1 { text-align: center; margin-bottom: 2rem; color: #ec4899; }
+    .form { display: grid; gap: 1rem; margin-bottom: 2rem; }
+    .row { display: flex; gap: 1rem; }
+    .field { flex: 1; }
+    label { display: block; font-size: 0.85rem; color: #a1a1aa; margin-bottom: 0.5rem; }
+    input, select { width: 100%; background: #1c1c1c; border: 1px solid #3f3f46; border-radius: 8px; color: #fff; padding: 0.75rem; font-size: 1rem; }
+    input:focus, select:focus { outline: none; border-color: #ec4899; }
+    .color-input { display: flex; align-items: center; gap: 0.5rem; }
+    .color-input input[type="color"] { width: 50px; height: 44px; padding: 2px; cursor: pointer; border-radius: 8px; }
+    .preview { background: #1c1c1c; border-radius: 12px; padding: 1rem; margin-bottom: 2rem; text-align: center; }
+    .preview img { max-width: 100%; max-height: 400px; border-radius: 8px; }
+    .url-box { background: #27272a; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+    .url-box label { margin-bottom: 0.5rem; }
+    .url-box input { background: #18181b; margin-bottom: 1rem; }
+    .buttons { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .btn { flex: 1; min-width: 140px; padding: 0.75rem; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: filter 0.2s; }
+    .btn:hover { filter: brightness(1.1); }
+    .btn-primary { background: #ec4899; color: #fff; }
+    .btn-secondary { background: #3b82f6; color: #fff; }
+    .btn-success { background: #22c55e; color: #fff; }
+    .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); background: #22c55e; color: #fff; padding: 0.75rem 1.5rem; border-radius: 8px; opacity: 0; transition: opacity 0.3s; }
+    .toast.show { opacity: 1; }
+    .aspect-btns { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+    .aspect-btn { flex: 1; padding: 0.5rem; background: #27272a; border: 1px solid #3f3f46; color: #fff; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+    .aspect-btn.active { border-color: #ec4899; background: #3f1d2e; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Placeholder Generator</h1>
+    <div class="form">
+      <div class="row">
+        <div class="field">
+          <label>Width (px)</label>
+          <input type="number" id="width" value="800" min="50" max="4000">
+        </div>
+        <div class="field">
+          <label>Height (px)</label>
+          <input type="number" id="height" value="600" min="50" max="4000">
+        </div>
+      </div>
+      <div class="aspect-btns">
+        <button class="aspect-btn" onclick="setAspect(16,9)">16:9</button>
+        <button class="aspect-btn" onclick="setAspect(4,3)">4:3</button>
+        <button class="aspect-btn" onclick="setAspect(1,1)">1:1</button>
+        <button class="aspect-btn" onclick="setAspect(9,16)">9:16</button>
+        <button class="aspect-btn" onclick="setAspect(0,0)">Free</button>
+      </div>
+      <div class="field">
+        <label>Text</label>
+        <input type="text" id="text" placeholder="e.g. 800 x 600">
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Background Color</label>
+          <div class="color-input">
+            <input type="color" id="bgColor" value="#1c1c1c">
+            <input type="text" id="bgHex" value="#1c1c1c" style="flex:1;">
+          </div>
+        </div>
+        <div class="field">
+          <label>Text Color</label>
+          <div class="color-input">
+            <input type="color" id="textColor" value="#6b7280">
+            <input type="text" id="textHex" value="#6b7280" style="flex:1;">
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Font Size (px)</label>
+        <input type="number" id="fontSize" value="48" min="12" max="200">
+      </div>
+    </div>
+    <div class="preview">
+      <img id="previewImg" alt="Preview">
+    </div>
+    <div class="url-box">
+      <label>Image URL:</label>
+      <input type="text" id="urlBox" readonly>
+      <div class="buttons">
+        <button class="btn btn-secondary" onclick="copyUrl()">Copy URL</button>
+        <button class="btn btn-success" onclick="downloadImg()">Download PNG</button>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast">Done!</div>
+  <script>
+    const widthInput = document.getElementById('width');
+    const heightInput = document.getElementById('height');
+    const textInput = document.getElementById('text');
+    const bgColorInput = document.getElementById('bgColor');
+    const bgHexInput = document.getElementById('bgHex');
+    const textColorInput = document.getElementById('textColor');
+    const textHexInput = document.getElementById('textHex');
+    const fontSizeInput = document.getElementById('fontSize');
+    const previewImg = document.getElementById('previewImg');
+    const urlBox = document.getElementById('urlBox');
+    const toast = document.getElementById('toast');
+
+    bgColorInput.addEventListener('input', () => { bgHexInput.value = bgColorInput.value; update(); });
+    bgHexInput.addEventListener('input', () => { if (/^#[0-9a-f]{6}$/i.test(bgHexInput.value)) { bgColorInput.value = bgHexInput.value; update(); }});
+    textColorInput.addEventListener('input', () => { textHexInput.value = textColorInput.value; update(); });
+    textHexInput.addEventListener('input', () => { if (/^#[0-9a-f]{6}$/i.test(textHexInput.value)) { textColorInput.value = textHexInput.value; update(); }});
+    widthInput.addEventListener('input', update);
+    heightInput.addEventListener('input', update);
+    textInput.addEventListener('input', update);
+    fontSizeInput.addEventListener('input', update);
+
+    function setAspect(w, h) {
+      if (w === 0) return;
+      const aspect = w / h;
+      const height = Math.round(parseInt(widthInput.value) / aspect);
+      heightInput.value = Math.max(50, Math.min(4000, height));
+      document.querySelectorAll('.aspect-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      update();
+    }
+
+    function encode(str) {
+      return encodeURIComponent(str).replace(/%20/g, '+');
+    }
+
+    function buildUrl() {
+      const w = widthInput.value || 800;
+      const h = heightInput.value || 600;
+      const bg = bgHexInput.value.replace('#', '');
+      const tc = textHexInput.value.replace('#', '');
+      const text = textInput.value || `${w} x ${h}`;
+      const fs = fontSizeInput.value || 48;
+      return `https://placehold.co/${w}x${h}/${bg}/${tc}?text=${encode(text)}&font=roboto&fontsize=${fs}`;
+    }
+
+    function update() {
+      const url = buildUrl();
+      previewImg.src = url;
+      urlBox.value = url;
+    }
+
+    function copyUrl() {
+      navigator.clipboard.writeText(urlBox.value);
+      showToast('URL copied!');
+    }
+
+    function downloadImg() {
+      const link = document.createElement('a');
+      link.href = urlBox.value;
+      link.download = `placeholder-${widthInput.value}x${heightInput.value}.png`;
+      link.click();
+      showToast('Download started!');
+    }
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1500);
+    }
+
+    update();
+  </script>
+</body>
+</html>

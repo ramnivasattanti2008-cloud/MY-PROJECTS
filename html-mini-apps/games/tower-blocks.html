@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tower Blocks</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0d0d0d;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+        }
+        .game-container {
+            position: relative;
+        }
+        canvas {
+            border: 2px solid #f0f;
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(255, 0, 255, 0.3);
+        }
+        .ui {
+            display: flex;
+            justify-content: space-between;
+            width: 400px;
+            margin-bottom: 15px;
+            color: #fff;
+            font-size: 18px;
+        }
+        .score, .best {
+            color: #f0f;
+            text-shadow: 0 0 10px #f0f;
+        }
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(13, 13, 13, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            z-index: 10;
+        }
+        .hidden { display: none !important; }
+        h1 {
+            font-size: 36px;
+            color: #f0f;
+            text-shadow: 0 0 20px #f0f;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #888;
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 12px 30px;
+            font-size: 18px;
+            background: transparent;
+            border: 2px solid #f0f;
+            color: #f0f;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            background: #f0f;
+            color: #0d0d0d;
+            box-shadow: 0 0 20px #f0f;
+        }
+        .final-score {
+            font-size: 48px;
+            color: #fff;
+            margin: 15px 0;
+        }
+        .new-best {
+            color: #0f0;
+            font-size: 20px;
+            text-shadow: 0 0 15px #0f0;
+        }
+        .instructions {
+            color: #666;
+            margin-top: 15px;
+            text-align: center;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="ui">
+        <div>Score: <span class="score" id="score">0</span></div>
+        <div>Best: <span class="best" id="best">0</span></div>
+    </div>
+    <div class="game-container">
+        <canvas id="game" width="400" height="600"></canvas>
+        <div class="overlay" id="startScreen">
+            <h1>TOWER BLOCKS</h1>
+            <p class="subtitle">Stack the blocks with precision</p>
+            <button class="btn" onclick="startGame()">START</button>
+            <p class="instructions">Click or press SPACE to drop<br>Align perfectly for bonus points</p>
+        </div>
+        <div class="overlay hidden" id="gameOverScreen">
+            <h1>GAME OVER</h1>
+            <div class="final-score" id="finalScore">0</div>
+            <div class="new-best hidden" id="newBest">NEW BEST!</div>
+            <button class="btn" onclick="startGame()">PLAY AGAIN</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width, H = canvas.height;
+
+        const BASE_Y = H - 50;
+        const BLOCK_H = 30;
+        const BASE_W = 200;
+        const CAMERA_SPEED = 2;
+
+        let blocks, currentBlock, gameState, score, bestScore;
+        let cameraY = 0;
+        let perfectCount = 0;
+
+        const COLORS = [
+            '#ff0080', '#ff4444', '#ff8800', '#ffdd00',
+            '#88ff00', '#00ffff', '#0088ff', '#8800ff',
+            '#ff00ff', '#00ff88', '#ff8800', '#ff0066'
+        ];
+
+        function init() {
+            blocks = [{
+                x: W / 2 - BASE_W / 2,
+                y: BASE_Y,
+                w: BASE_W,
+                color: COLORS[0]
+            }];
+            currentBlock = {
+                x: W / 2 - BASE_W / 2,
+                y: BASE_Y - 400,
+                w: BASE_W,
+                direction: 1,
+                speed: 3,
+                color: COLORS[1]
+            };
+            score = 0;
+            cameraY = 0;
+            perfectCount = 0;
+            document.getElementById('score').textContent = score;
+            document.getElementById('best').textContent = bestScore;
+        }
+
+        function startGame() {
+            if (bestScore === undefined) {
+                bestScore = parseInt(localStorage.getItem('towerBlocksBest') || '0');
+            }
+            init();
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            gameState = 'playing';
+            loop();
+        }
+
+        function gameOver() {
+            gameState = 'over';
+            document.getElementById('gameOverScreen').classList.remove('hidden');
+            document.getElementById('finalScore').textContent = score;
+
+            if (score > bestScore) {
+                bestScore = score;
+                localStorage.setItem('towerBlocksBest', bestScore);
+                document.getElementById('newBest').classList.remove('hidden');
+                document.getElementById('best').textContent = bestScore;
+            } else {
+                document.getElementById('newBest').classList.add('hidden');
+            }
+        }
+
+        function dropBlock() {
+            if (gameState !== 'playing') return;
+
+            const topBlock = blocks[blocks.length - 1];
+            let overlap, overhang;
+
+            if (currentBlock.direction === 1) {
+                overhang = (currentBlock.x + currentBlock.w) - (topBlock.x + topBlock.w);
+                if (overhang >= 0) {
+                    overlap = currentBlock.w - overhang;
+                } else {
+                    overlap = currentBlock.x - topBlock.x;
+                }
+            } else {
+                overhang = topBlock.x - currentBlock.x;
+                if (overhang >= 0) {
+                    overlap = currentBlock.w - overhang;
+                } else {
+                    overlap = (topBlock.x + topBlock.w) - (currentBlock.x + currentBlock.w);
+                }
+            }
+
+            if (overlap <= 0) {
+                // Create falling piece
+                createFallingPiece(currentBlock.x, currentBlock.y, currentBlock.w, currentBlock.color);
+                gameOver();
+                return;
+            }
+
+            const newY = topBlock.y - BLOCK_H;
+            let newX, newW;
+
+            if (currentBlock.direction === 1) {
+                newX = topBlock.x + topBlock.w - overlap;
+            } else {
+                newX = currentBlock.x;
+            }
+            newW = overlap;
+
+            // Perfect placement bonus
+            if (Math.abs(overhang) < 5) {
+                perfectCount++;
+                score += 25 * perfectCount;
+                createPerfectEffect(newX + newW / 2, newY);
+            } else {
+                perfectCount = 0;
+                score += 10;
+            }
+
+            blocks.push({
+                x: newX,
+                y: newY,
+                w: newW,
+                color: currentBlock.color
+            });
+
+            // Update camera
+            if (blocks.length > 10) {
+                cameraY = Math.max(0, (blocks.length - 10) * BLOCK_H);
+            }
+
+            // Create new block
+            const colorIndex = (blocks.length) % COLORS.length;
+            const widthReduction = Math.max(10, currentBlock.w - Math.random() * 10);
+            currentBlock = {
+                x: blocks[blocks.length - 1].x,
+                y: newY - 400,
+                w: widthReduction,
+                direction: Math.random() > 0.5 ? 1 : -1,
+                speed: 3 + blocks.length * 0.1,
+                color: COLORS[colorIndex]
+            };
+
+            document.getElementById('score').textContent = score;
+        }
+
+        let fallingPieces = [];
+        function createFallingPiece(x, y, w, color) {
+            fallingPieces.push({ x, y, w, color, vy: 0, rotation: 0, vr: (Math.random() - 0.5) * 0.2 });
+        }
+
+        function createPerfectEffect(x, y) {
+            for (let i = 0; i < 20; i++) {
+                particles.push({
+                    x, y,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10,
+                    life: 1,
+                    color: '#ff0',
+                    size: Math.random() * 5 + 2
+                });
+            }
+        }
+
+        let particles = [];
+
+        function update() {
+            if (gameState !== 'playing') return;
+
+            // Move current block
+            currentBlock.x += currentBlock.direction * currentBlock.speed;
+
+            if (currentBlock.x <= 0) {
+                currentBlock.x = 0;
+                currentBlock.direction = 1;
+            }
+            if (currentBlock.x + currentBlock.w >= W) {
+                currentBlock.x = W - currentBlock.w;
+                currentBlock.direction = -1;
+            }
+
+            // Update falling pieces
+            for (let i = fallingPieces.length - 1; i >= 0; i--) {
+                let p = fallingPieces[i];
+                p.vy += 0.5;
+                p.y += p.vy;
+                p.rotation += p.vr;
+                if (p.y > H + 100) fallingPieces.splice(i, 1);
+            }
+
+            // Update particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.02;
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+        }
+
+        function draw() {
+            ctx.fillStyle = '#0d0d0d';
+            ctx.fillRect(0, 0, W, H);
+
+            ctx.save();
+            ctx.translate(0, cameraY);
+
+            // Base
+            ctx.fillStyle = '#333';
+            ctx.fillRect(W / 2 - BASE_W / 2, BASE_Y + 20, BASE_W, 30);
+
+            // Blocks
+            for (let b of blocks) {
+                drawBlock(b.x, b.y, b.w, BLOCK_H, b.color);
+            }
+
+            // Current block
+            if (gameState === 'playing') {
+                // Draw guide line
+                const topBlock = blocks[blocks.length - 1];
+                ctx.strokeStyle = 'rgba(255, 0, 255, 0.3)';
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(currentBlock.x, currentBlock.y + BLOCK_H);
+                ctx.lineTo(currentBlock.x, topBlock.y);
+                ctx.moveTo(currentBlock.x + currentBlock.w, currentBlock.y + BLOCK_H);
+                ctx.lineTo(currentBlock.x + currentBlock.w, topBlock.y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                drawBlock(currentBlock.x, currentBlock.y, currentBlock.w, BLOCK_H, currentBlock.color);
+            }
+
+            // Falling pieces
+            for (let p of fallingPieces) {
+                ctx.save();
+                ctx.translate(p.x + p.w / 2, p.y + BLOCK_H / 2);
+                ctx.rotate(p.rotation);
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = 0.8;
+                ctx.fillRect(-p.w / 2, -BLOCK_H / 2, p.w, BLOCK_H);
+                ctx.restore();
+            }
+            ctx.globalAlpha = 1;
+
+            ctx.restore();
+
+            // Particles (screen space)
+            for (let p of particles) {
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y - cameraY, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+
+            // Perfect counter
+            if (perfectCount > 1) {
+                ctx.fillStyle = '#ff0';
+                ctx.font = 'bold 24px Arial';
+                ctx.textAlign = 'center';
+                ctx.shadowColor = '#ff0';
+                ctx.shadowBlur = 10;
+                ctx.fillText(`${perfectCount}x PERFECT!`, W / 2, 50);
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        function drawBlock(x, y, w, h, color) {
+            ctx.fillStyle = color;
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 15;
+            ctx.fillRect(x, y, w, h);
+            ctx.shadowBlur = 0;
+
+            // Highlight
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.fillRect(x, y, w, 3);
+
+            // Border
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x, y, w, h);
+        }
+
+        function loop() {
+            update();
+            draw();
+            if (gameState === 'playing') {
+                requestAnimationFrame(loop);
+            } else if (gameState === 'over') {
+                draw();
+            }
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === ' ' || e.key === 'Enter') {
+                if (gameState === 'start') startGame();
+                else if (gameState === 'playing') dropBlock();
+                else if (gameState === 'over') startGame();
+            }
+        });
+
+        canvas.addEventListener('click', () => {
+            if (gameState === 'start') startGame();
+            else if (gameState === 'playing') dropBlock();
+            else if (gameState === 'over') startGame();
+        });
+
+        bestScore = parseInt(localStorage.getItem('towerBlocksBest') || '0');
+        document.getElementById('best').textContent = bestScore;
+        draw();
+    </script>
+</body>
+</html>

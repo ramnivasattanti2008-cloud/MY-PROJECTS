@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hash Generator</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0d0d0d; color: #e0e0e0; min-height: 100vh; padding: 40px 20px; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 2rem; margin-bottom: 8px; color: #fff; }
+.subtitle { color: #888; margin-bottom: 32px; }
+.card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+.label { font-size: 0.8rem; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+textarea { width: 100%; min-height: 120px; background: #111; border: 1px solid #333; border-radius: 8px; padding: 14px; color: #e0e0e0; font-family: 'Consolas', monospace; font-size: 0.95rem; resize: vertical; }
+textarea:focus { outline: none; border-color: #3b82f6; }
+.hash-grid { display: grid; gap: 12px; }
+.hash-item { background: #151515; border: 1px solid #2a2a2a; border-radius: 8px; padding: 14px; }
+.hash-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.hash-name { font-weight: 600; font-size: 0.95rem; color: #fff; }
+.hash-value { font-family: 'Consolas', monospace; font-size: 0.85rem; color: #10b981; word-break: break-all; line-height: 1.5; }
+.copy-btn { padding: 6px 12px; font-size: 0.75rem; background: #252525; color: #aaa; border: 1px solid #333; border-radius: 4px; cursor: pointer; }
+.copy-btn:hover { background: #333; }
+.btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.95rem; font-weight: 500; background: #3b82f6; color: #fff; margin-top: 16px; }
+.btn:hover { background: #2563eb; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Hash Generator</h1>
+<p class="subtitle">Generate cryptographic hashes from text</p>
+
+<div class="card">
+<div class="label">Input Text</div>
+<textarea id="inputText" placeholder="Enter text to hash..."></textarea>
+<button class="btn" id="generateBtn">Generate Hashes</button>
+</div>
+
+<div class="card">
+<div class="label">Output</div>
+<div class="hash-grid" id="hashGrid">
+<div class="hash-item"><div class="hash-item-header"><span class="hash-name">MD5</span></div><div class="hash-value" id="md5">-</div></div>
+<div class="hash-item"><div class="hash-item-header"><span class="hash-name">SHA-1</span></div><div class="hash-value" id="sha1">-</div></div>
+<div class="hash-item"><div class="hash-item-header"><span class="hash-name">SHA-256</span></div><div class="hash-value" id="sha256">-</div></div>
+<div class="hash-item"><div class="hash-item-header"><span class="hash-name">SHA-512</span></div><div class="hash-value" id="sha512">-</div></div>
+</div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/spark-md5/3.0.2/spark-md5.min.js"></script>
+<script>
+const input = document.getElementById('inputText');
+const generateBtn = document.getElementById('generateBtn');
+
+async function sha1(str) {
+    const buf = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function sha256(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function sha512(str) {
+    const buf = await crypto.subtle.digest('SHA-512', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function md5(str) {
+    return SparkMD5.hash(str);
+}
+
+function copyToClipboard(text, btn) {
+    navigator.clipboard.writeText(text);
+    const original = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = original, 1500);
+}
+
+async function generate() {
+    const text = input.value;
+    if (!text) return;
+    document.getElementById('md5').textContent = md5(text);
+    document.getElementById('sha1').textContent = await sha1(text);
+    document.getElementById('sha256').textContent = await sha256(text);
+    document.getElementById('sha512').textContent = await sha512(text);
+    document.querySelectorAll('.hash-item').forEach(item => {
+        if (!item.querySelector('.copy-btn')) {
+            const btn = document.createElement('button');
+            btn.className = 'copy-btn';
+            btn.textContent = 'Copy';
+            btn.onclick = () => copyToClipboard(item.querySelector('.hash-value').textContent, btn);
+            item.querySelector('.hash-item-header').appendChild(btn);
+        }
+    });
+}
+
+generateBtn.addEventListener('click', generate);
+input.addEventListener('input', () => { if (input.value) generate(); });
+</script>
+</body>
+</html>

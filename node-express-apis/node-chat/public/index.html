@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-time Chat</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #1a1a2e; color: #eee; height: 100vh; }
+    .container { display: flex; height: 100vh; }
+    .sidebar { width: 250px; background: #16213e; padding: 20px; display: flex; flex-direction: column; }
+    .sidebar h2 { margin-bottom: 20px; color: #0f3460; font-size: 1.2rem; }
+    .room-list { flex: 1; overflow-y: auto; }
+    .room { padding: 10px; margin-bottom: 5px; background: #0f3460; border-radius: 5px; cursor: pointer; transition: background 0.2s; }
+    .room:hover { background: #1a4a7a; }
+    .room.active { background: #e94560; }
+    .room-users { font-size: 0.8rem; color: #aaa; margin-top: 5px; }
+    .main { flex: 1; display: flex; flex-direction: column; }
+    .header { padding: 15px; background: #0f3460; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 1.2rem; }
+    .online { color: #4ade80; font-size: 0.9rem; }
+    .messages { flex: 1; overflow-y: auto; padding: 20px; }
+    .message { margin-bottom: 15px; padding: 10px 15px; background: #16213e; border-radius: 10px; max-width: 70%; }
+    .message.own { margin-left: auto; background: #e94560; }
+    .message.private { border: 1px solid #fbbf24; }
+    .message-header { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85rem; }
+    .message-user { font-weight: bold; color: #e94560; }
+    .message.own .message-user { color: #fff; }
+    .message-time { color: #888; }
+    .message-text { line-height: 1.4; }
+    .typing { padding: 10px 20px; color: #888; font-style: italic; font-size: 0.9rem; height: 30px; }
+    .input-area { padding: 15px; background: #16213e; display: flex; gap: 10px; }
+    .input-area input { flex: 1; padding: 12px; border: none; border-radius: 5px; background: #1a1a2e; color: #fff; font-size: 1rem; }
+    .input-area button { padding: 12px 25px; background: #e94560; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; }
+    .input-area button:hover { background: #d63d56; }
+    .join-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 100; }
+    .join-modal.hidden { display: none; }
+    .join-form { background: #16213e; padding: 30px; border-radius: 10px; text-align: center; }
+    .join-form h2 { margin-bottom: 20px; }
+    .join-form input { width: 100%; padding: 12px; margin-bottom: 15px; border: none; border-radius: 5px; font-size: 1rem; }
+    .join-form button { width: 100%; padding: 12px; background: #e94560; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; }
+  </style>
+</head>
+<body>
+  <div class="join-modal" id="joinModal">
+    <div class="join-form">
+      <h2>Join Chat</h2>
+      <input type="text" id="usernameInput" placeholder="Enter your username" />
+      <input type="text" id="roomInput" placeholder="Room (default: general)" />
+      <button onclick="joinChat()">Join</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="sidebar">
+      <h2>Rooms</h2>
+      <div class="room-list" id="roomList"></div>
+    </div>
+    <div class="main">
+      <div class="header">
+        <h1 id="currentRoom">general</h1>
+        <span class="online"><span id="userCount">0</span> online</span>
+      </div>
+      <div class="messages" id="messages"></div>
+      <div class="typing" id="typing"></div>
+      <div class="input-area">
+        <input type="text" id="messageInput" placeholder="Type a message..." onkeypress="handleKeyPress(event)" />
+        <button onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    let currentUser = '';
+    let currentRoom = 'general';
+
+    function joinChat() {
+      const username = document.getElementById('usernameInput').value.trim();
+      const room = document.getElementById('roomInput').value.trim() || 'general';
+
+      if (!username) {
+        alert('Please enter a username');
+        return;
+      }
+
+      currentUser = username;
+      currentRoom = room;
+
+      socket.emit('join', { username, room });
+      document.getElementById('joinModal').classList.add('hidden');
+      document.getElementById('currentRoom').textContent = room;
+      document.getElementById('messageInput').focus();
+    }
+
+    function handleKeyPress(e) {
+      if (e.key === 'Enter') sendMessage();
+    }
+
+    function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const message = input.value.trim();
+
+      if (!message) return;
+
+      socket.emit('chat message', { message, room: currentRoom });
+      input.value = '';
+      socket.emit('stop typing');
+    }
+
+    socket.on('chat message', (data) => {
+      const messagesDiv = document.getElementById('messages');
+      const msg = document.createElement('div');
+      msg.className = 'message' + (data.username === currentUser ? ' own' : '');
+      msg.innerHTML = `
+        <div class="message-header">
+          <span class="message-user">${data.username}</span>
+          <span class="message-time">${new Date(data.timestamp).toLocaleTimeString()}</span>
+        </div>
+        <div class="message-text">${escapeHtml(data.message)}</div>
+      `;
+      messagesDiv.appendChild(msg);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    });
+
+    socket.on('chat history', (data) => {
+      if (data.room === currentRoom) {
+        const messagesDiv = document.getElementById('messages');
+        messagesDiv.innerHTML = '';
+        data.messages.forEach(msg => {
+          const el = document.createElement('div');
+          el.className = 'message' + (msg.username === currentUser ? ' own' : '');
+          el.innerHTML = `
+            <div class="message-header">
+              <span class="message-user">${msg.username}</span>
+              <span class="message-time">${new Date(msg.timestamp).toLocaleTimeString()}</span>
+            </div>
+            <div class="message-text">${escapeHtml(msg.message)}</div>
+          `;
+          messagesDiv.appendChild(el);
+        });
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }
+    });
+
+    socket.on('user joined', (data) => {
+      addSystemMessage(`${data.username} joined ${data.room}`);
+      document.getElementById('userCount').textContent = data.users;
+    });
+
+    socket.on('user left', (data) => {
+      addSystemMessage(`${data.username} left ${data.room}`);
+    });
+
+    socket.on('user typing', (data) => {
+      document.getElementById('typing').textContent = `${data.username} is typing...`;
+    });
+
+    socket.on('user stopped typing', () => {
+      document.getElementById('typing').textContent = '';
+    });
+
+    socket.on('room list', (rooms) => {
+      const roomList = document.getElementById('roomList');
+      roomList.innerHTML = rooms.map(room => `
+        <div class="room ${room.name === currentRoom ? 'active' : ''}" onclick="switchRoom('${room.name}')">
+          ${room.name}
+          <div class="room-users">${room.users} users</div>
+        </div>
+      `).join('');
+    });
+
+    function switchRoom(room) {
+      socket.emit('switch room', room);
+      currentRoom = room;
+      document.getElementById('currentRoom').textContent = room;
+    }
+
+    function addSystemMessage(text) {
+      const messagesDiv = document.getElementById('messages');
+      const msg = document.createElement('div');
+      msg.style.cssText = 'text-align: center; color: #888; font-size: 0.85rem; margin: 10px 0;';
+      msg.textContent = text;
+      messagesDiv.appendChild(msg);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    document.getElementById('messageInput').addEventListener('input', () => {
+      socket.emit('typing');
+    });
+  </script>
+</body>
+</html>

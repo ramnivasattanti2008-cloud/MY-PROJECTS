@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Question {{ number }} - Quiz Game</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            min-height: 100vh;
+        }
+        .container { max-width: 700px; margin: 0 auto; padding: 40px 20px; }
+        .progress-bar {
+            background: #30363d;
+            height: 8px;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: #238636;
+            height: 100%;
+            transition: width 0.3s;
+        }
+        .question-info {
+            display: flex;
+            justify-content: space-between;
+            color: #8b949e;
+            margin-bottom: 20px;
+        }
+        .timer {
+            color: #f0883e;
+            font-weight: bold;
+        }
+        .card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 30px;
+        }
+        .category {
+            color: #8b949e;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        .question-text {
+            font-size: 1.3rem;
+            color: #fff;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        .answers { display: flex; flex-direction: column; gap: 12px; }
+        .answer-btn {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 16px 20px;
+            color: #c9d1d9;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .answer-btn:hover {
+            border-color: #58a6ff;
+            background: #1c2128;
+        }
+        .answer-btn.correct {
+            border-color: #238636;
+            background: rgba(35, 134, 54, 0.2);
+        }
+        .answer-btn.wrong {
+            border-color: #da3633;
+            background: rgba(218, 54, 51, 0.2);
+        }
+        .score-display {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 10px 20px;
+        }
+        .score-display .score { color: #58a6ff; font-size: 1.5rem; font-weight: bold; }
+        .score-display .label { color: #8b949e; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+    <div class="score-display">
+        <div class="score" id="scoreDisplay">0</div>
+        <div class="label">Score</div>
+    </div>
+
+    <div class="container">
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {{ (number / total * 100) }}%"></div>
+        </div>
+
+        <div class="question-info">
+            <span>Question {{ number }} of {{ total }}</span>
+            <span class="timer" id="timer">Time: 10s</span>
+        </div>
+
+        <div class="card">
+            <div class="category">{{ question.category|replace('_', ' ')|title }}</div>
+            <div class="question-text">{{ question.question|safe }}</div>
+
+            <form id="answerForm" action="/answer" method="POST">
+                <input type="hidden" name="answer" id="selectedAnswer">
+                <input type="hidden" name="time_taken" id="timeTaken" value="0">
+                <div class="answers">
+                    {% for answer in question.shuffled_answers %}
+                    <button type="button" class="answer-btn" onclick="selectAnswer(this, '{{ answer }}')">
+                        {{ answer }}
+                    </button>
+                    {% endfor %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let startTime = Date.now();
+        let timeLeft = 10;
+        let timerInterval;
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = `Time: ${timeLeft}s`;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    submitAnswer('');
+                }
+            }, 1000);
+        }
+
+        function selectAnswer(btn, answer) {
+            clearInterval(timerInterval);
+            const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+            document.getElementById('selectedAnswer').value = answer;
+            document.getElementById('timeTaken').value = timeTaken;
+
+            document.querySelectorAll('.answer-btn').forEach(b => b.disabled = true);
+
+            if (answer === '{{ question.correct_answer }}') {
+                btn.classList.add('correct');
+            } else {
+                btn.classList.add('wrong');
+                document.querySelectorAll('.answer-btn').forEach(b => {
+                    if (b.textContent.trim() === '{{ question.correct_answer }}') {
+                        b.classList.add('correct');
+                    }
+                });
+            }
+
+            setTimeout(() => {
+                document.getElementById('answerForm').submit();
+            }, 1500);
+        }
+
+        startTimer();
+    </script>
+</body>
+</html>

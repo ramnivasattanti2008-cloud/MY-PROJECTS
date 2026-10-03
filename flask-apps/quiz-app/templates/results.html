@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Results - Quiz App{% endblock %}
+
+{% block extra_css %}
+<style>
+    .score-display {
+        font-size: 5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #f97316, #fb923c);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 8px;
+    }
+    .result-card {
+        background: linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(234, 88, 12, 0.05));
+        border: 1px solid rgba(249, 115, 22, 0.3);
+    }
+    .action-buttons {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        margin-top: 32px;
+    }
+    .trophy {
+        font-size: 64px;
+        margin-bottom: 16px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 60px 20px;">
+    <div class="card result-card" style="max-width: 500px; margin: 0 auto; text-align: center;">
+        <div class="trophy">
+            {% if percentage >= 80 %}&#127942;
+            {% elif percentage >= 60 %}&#128578;
+            {% elif percentage >= 40 %}&#128528;
+            {% else %}&#128533;
+            {% endif %}
+        </div>
+
+        <h1 style="font-size: 1.5rem; margin-bottom: 8px;">{{ grade }}</h1>
+        <p style="color: #71717a; margin-bottom: 24px;">{{ player_name }}, you scored</p>
+
+        <div class="score-display">{{ score }}/{{ total }}</div>
+        <p style="color: #a1a1aa; margin-bottom: 24px;">{{ percentage|round|int }}% correct</p>
+
+        <div style="display: flex; justify-content: center; gap: 8px; margin-bottom: 32px;">
+            {% for i in range(total) %}
+            <div style="width: 24px; height: 24px; border-radius: 4px; {% if i < score %}background: #22c55e;{% else %}background: #2a2a3a;{% endif %};"></div>
+            {% endfor %}
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; text-align: left; padding: 24px; background: #0f0f14; border-radius: 12px;">
+            <div>
+                <div style="color: #71717a; font-size: 12px;">CORRECT</div>
+                <div style="font-size: 1.5rem; font-weight: 600; color: #22c55e;">{{ score }}</div>
+            </div>
+            <div>
+                <div style="color: #71717a; font-size: 12px;">INCORRECT</div>
+                <div style="font-size: 1.5rem; font-weight: 600; color: #ef4444;">{{ total - score }}</div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <a href="/" class="btn btn-primary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="5 3 19 12 5 21 5 3"/>
+                </svg>
+                Play Again
+            </a>
+            <a href="/leaderboard" class="btn btn-secondary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 20V10M12 20V4M6 20v-6"/>
+                </svg>
+                Leaderboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

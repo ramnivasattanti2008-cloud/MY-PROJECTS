@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whiteboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            padding: 12px 20px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            z-index: 100;
+            border-bottom: 1px solid #2a2a4a;
+            flex-wrap: wrap;
+        }
+        .toolbar h1 {
+            font-size: 1.2rem;
+            background: linear-gradient(90deg, #10b981, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-right: 10px;
+        }
+        .tool-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .divider {
+            width: 1px;
+            height: 30px;
+            background: #2a2a4a;
+        }
+        .tool-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: #2a2a4a;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            color: #b0b0b0;
+        }
+        .tool-btn:hover { background: #3a3a5a; color: #fff; }
+        .tool-btn.active {
+            background: linear-gradient(135deg, #10b981, #06b6d4);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        .tool-btn svg { width: 20px; height: 20px; }
+        .color-picker {
+            display: flex;
+            gap: 6px;
+        }
+        .color-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .color-btn:hover, .color-btn.active {
+            border-color: #fff;
+            transform: scale(1.15);
+        }
+        .size-slider {
+            width: 100px;
+            -webkit-appearance: none;
+            height: 4px;
+            background: #2a2a4a;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        .size-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: linear-gradient(135deg, #10b981, #06b6d4);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .size-preview {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .size-dot {
+            background: #fff;
+            border-radius: 50%;
+            transition: all 0.1s;
+        }
+        .btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #10b981;
+        }
+        .btn-outline:hover { background: rgba(16, 185, 129, 0.2); }
+        .canvas-container {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #121218;
+            display: flex;
+        }
+        #whiteboard {
+            flex: 1;
+            cursor: crosshair;
+            background: #1a1a24;
+            touch-action: none;
+        }
+        .canvas-bg {
+            position: absolute;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: transform 0.3s ease;
+            z-index: 300;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        @media (max-width: 768px) {
+            .toolbar { padding: 8px 12px; gap: 8px; }
+            .tool-btn { width: 36px; height: 36px; }
+            .size-slider { width: 60px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <h1>Whiteboard</h1>
+
+        <div class="tool-group">
+            <button class="tool-btn active" id="penTool" onclick="setTool('pen')" title="Pen">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 19l7-7 3 3-7 7-3-3z"/>
+                    <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>
+                </svg>
+            </button>
+            <button class="tool-btn" id="eraserTool" onclick="setTool('eraser')" title="Eraser">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 20H7L3 16c-.6-.6-.6-1.5 0-2.1l10-10c.6-.6 1.5-.6 2.1 0l6.9 6.9c.6.6.6 1.5 0 2.1L15 20"/>
+                    <path d="M6 11l8 8"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="color-picker">
+            <div class="color-btn active" style="background:#ffffff" data-color="#ffffff"></div>
+            <div class="color-btn" style="background:#ef4444" data-color="#ef4444"></div>
+            <div class="color-btn" style="background:#f59e0b" data-color="#f59e0b"></div>
+            <div class="color-btn" style="background:#10b981" data-color="#10b981"></div>
+            <div class="color-btn" style="background:#3b82f6" data-color="#3b82f6"></div>
+            <div class="color-btn" style="background:#8b5cf6" data-color="#8b5cf6"></div>
+            <div class="color-btn" style="background:#ec4899" data-color="#ec4899"></div>
+            <input type="color" id="customColor" style="width:28px;height:28px;border:none;background:none;cursor:pointer;border-radius:50%;">
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="tool-group">
+            <input type="range" class="size-slider" id="sizeSlider" min="2" max="50" value="4">
+            <div class="size-preview"><div class="size-dot" id="sizeDot"></div></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <button class="btn btn-outline" onclick="undo()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 7v6h6"/><path d="M3 13a9 9 0 1 0 2.5-6.5L3 7"/>
+            </svg>
+            Undo
+        </button>
+        <button class="btn btn-outline" onclick="clearCanvas()">Clear</button>
+        <button class="btn" onclick="saveCanvas()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7,10 12,15 17,10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Save
+        </button>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="whiteboard"></canvas>
+    </div>
+
+    <div class="toast" id="toast">Saved!</div>
+
+    <script>
+        const canvas = document.getElementById('whiteboard');
+        const ctx = canvas.getContext('2d');
+        const sizeSlider = document.getElementById('sizeSlider');
+        const sizeDot = document.getElementById('sizeDot');
+        const toast = document.getElementById('toast');
+        const customColor = document.getElementById('customColor');
+
+        let currentTool = 'pen';
+        let currentColor = '#ffffff';
+        let brushSize = 4;
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        let history = [];
+        let historyIndex = -1;
+
+        function resize() {
+            const container = canvas.parentElement;
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            tempCanvas.getContext('2d').drawImage(canvas, 0, 0);
+
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+
+            // Fill with background
+            ctx.fillStyle = '#1a1a24';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Restore content
+            ctx.drawImage(tempCanvas, 0, 0);
+            updateSizePreview();
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+
+        function updateSizePreview() {
+            sizeDot.style.width = brushSize + 'px';
+            sizeDot.style.height = brushSize + 'px';
+        }
+        updateSizePreview();
+
+        sizeSlider.addEventListener('input', (e) => {
+            brushSize = parseInt(e.target.value);
+            updateSizePreview();
+        });
+
+        const colorBtns = document.querySelectorAll('.color-btn');
+        colorBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                colorBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentColor = btn.dataset.color;
+            });
+        });
+
+        customColor.addEventListener('input', (e) => {
+            colorBtns.forEach(b => b.classList.remove('active'));
+            currentColor = e.target.value;
+        });
+
+        function setTool(tool) {
+            currentTool = tool;
+            document.getElementById('penTool').classList.toggle('active', tool === 'pen');
+            document.getElementById('eraserTool').classList.toggle('active', tool === 'eraser');
+            canvas.style.cursor = tool === 'eraser' ? 'cell' : 'crosshair';
+        }
+
+        function saveState() {
+            historyIndex++;
+            history = history.slice(0, historyIndex);
+            history.push(canvas.toDataURL());
+        }
+
+        function undo() {
+            if (historyIndex > 0) {
+                historyIndex--;
+                loadState(history[historyIndex]);
+                showToast('Undo');
+            }
+        }
+
+        function loadState(state) {
+            const img = new Image();
+            img.onload = () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+            };
+            img.src = state;
+        }
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            if (e.touches) {
+                return {
+                    x: e.touches[0].clientX - rect.left,
+                    y: e.touches[0].clientY - rect.top
+                };
+            }
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+
+        function startDraw(e) {
+            e.preventDefault();
+            isDrawing = true;
+            const pos = getPos(e);
+            lastX = pos.x;
+            lastY = pos.y;
+            saveState();
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+            const pos = getPos(e);
+
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.strokeStyle = currentTool === 'eraser' ? '#1a1a24' : currentColor;
+            ctx.lineWidth = brushSize;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.stroke();
+
+            lastX = pos.x;
+            lastY = pos.y;
+        }
+
+        function stopDraw() {
+            isDrawing = false;
+        }
+
+        canvas.addEventListener('mousedown', startDraw);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDraw);
+        canvas.addEventListener('mouseleave', stopDraw);
+
+        canvas.addEventListener('touchstart', startDraw, { passive: false });
+        canvas.addEventListener('touchmove', draw, { passive: false });
+        canvas.addEventListener('touchend', stopDraw);
+
+        function clearCanvas() {
+            if (confirm('Clear the whiteboard?')) {
+                saveState();
+                ctx.fillStyle = '#1a1a24';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        function saveCanvas() {
+            const link = document.createElement('a');
+            link.download = 'whiteboard-' + Date.now() + '.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            showToast('Image saved!');
+        }
+
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'z') { e.preventDefault(); undo(); }
+            if (e.key === 'e') setTool('eraser');
+            if (e.key === 'p') setTool('pen');
+        });
+
+        // Initial state
+        saveState();
+    </script>
+</body>
+</html>

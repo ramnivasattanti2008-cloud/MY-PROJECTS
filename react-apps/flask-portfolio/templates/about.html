@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}About - Portfolio{% endblock %}
+{% block content %}
+<div class="container">
+    <h1 style="font-size: 2.5rem; margin-bottom: 2rem; color: #00d4ff;">About Me</h1>
+    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 3rem; align-items: start;">
+        <div>
+            <div style="width: 250px; height: 250px; background: linear-gradient(135deg, #1a1a2e, #2a2a4e); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 4rem; margin-bottom: 1.5rem;">👨‍💻</div>
+            <h2 style="margin-bottom: 0.5rem;">John Developer</h2>
+            <p style="color: #00d4ff;">Full-Stack Engineer</p>
+        </div>
+        <div>
+            <p style="margin-bottom: 1.5rem; font-size: 1.1rem;">I am a passionate developer with expertise in building modern web applications. With years of experience in the field, I specialize in creating elegant solutions to complex problems.</p>
+            <h3 style="color: #00d4ff; margin-bottom: 1rem;">Skills</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem;">
+                <span style="background: #1a1a2e; padding: 0.5rem 1rem; border-radius: 20px; border: 1px solid #00d4ff;">Python</span>
+                <span style="background: #1a1a2e; padding: 0.5rem 1rem; border-radius: 20px; border: 1px solid #00d4ff;">JavaScript</span>
+                <span style="background: #1a1a2e; padding: 0.5rem 1rem; border-radius: 20px; border: 1px solid #00d4ff;">React</span>
+                <span style="background: #1a1a2e; padding: 0.5rem 1rem; border-radius: 20px; border: 1px solid #00d4ff;">Flask</span>
+                <span style="background: #1a1a2e; padding: 0.5rem 1rem; border-radius: 20px; border: 1px solid #00d4ff;">PostgreSQL</span>
+            </div>
+            <h3 style="color: #00d4ff; margin-bottom: 1rem;">Experience</h3>
+            <p>5+ years of professional experience in software development, working with startups and enterprise companies alike.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

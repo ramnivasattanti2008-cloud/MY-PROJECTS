@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Counter & Text Analyzer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            font-family: 'Nunito', sans-serif;
+            color: #e2e8f0;
+            padding: 40px 20px;
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeIn 0.8s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #34d399, #06b6d4, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle { color: #64748b; margin-top: 8px; }
+        .editor-container {
+            position: relative;
+            margin-bottom: 24px;
+            animation: fadeIn 0.8s ease 0.1s backwards;
+        }
+        textarea {
+            width: 100%;
+            min-height: 250px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid rgba(52, 211, 153, 0.2);
+            border-radius: 20px;
+            padding: 24px;
+            color: #e2e8f0;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.05rem;
+            line-height: 1.8;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #34d399;
+            box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.1);
+        }
+        textarea::placeholder { color: #475569; }
+        .char-count {
+            position: absolute;
+            bottom: 16px;
+            right: 20px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .stat-card {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(52, 211, 153, 0.15);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            animation: slideUp 0.5s ease backwards;
+        }
+        .stat-card:hover { transform: translateY(-4px); border-color: rgba(52, 211, 153, 0.4); }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .stat-value {
+            font-family: 'Fira Code', monospace;
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #34d399, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .stat-label { font-size: 0.8rem; color: #64748b; margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #94a3b8;
+            margin: 32px 0 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-title::after { content: ''; flex: 1; height: 1px; background: rgba(255, 255, 255, 0.1); }
+        .keywords-container {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(52, 211, 153, 0.15);
+            border-radius: 16px;
+            padding: 20px;
+            animation: fadeIn 0.5s ease;
+        }
+        .keywords-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .keyword-tag {
+            background: linear-gradient(135deg, rgba(52, 211, 153, 0.15), rgba(6, 182, 212, 0.15));
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            color: #6ee7b7;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            animation: popIn 0.3s ease backwards;
+        }
+        .keyword-tag:hover { transform: scale(1.05); background: linear-gradient(135deg, rgba(52, 211, 153, 0.25), rgba(6, 182, 212, 0.25)); }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+        .keyword-count {
+            background: rgba(52, 211, 153, 0.2);
+            border-radius: 10px;
+            padding: 2px 8px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+        }
+        .analysis-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .analysis-card {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(52, 211, 153, 0.15);
+            border-radius: 16px;
+            padding: 20px;
+        }
+        .analysis-label { font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .analysis-value { font-size: 1.1rem; color: #e2e8f0; font-weight: 600; }
+        .progress-bar {
+            height: 8px;
+            background: rgba(52, 211, 153, 0.1);
+            border-radius: 4px;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #34d399, #06b6d4);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        .sentence-viz {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(52, 211, 153, 0.15);
+            border-radius: 16px;
+            padding: 20px;
+            line-height: 2;
+        }
+        .sentence {
+            display: inline;
+        }
+        .sentence.avg { color: #94a3b8; }
+        .sentence.long { color: #fbbf24; }
+        .sentence.short { color: #34d399; }
+        .sentence-tooltip {
+            position: relative;
+            cursor: pointer;
+        }
+        .sentence-tooltip:hover::after {
+            content: attr(data-words) ' words';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            z-index: 10;
+        }
+        .btn-row { display: flex; gap: 12px; margin-top: 24px; }
+        .btn {
+            background: rgba(52, 211, 153, 0.1);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            border-radius: 12px;
+            padding: 12px 24px;
+            color: #34d399;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn:hover { background: rgba(52, 211, 153, 0.2); transform: translateY(-2px); }
+        .btn.primary { background: linear-gradient(135deg, #34d399, #06b6d4); border: none; color: #0f172a; }
+        .btn.primary:hover { box-shadow: 0 10px 30px rgba(52, 211, 153, 0.3); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Word Counter & Text Analyzer</h1>
+            <p class="subtitle">Analyze your text with detailed statistics and insights</p>
+        </header>
+        <div class="editor-container">
+            <textarea id="textInput" placeholder="Paste or type your text here to analyze..."></textarea>
+            <div class="char-count"><span id="charDisplay">0</span> / 10,000</div>
+        </div>
+        <div class="btn-row">
+            <button class="btn primary" onclick="analyzeText()">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                Analyze
+            </button>
+            <button class="btn" onclick="clearText()">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                Clear
+            </button>
+            <button class="btn" onclick="loadSample()">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                Sample Text
+            </button>
+        </div>
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card" style="animation-delay:0.1s">
+                <div class="stat-value" id="words">0</div>
+                <div class="stat-label">Words</div>
+            </div>
+            <div class="stat-card" style="animation-delay:0.15s">
+                <div class="stat-value" id="chars">0</div>
+                <div class="stat-label">Characters</div>
+            </div>
+            <div class="stat-card" style="animation-delay:0.2s">
+                <div class="stat-value" id="sentences">0</div>
+                <div class="stat-label">Sentences</div>
+            </div>
+            <div class="stat-card" style="animation-delay:0.25s">
+                <div class="stat-value" id="paragraphs">0</div>
+                <div class="stat-label">Paragraphs</div>
+            </div>
+            <div class="stat-card" style="animation-delay:0.3s">
+                <div class="stat-value" id="readingTime">0m</div>
+                <div class="stat-label">Reading Time</div>
+            </div>
+            <div class="stat-card" style="animation-delay:0.35s">
+                <div class="stat-value" id="speakingTime">0m</div>
+                <div class="stat-label">Speaking Time</div>
+            </div>
+        </div>
+        <div class="analysis-row">
+            <div class="analysis-card">
+                <div class="analysis-label">Average Word Length</div>
+                <div class="analysis-value" id="avgWordLen">0 characters</div>
+            </div>
+            <div class="analysis-card">
+                <div class="analysis-label">Average Sentence Length</div>
+                <div class="analysis-value" id="avgSentLen">0 words</div>
+                <div class="progress-bar"><div class="progress-fill" id="sentProgress" style="width:0%"></div></div>
+            </div>
+            <div class="analysis-card">
+                <div class="analysis-label">Readability Score</div>
+                <div class="analysis-value" id="readability">-</div>
+            </div>
+        </div>
+        <div class="section-title">Keyword Frequency (Top 15)</div>
+        <div class="keywords-container">
+            <div class="keywords-grid" id="keywords"></div>
+        </div>
+        <div class="section-title">Sentence Analysis</div>
+        <div class="sentence-viz" id="sentenceViz"></div>
+    </div>
+    <script>
+        const sampleText = `The quick brown fox jumps over the lazy dog. This pangram contains every letter of the English alphabet at least once. Pangrams are often used to display typefaces, test keyboards, and create decorative displays.
+
+Text analysis is a fascinating field that combines linguistics, statistics, and computer science. By examining patterns in written content, we can gain insights into authorship, readability, and comprehension levels.
+
+Professional writers carefully consider word choice, sentence structure, and paragraph flow. The best writing appears effortless, yet it requires significant skill and attention to detail.`;
+
+        document.getElementById('textInput').addEventListener('input', function() {
+            document.getElementById('charDisplay').textContent = this.value.length.toLocaleString();
+            if (this.value.length > 50) analyzeText();
+        });
+
+        function analyzeText() {
+            const text = document.getElementById('textInput').value.trim();
+            if (!text) return;
+
+            // Basic counts
+            const words = text.match(/\b[a-zA-Z']+\b/g) || [];
+            const chars = text.replace(/\s/g, '').length;
+            const totalChars = text.length;
+            const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+            const paragraphs = text.split(/\n\n+/).filter(p => p.trim().length > 0);
+
+            // Update stats
+            document.getElementById('words').textContent = words.length.toLocaleString();
+            document.getElementById('chars').textContent = chars.toLocaleString();
+            document.getElementById('sentences').textContent = sentences.length.toLocaleString();
+            document.getElementById('paragraphs').textContent = Math.max(1, paragraphs.length).toLocaleString();
+
+            // Reading times
+            const readingSpeed = 200; // wpm
+            const speakingSpeed = 150; // wpm
+            const readMin = Math.ceil(words.length / readingSpeed);
+            const speakMin = Math.ceil(words.length / speakingSpeed);
+            document.getElementById('readingTime').textContent = readMin < 1 ? '<1m' : `${readMin}m`;
+            document.getElementById('speakingTime').textContent = speakMin < 1 ? '<1m' : `${speakMin}m`;
+
+            // Averages
+            const avgWordLen = words.length ? (words.reduce((a, w) => a + w.length, 0) / words.length).toFixed(1) : 0;
+            const avgSentLen = sentences.length ? Math.round(words.length / sentences.length) : 0;
+            document.getElementById('avgWordLen').textContent = `${avgWordLen} characters`;
+            document.getElementById('avgSentLen').textContent = `${avgSentLen} words`;
+            document.getElementById('sentProgress').style.width = `${Math.min(100, (avgSentLen / 25) * 100)}%`;
+
+            // Readability (simplified)
+            let readability = '-';
+            if (avgSentLen > 0) {
+                if (avgSentLen <= 10) readability = 'Very Easy';
+                else if (avgSentLen <= 15) readability = 'Easy';
+                else if (avgSentLen <= 20) readability = 'Standard';
+                else if (avgSentLen <= 25) readability = 'Moderate';
+                else if (avgSentLen <= 30) readability = 'Complex';
+                else readability = 'Very Complex';
+            }
+            document.getElementById('readability').textContent = readability;
+
+            // Keywords
+            const wordFreq = {};
+            const stopWords = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'can', 'this', 'that', 'these', 'those', 'it', 'its'];
+            words.forEach(w => {
+                const lower = w.toLowerCase();
+                if (!stopWords.includes(lower) && w.length > 2) {
+                    wordFreq[lower] = (wordFreq[lower] || 0) + 1;
+                }
+            });
+            const sorted = Object.entries(wordFreq).sort((a, b) => b[1] - a[1]).slice(0, 15);
+            const keywordsEl = document.getElementById('keywords');
+            keywordsEl.innerHTML = sorted.map(([word, count], i) => `
+                <div class="keyword-tag" style="animation-delay:${i * 0.03}s">
+                    ${word}
+                    <span class="keyword-count">${count}</span>
+                </div>
+            `).join('');
+
+            // Sentence visualization
+            const sentViz = document.getElementById('sentenceViz');
+            sentViz.innerHTML = sentences.map(s => {
+                const wordCount = s.trim().split(/\s+/).length;
+                let cls = 'avg';
+                if (wordCount < 10) cls = 'short';
+                else if (wordCount > 20) cls = 'long';
+                return `<span class="sentence ${cls} sentence-tooltip" data-words="${wordCount}">${s.trim()}.</span> `;
+            }).join('');
+        }
+
+        function clearText() {
+            document.getElementById('textInput').value = '';
+            document.getElementById('charDisplay').textContent = '0';
+            document.getElementById('words').textContent = '0';
+            document.getElementById('chars').textContent = '0';
+            document.getElementById('sentences').textContent = '0';
+            document.getElementById('paragraphs').textContent = '0';
+            document.getElementById('readingTime').textContent = '0m';
+            document.getElementById('speakingTime').textContent = '0m';
+            document.getElementById('avgWordLen').textContent = '0 characters';
+            document.getElementById('avgSentLen').textContent = '0 words';
+            document.getElementById('readability').textContent = '-';
+            document.getElementById('sentProgress').style.width = '0%';
+            document.getElementById('keywords').innerHTML = '';
+            document.getElementById('sentenceViz').innerHTML = '';
+        }
+
+        function loadSample() {
+            document.getElementById('textInput').value = sampleText;
+            document.getElementById('charDisplay').textContent = sampleText.length.toLocaleString();
+            analyzeText();
+        }
+    </script>
+</body>
+</html>

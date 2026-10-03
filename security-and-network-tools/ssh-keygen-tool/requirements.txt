@@ -1,0 +1,7 @@
+# ssh-keygen-tool requirements
+
+# Optional - for Python-based key generation (fallback if ssh-keygen unavailable)
+paramiko>=3.0.0
+
+# Optional - for more cryptographic operations
+# cryptography>=41.0.0

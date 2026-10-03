@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Statistics - API Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+    .bar-item { margin-bottom: 16px; }
+    .bar-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+    .bar-track { height: 8px; background: #1f1f2e; border-radius: 4px; overflow: hidden; }
+    .bar-fill { height: 100%; background: #10b981; border-radius: 4px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Statistics</h1>
+</div>
+
+<div class="chart-grid">
+    <div class="card">
+        <h3 style="font-size: 1rem; margin-bottom: 20px;">Top Endpoints</h3>
+        {% if top_endpoints %}
+            {% for endpoint in top_endpoints %}
+            <div class="bar-item">
+                <div class="bar-header">
+                    <span class="code">{{ endpoint.endpoint }}</span>
+                    <span style="color: #10b981;">{{ endpoint.requests }} requests</span>
+                </div>
+                <div class="bar-track">
+                    <div class="bar-fill" style="width: {{ (endpoint.requests / top_endpoints[0].requests * 100)|round }}%;"></div>
+                </div>
+                <div style="font-size: 12px; color: #71717a; margin-top: 4px;">Avg: {{ endpoint.avg_time|round|int }}ms</div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="color: #71717a;">No endpoint data</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h3 style="font-size: 1rem; margin-bottom: 20px;">Top IPs</h3>
+        {% if top_ips %}
+            {% for ip in top_ips %}
+            <div class="bar-item">
+                <div class="bar-header">
+                    <span class="code" style="color: #a1a1aa;">{{ ip.ip_address }}</span>
+                    <span style="color: #10b981;">{{ ip.requests }} requests</span>
+                </div>
+                <div class="bar-track">
+                    <div class="bar-fill" style="width: {{ (ip.requests / top_ips[0].requests * 100)|round }}%;"></div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="color: #71717a;">No IP data</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card" style="margin-top: 24px;">
+    <h3 style="font-size: 1rem; margin-bottom: 20px;">Daily Requests (Last 30 Days)</h3>
+    {% if daily_requests %}
+    <div style="overflow-x: auto;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Requests</th>
+                    <th>Avg Response Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for day in daily_requests %}
+                <tr>
+                    <td>{{ day.date }}</td>
+                    <td style="color: #10b981;">{{ day.requests }}</td>
+                    <td>{{ day.avg_time|round|int }}ms</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p style="color: #71717a;">No daily data</p>
+    {% endif %}
+</div>
+{% endblock %}

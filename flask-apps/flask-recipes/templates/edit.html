@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Recipe</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #fef7f0; min-height: 100vh; }
+        .container { max-width: 700px; margin: 0 auto; padding: 2rem; }
+        header { background: #ea580c; color: white; padding: 1.5rem 0; margin-bottom: 2rem; }
+        header h1 { text-align: center; }
+        .form-card { background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; font-weight: 600; color: #374151; margin-bottom: 0.5rem; }
+        input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 0.75rem; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 1rem; font-family: inherit; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #ea580c; }
+        textarea { resize: vertical; min-height: 120px; }
+        .hint { font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem; }
+        .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+        .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; }
+        .btn-primary { background: #ea580c; color: white; }
+        .btn-secondary { background: #6b7280; color: white; text-decoration: none; display: inline-block; }
+        .actions { display: flex; gap: 1rem; margin-top: 1.5rem; }
+        .back-link { display: inline-block; margin-bottom: 1rem; color: #ea580c; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <header><h1>Edit Recipe</h1></header>
+    <div class="container">
+        <a href="{{ url_for('detail', recipe_id=recipe.id) }}" class="back-link">Back to Recipe</a>
+        <div class="form-card">
+            <form method="POST">
+                <div class="form-group">
+                    <label for="name">Recipe Name</label>
+                    <input type="text" id="name" name="name" value="{{ recipe.name }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description">{{ recipe.description or '' }}</textarea>
+                </div>
+
+                <div class="row">
+                    <div class="form-group">
+                        <label for="cuisine">Cuisine</label>
+                        <select id="cuisine" name="cuisine">
+                            <option value="">Select</option>
+                            {% for c in cuisines %}
+                            <option value="{{ c }}" {% if recipe.cuisine == c %}selected{% endif %}>{{ c }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category">Category</label>
+                        <select id="category" name="category">
+                            <option value="">Select</option>
+                            {% for c in categories %}
+                            <option value="{{ c }}" {% if recipe.category == c %}selected{% endif %}>{{ c }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="servings">Servings</label>
+                        <input type="number" id="servings" name="servings" min="1" value="{{ recipe.servings or '' }}">
+                    </div>
+                </div>
+
+                <div class="row-2">
+                    <div class="form-group">
+                        <label for="prep_time">Prep Time (minutes)</label>
+                        <input type="number" id="prep_time" name="prep_time" min="0" value="{{ recipe.prep_time or '' }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cook_time">Cook Time (minutes)</label>
+                        <input type="number" id="cook_time" name="cook_time" min="0" value="{{ recipe.cook_time or '' }}">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="ingredients">Ingredients</label>
+                    <textarea id="ingredients" name="ingredients">{{ ingredients_text }}</textarea>
+                    <p class="hint">One ingredient per line. Format: amount: ingredient name</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="instructions">Instructions</label>
+                    <textarea id="instructions" name="instructions">{{ recipe.instructions or '' }}</textarea>
+                </div>
+
+                <div class="actions">
+                    <button type="submit" class="btn btn-primary">Update Recipe</button>
+                    <a href="{{ url_for('detail', recipe_id=recipe.id) }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,2 @@
+# No external dependencies required - uses only Python standard library
+# The visualization is rendered in HTML using Chart.js (loaded from CDN)

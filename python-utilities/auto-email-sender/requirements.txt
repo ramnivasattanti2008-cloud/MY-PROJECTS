@@ -1,0 +1,14 @@
+# Auto Email Sender - Requirements
+# Install with: pip install -r requirements.txt
+
+# Standard library modules used:
+# - smtplib (built-in)
+# - email (built-in)
+# - json (built-in)
+# - os (built-in)
+# - pathlib (built-in)
+
+# Optional: For secure password storage
+# pip install keyring
+# Uncomment the following if you want keyring support:
+# keyring>=23.0.0

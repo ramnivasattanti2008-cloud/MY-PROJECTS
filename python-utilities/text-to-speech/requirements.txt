@@ -1,0 +1,2 @@
+# Text to Speech - Requirements
+gtts>=2.3.0       # Google Text-to-Speech

@@ -1,0 +1,7 @@
+# WiFi Passwords - Requirements
+# Install with: pip install -r requirements.txt
+
+# This script uses built-in Windows commands (netsh, PowerShell)
+# No additional Python packages required!
+
+# However, if you want JSON output, Python 3.7+ is recommended (built-in json module)

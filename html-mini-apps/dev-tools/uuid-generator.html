@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UUID Generator</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0d0d0d; color: #e0e0e0; min-height: 100vh; padding: 40px 20px; }
+.container { max-width: 700px; margin: 0 auto; }
+h1 { font-size: 2rem; margin-bottom: 8px; color: #fff; }
+.subtitle { color: #888; margin-bottom: 32px; }
+.card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+.label { font-size: 0.8rem; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.format-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+.format-btn { padding: 8px 16px; background: #252525; border: 1px solid #333; border-radius: 6px; color: #ccc; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; }
+.format-btn:hover { background: #2a2a2a; border-color: #444; }
+.format-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+.uuid-display { background: #111; border: 1px solid #333; border-radius: 8px; padding: 16px; font-family: 'Consolas', monospace; font-size: 1.1rem; word-break: break-all; color: #10b981; margin-bottom: 16px; min-height: 60px; display: flex; align-items: center; }
+.btn-row { display: flex; gap: 10px; }
+.btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.95rem; font-weight: 500; transition: all 0.2s; }
+.btn-primary { background: #3b82f6; color: #fff; }
+.btn-primary:hover { background: #2563eb; }
+.btn-secondary { background: #252525; color: #ccc; border: 1px solid #333; }
+.btn-secondary:hover { background: #2a2a2a; }
+.history-title { font-size: 0.8rem; color: #888; text-transform: uppercase; letter-spacing: 1px; margin: 24px 0 12px; }
+.history-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #151515; border-radius: 6px; margin-bottom: 6px; cursor: pointer; transition: background 0.2s; }
+.history-item:hover { background: #1f1f1f; }
+.history-item span { font-family: 'Consolas', monospace; font-size: 0.85rem; color: #10b981; }
+.history-item small { color: #666; font-size: 0.75rem; }
+.copy-btn { padding: 4px 10px; font-size: 0.75rem; background: #333; color: #aaa; border: none; border-radius: 4px; cursor: pointer; }
+.copy-btn:hover { background: #444; }
+.copied { color: #10b981 !important; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>UUID Generator</h1>
+<p class="subtitle">Generate unique identifiers in multiple formats</p>
+
+<div class="card">
+<div class="label">Format</div>
+<div class="format-row">
+<button class="format-btn active" data-format="v4">UUID v4</button>
+<button class="format-btn" data-format="v1">UUID v1</button>
+<button class="format-btn" data-format="v7">UUID v7</button>
+<button class="format-btn" data-format="nil">Nil UUID</button>
+</div>
+<div class="uuid-display" id="uuidDisplay">Click Generate to create a UUID</div>
+<div class="btn-row">
+<button class="btn btn-primary" id="generateBtn">Generate</button>
+<button class="btn btn-secondary" id="copyBtn">Copy to Clipboard</button>
+</div>
+</div>
+
+<div class="history-title">History</div>
+<div id="historyList"></div>
+</div>
+
+<script>
+const { jsPDF } = window.jspdf || {};
+let currentFormat = 'v4';
+let history = JSON.parse(localStorage.getItem('uuidHistory') || '[]');
+const display = document.getElementById('uuidDisplay');
+const generateBtn = document.getElementById('generateBtn');
+const copyBtn = document.getElementById('copyBtn');
+const historyList = document.getElementById('historyList');
+const formatBtns = document.querySelectorAll('.format-btn');
+
+function generateV4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0;
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+}
+
+function generateV1() {
+    const s = [];
+    for (let i = 0; i < 8; i++) s[i] = Math.floor(Math.random() * 256);
+    s[0] |= 0x01;
+    const hex = s.map(b => b.toString(16).padStart(2, '0')).join('');
+    const segments = [hex.slice(0,8), hex.slice(8,12), '1' + hex.slice(12,15), ((parseInt(hex.slice(15,16), 16) & 0x3) | 0x8).toString(16) + hex.slice(16,19), hex.slice(19)];
+    return segments.join('-');
+}
+
+function generateV7() {
+    const ts = Date.now();
+    const tsHex = ts.toString(16).padStart(12, '0');
+    const rand = [];
+    for (let i = 0; i < 10; i++) rand.push(Math.floor(Math.random() * 256));
+    rand[0] = (rand[0] & 0x0f) | 0x70;
+    rand[6] = (rand[6] & 0x3f) | 0x80;
+    const randHex = rand.map(b => b.toString(16).padStart(2, '0')).join('');
+    return `${tsHex.slice(0,8)}-${tsHex.slice(8,12)}-7${randHex.slice(0,3)}-${((rand[6] & 0xc0) | 0x80).toString(16)}${randHex.slice(4,7)}-${randHex.slice(7)}`;
+}
+
+function generateNil() {
+    return '00000000-0000-0000-0000-000000000000';
+}
+
+function generate() {
+    let uuid;
+    switch(currentFormat) {
+        case 'v1': uuid = generateV1(); break;
+        case 'v7': uuid = generateV7(); break;
+        case 'nil': uuid = generateNil(); break;
+        default: uuid = generateV4();
+    }
+    display.textContent = uuid;
+    addToHistory(uuid);
+}
+
+function addToHistory(uuid) {
+    history.unshift({ uuid, time: new Date().toLocaleTimeString() });
+    if (history.length > 10) history.pop();
+    localStorage.setItem('uuidHistory', JSON.stringify(history));
+    renderHistory();
+}
+
+function renderHistory() {
+    historyList.innerHTML = history.map((h, i) => `
+        <div class="history-item" onclick="copyUUID('${h.uuid}', this)">
+            <span>${h.uuid}</span>
+            <div style="display:flex;gap:8px;align-items:center">
+                <small>${h.time}</small>
+                <button class="copy-btn" onclick="event.stopPropagation();copyUUID('${h.uuid}', this)">Copy</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function copyUUID(uuid, el) {
+    await navigator.clipboard.writeText(uuid);
+    el.classList.add('copied');
+    const btn = el.querySelector('.copy-btn');
+    if (btn) btn.textContent = 'Copied!';
+    setTimeout(() => {
+        el.classList.remove('copied');
+        if (btn) btn.textContent = 'Copy';
+    }, 1500);
+}
+
+formatBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        formatBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFormat = btn.dataset.format;
+    });
+});
+
+generateBtn.addEventListener('click', generate);
+copyBtn.addEventListener('click', () => {
+    const text = display.textContent;
+    if (text && text.length > 10) copyUUID(text, display);
+});
+renderHistory();
+</script>
+</body>
+</html>

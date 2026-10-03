@@ -1,0 +1,60 @@
+---
+title: "Implementing Dark Mode with Tailwind CSS"
+date: "2024-01-10"
+excerpt: "A comprehensive guide to implementing dark mode in your web applications using Tailwind CSS."
+category: "Tutorial"
+readingTime: "6 min read"
+---
+
+# Implementing Dark Mode with Tailwind CSS
+
+Dark mode has become an essential feature in modern web applications. Learn how to implement it seamlessly with Tailwind CSS.
+
+## Why Dark Mode?
+
+Dark mode offers several benefits:
+
+- **Reduced eye strain** in low-light conditions
+- **Battery savings** on OLED screens
+- **Modern aesthetic** appeal
+- **Accessibility** for users with light sensitivity
+
+## Setting Up Dark Mode
+
+First, configure Tailwind to enable dark mode:
+
+```javascript
+// tailwind.config.js
+module.exports = {
+  darkMode: 'class',
+  // ...
+}
+```
+
+## Using Dark Mode Classes
+
+Apply dark mode styles using the `dark:` prefix:
+
+```html
+<div class="bg-white dark:bg-gray-900">
+  <h1 class="text-gray-900 dark:text-white">Hello</h1>
+</div>
+```
+
+## Implementing the Toggle
+
+Create a toggle button to switch between modes:
+
+```typescript
+function toggleDarkMode() {
+  document.documentElement.classList.toggle('dark');
+}
+```
+
+## Best Practices
+
+1. Always respect the user's system preference
+2. Test your design in both modes
+3. Use semantic colors, not just gray scales
+
+Start implementing dark mode today and improve your users' experience!
